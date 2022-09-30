@@ -1,6 +1,6 @@
 # Luminous
 
-**A dashboard framework for Phoenix Live View**
+**This is work in progress. Everything is subject to change**
 
 ## Installation
 
