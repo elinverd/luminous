@@ -1,3 +1,5 @@
+[![test](https://github.com/elinverd/luminous/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/elinverd/luminous/actions/workflows/test.yml)
+
 # Luminous
 
 **This is work in progress. Everything is subject to change**
