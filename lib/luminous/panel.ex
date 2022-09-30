@@ -47,7 +47,7 @@ defmodule Luminous.Panel do
       type: type,
       queries: queries,
       description: Keyword.get(opts, :description),
-      hook: Keyword.get(opts, :hook, "PanelChartJSHook"),
+      hook: Keyword.get(opts, :hook, "ChartJSHook"),
       unit: Keyword.get(opts, :unit),
       ylabel: Keyword.get(opts, :ylabel),
       xlabel: Keyword.get(opts, :xlabel),

@@ -24,3 +24,9 @@ luminous-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# The directory NPM downloads your dependencies sources to.
+/assets/node_modules/
+
+# do not store compiled assets
+/priv/static/assets

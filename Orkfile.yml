@@ -1,0 +1,19 @@
+global:
+  default: test
+
+tasks:
+  - name: test
+    description: run all the tests
+    actions:
+      - mix test
+
+  - name: deps
+    description: fetch all dependencies
+    actions:
+      - mix deps.get
+      - npm install --prefix ./assets
+
+  - name: dev
+    description: run the dev server
+    actions:
+      - mix dev
