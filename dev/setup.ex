@@ -32,7 +32,7 @@ defmodule Luminous.Endpoint do
   socket("/live", Phoenix.LiveView.Socket)
 
   if code_reloading? do
-    socket("/phoenix/live_reload/socket", Luminous.Socket)
+    socket("/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket)
     plug(Phoenix.LiveReloader)
     plug(Phoenix.CodeReloader)
   end

@@ -4,7 +4,8 @@
 
 Task.async(fn ->
   children = [
-    Luminous.Endpoint
+    Luminous.Endpoint,
+    {Phoenix.PubSub, name: Luminous.PubSub}
   ]
 
   {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)

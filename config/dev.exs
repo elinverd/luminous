@@ -9,6 +9,7 @@ config :luminous, Luminous.Endpoint,
   code_reloader: true,
   debug_errors: true,
   check_origin: false,
+  pubsub_server: Luminous.PubSub,
   live_reload: [
     patterns: [
       ~r"priv/static/assets/.*(js|css|png|jpeg|jpg|gif|svg)$",
