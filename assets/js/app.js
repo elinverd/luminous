@@ -3,6 +3,8 @@ import "phoenix_html"
 import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 
+import 'alpinejs'
+
 import ChartJSHook from "./components/chartjs_hook"
 import TimeRangeHook from "./components/time_range_hook"
 
@@ -13,8 +15,15 @@ let Hooks = {
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
-    params: { _csrf_token: csrfToken },
-    hooks: Hooks
+  dom: {
+    onBeforeElUpdated(from, to) {
+      if (from.__x) {
+        window.Alpine.clone(from.__x, to)
+      }
+    }
+  },
+  params: { _csrf_token: csrfToken },
+  hooks: Hooks
 })
 
 // connect if there are any LiveViews on the page
