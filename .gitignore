@@ -30,3 +30,8 @@ luminous-*.tar
 
 # do not store compiled assets
 /priv/static/assets
+
+# include dist files
+/dist/*
+!/dist/luminous.js
+!/dist/luminous.css

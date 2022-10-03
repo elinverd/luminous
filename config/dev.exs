@@ -18,25 +18,8 @@ config :luminous, Luminous.Endpoint,
     ]
   ],
   watchers: [
-    # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    npx: [
-      "tailwindcss",
-      "--input=css/app.css",
-      "--output=../priv/static/assets/app.css",
-      "--postcss",
-      "--watch",
-      cd: Path.expand("../assets", __DIR__)
-    ]
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
 config :phoenix, serve_endpoints: true
-
-# Configure esbuild (the version is required)
-config :esbuild,
-  version: "0.12.18",
-  default: [
-    args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
-    cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
-  ]

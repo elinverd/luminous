@@ -30,12 +30,13 @@ defmodule Luminous.MixProject do
       # production dependencies
       {:decimal, "~> 2.0"},
       {:jason, "~> 1.2"},
-      {:phoenix_live_view, "~> 0.17.12"},
+      {:phoenix_live_view, "~> 0.17.0"},
       {:tzdata, "~> 1.1"},
 
       # dev & test dependencies
+      {:tailwind, "~> 0.1.8", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
       {:plug_cowboy, "~> 2.0", only: :dev},
-      {:esbuild, "~> 0.5", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:floki, ">= 0.30.0", only: :test}
     ]
@@ -44,7 +45,8 @@ defmodule Luminous.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "cmd --cd assets npm install"],
-      dev: "run --no-halt dev/run.exs"
+      dev: "run --no-halt dev/run.exs",
+      "assets.build": ["esbuild dist", "tailwind dist"]
     ]
   end
 end

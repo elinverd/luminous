@@ -47,7 +47,7 @@ defmodule Luminous.Endpoint do
     at: "/",
     from: :luminous,
     gzip: false,
-    only: ~w(assets fonts images favicon.ico robots.txt)
+    only: ~w(assets)
   )
 
   plug(Luminous.Router)
