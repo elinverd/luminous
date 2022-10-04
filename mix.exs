@@ -9,7 +9,8 @@ defmodule Luminous.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      package: package()
     ]
   end
 
@@ -47,6 +48,15 @@ defmodule Luminous.MixProject do
       setup: ["deps.get", "cmd --cd assets npm install"],
       dev: "run --no-halt dev/run.exs",
       "assets.build": ["esbuild dist"]
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["Kyriakos Kentzoglanakis", "Thanasis Karetsos"],
+      licenses: ["MIT"],
+      links: %{github: "https://github.com/elinverd/luminous"},
+      files: ~w(dist lib mix.exs README.md)
     ]
   end
 end
