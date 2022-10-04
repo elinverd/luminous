@@ -3,7 +3,7 @@ const colors = require('tailwindcss/colors')
 
 module.exports = {
   mode: "jit",
-  content: ["./js/*.js", "../lib/luminous/components.ex"],
+  content: ["../lib/luminous/components.ex"],
   darkMode: 'media', // or 'media' or 'class'
   corePlugins: {
     textOpacity: false,
