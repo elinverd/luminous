@@ -1,5 +1,4 @@
 defmodule Luminous.Dashboards.TestDashboardLive do
-  use Phoenix.LiveView
   alias Luminous.Router.Helpers, as: Routes
   alias Luminous.{Variable, Query, Dashboard, TimeRange, Components}
 

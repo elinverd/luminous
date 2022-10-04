@@ -2,6 +2,8 @@ defmodule Luminous.Live do
   @doc false
   defmacro __using__(dashboard: dashboard) do
     quote do
+      use Phoenix.LiveView
+
       alias Luminous.{
         Dashboard,
         Components,
