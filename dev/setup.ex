@@ -10,7 +10,8 @@ defmodule Luminous.Router do
   scope "/", Luminous do
     pipe_through(:browser)
 
-    live("/dashboard/test", Dashboards.TestDashboardLive, :index)
+    live("/test", Dashboards.TestDashboardLive, :index)
+    live("/demo", Dashboards.DemoDashboardLive, :index)
   end
 end
 

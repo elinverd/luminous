@@ -64,7 +64,7 @@ defmodule Luminous.Query do
 
       stats =
         Enum.reduce(dataset.rows, init_stats, fn %{y: y}, stats ->
-          y = unless is_nil(y), do: Decimal.new(y)
+          {:ok, y} = unless is_nil(y), do: Decimal.cast(y), else: {:ok, y}
           min = Map.fetch!(stats, :min) || y
           max = Map.fetch!(stats, :max) || y
           sum = Map.fetch!(stats, :sum)

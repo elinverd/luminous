@@ -1,5 +1,4 @@
 defmodule Luminous do
-  @moduledoc """
-  Documentation for `Luminous`.
-  """
+  @external_resource "README.md"
+  @moduledoc File.read!(@external_resource)
 end

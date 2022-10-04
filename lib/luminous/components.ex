@@ -152,7 +152,7 @@ defmodule Luminous.Components do
 
       <div class="w-full">
         <%= if stat_data = stats[panel.id] do %>
-          <div id={"#{panel_id(panel)}-stat-values"} class="flex flex-row items-center justify-center ">
+          <div id={"#{panel_id(panel)}-stat-values"} class="flex flex-row items-center justify-center space-x-8">
             <%= for stat <- stat_data.values do %>
               <div class="flex flex-col items-center">
                 <%= if is_nil(stat) do %>
