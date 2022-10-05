@@ -6,7 +6,7 @@ Luminous is a framework for creating dashboards within [Phoenix Live
 Views](https://www.phoenixframework.org/). It is somewhat inspired by
 grafana both conceptually and functionally in that:
 
-- it focuses on time series data
+- it focuses on time series data (albeit not exclusively)
 - it is organized around panels
 - it is parameterized by a time range
 - it can be parameterized by user-defined variables
@@ -114,6 +114,10 @@ showcases some of Luminous' capabilities.
 The demo can be inspected live using the project's dev server (run
 `mix dev` in the project and then visit [this
 page](http://localhost:5000/demo)).
+
+Luminous is a framework in the sense that the luminous client is
+responsible for specifying queries, variables etc. and `Luminous.Live`
+will call the client's code by setting up all the required plumbing.
 
 In general, a custom dashboard needs to:
 
