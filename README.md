@@ -47,7 +47,7 @@ While this assumption may change in the future, the fact is that the
 first two libraries (tailwind and alpine) are pretty standard in
 phoenix live view apps. Daisyui can be added in `assets/package.json`:
 
-```json
+```javascript
 {
     ...
     "dependencies": {
@@ -62,7 +62,7 @@ and installed using `cd assets && npm install`.
 
 Then in `assets/tailwind.config.js`:
 
-```json
+```javascript
 ...
 module.exports = {
     ...
