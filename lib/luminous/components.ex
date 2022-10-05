@@ -1,7 +1,3 @@
-defimpl Phoenix.HTML.Safe, for: Decimal do
-  def to_iodata(data), do: Decimal.to_string(data)
-end
-
 defmodule Luminous.Components do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
@@ -158,7 +154,7 @@ defmodule Luminous.Components do
                 <%= if is_nil(stat) do %>
                   <span class="text-4xl font-bold">-</span>
                 <% else %>
-                  <div><span class="text-4xl font-bold"><%= stat %></span> <span class="text-2xl font-semibold"><%= stat_data.unit %></span></div>
+                  <div><span class="text-4xl font-bold"><%= print_number(stat) %></span> <span class="text-2xl font-semibold"><%= stat_data.unit %></span></div>
                 <% end %>
 
                 <%= unless is_nil(stat_data.ylabel) do %>
@@ -195,10 +191,10 @@ defmodule Luminous.Components do
       <%= for var <- statistics do %>
         <div class="col-span-5 truncate"><%= var.label %></div>
         <div><%= var.n %></div>
-        <div><%= var.min %></div>
-        <div><%= var.max %></div>
-        <div><%= var.avg %></div>
-        <div><%= var.sum %></div>
+        <div><%= print_number(var.min) %></div>
+        <div><%= print_number(var.max) %></div>
+        <div><%= print_number(var.avg) %></div>
+        <div><%= print_number(var.sum) %></div>
       <% end %>
     </div>
     """
@@ -307,4 +303,14 @@ defmodule Luminous.Components do
   end
 
   def panel_id(panel), do: "panel-#{panel.id}"
+
+  defp print_number(n) do
+    case n do
+      %Decimal{} = n ->
+        Decimal.to_string(n)
+
+      _ ->
+        n
+    end
+  end
 end

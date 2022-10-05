@@ -28,7 +28,7 @@ defmodule Luminous.Dashboards.TestDashboardLive do
       if DateTime.compare(time_range.to, ~U[2022-09-24T20:59:59Z]) == :eq do
         Query.Result.new(666)
       else
-        Query.Result.new(0)
+        Query.Result.new(Decimal.new(0))
       end
     end
   end
