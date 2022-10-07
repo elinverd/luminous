@@ -11,7 +11,7 @@ defmodule Luminous.Query do
     that has a label and a type (for visualization)
     """
     @type type :: :line | :bar
-    @type row :: %{y: any()} | %{x: any(), y: any()}
+    @type row :: %{y: Decimal.t()} | %{x: any(), y: Decimal.t()}
     @type t :: %__MODULE__{
             rows: [row()],
             label: binary(),
@@ -64,7 +64,6 @@ defmodule Luminous.Query do
 
       stats =
         Enum.reduce(dataset.rows, init_stats, fn %{y: y}, stats ->
-          {:ok, y} = unless is_nil(y), do: Decimal.cast(y), else: {:ok, y}
           min = Map.fetch!(stats, :min) || y
           max = Map.fetch!(stats, :max) || y
           sum = Map.fetch!(stats, :sum)
@@ -201,9 +200,9 @@ defmodule Luminous.Query do
                         "Failed to transform query result: no `time` field in row. If this is not a time series, then `time_series?: false` needs to be passed to `Query.Result.new/2"
                       )
 
-                  %{x: DateTime.to_unix(time, :millisecond), y: value}
+                  %{x: DateTime.to_unix(time, :millisecond), y: convert_to_decimal(value)}
                 else
-                  %{y: value}
+                  %{y: convert_to_decimal(value)}
                 end
 
               nil ->
@@ -223,7 +222,8 @@ defmodule Luminous.Query do
       |> Enum.sort_by(fn dataset -> order[dataset.label] end)
     end
 
-    def transform(%__MODULE__{rows: value}), do: [DataSet.new([%{y: value}], nil)]
+    def transform(%__MODULE__{rows: value}),
+      do: [DataSet.new([%{y: convert_to_decimal(value)}], nil)]
 
     defp extract_labels(rows) when is_list(rows) do
       rows
@@ -233,6 +233,15 @@ defmodule Luminous.Query do
         |> Enum.reject(&(&1 == :time))
       end)
       |> Enum.uniq()
+    end
+
+    defp convert_to_decimal(nil), do: nil
+
+    defp convert_to_decimal(value) do
+      case Decimal.cast(value) do
+        {:ok, dec} -> dec
+        _ -> raise "failed to convert #{inspect(value)} to Decimal"
+      end
     end
   end
 

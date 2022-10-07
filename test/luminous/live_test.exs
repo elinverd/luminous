@@ -13,13 +13,19 @@ defmodule Luminous.LiveTest do
         datasets: [
           %Query.DataSet{
             label: "foo",
-            rows: [%{x: 1_660_903_200_000, y: 10}, %{x: 1_660_906_800_000, y: 11}],
+            rows: [
+              %{x: 1_660_903_200_000, y: Decimal.new(10)},
+              %{x: 1_660_906_800_000, y: Decimal.new(11)}
+            ],
             type: :line,
             fill: true
           },
           %Query.DataSet{
             label: "bar",
-            rows: [%{x: 1_660_903_200_000, y: 100}, %{x: 1_660_906_800_000, y: 101}],
+            rows: [
+              %{x: 1_660_903_200_000, y: Decimal.new(100)},
+              %{x: 1_660_906_800_000, y: Decimal.new(101)}
+            ],
             type: :bar,
             fill: true
           }

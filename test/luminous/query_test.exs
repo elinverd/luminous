@@ -29,6 +29,12 @@ defmodule Luminous.QueryTest do
       )
     end
 
+    def query(:null, _time_range, _variables) do
+      Query.Result.new([
+        [{:time, ~U[2022-08-03T00:00:00Z]}, {:l1, 1}, {:l2, nil}]
+      ])
+    end
+
     def query(:single_stat, _time_range, _variables), do: Query.Result.new(666)
 
     def query(:multiple_stats, _time_range, _variables) do
@@ -37,7 +43,7 @@ defmodule Luminous.QueryTest do
     end
   end
 
-  describe "execute and transform" do
+  describe "Query.Result" do
     test "fetches and transforms the data from the actual query" do
       results =
         :normal
@@ -48,19 +54,23 @@ defmodule Luminous.QueryTest do
       t1 = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
       t2 = DateTime.to_unix(~U[2022-08-04T00:00:00Z], :millisecond)
 
+      expected_d1 = [%{x: t1, y: Decimal.new(1)}, %{x: t2, y: Decimal.new(2)}]
+      expected_d2 = [%{x: t1, y: Decimal.new(11)}, %{x: t2, y: Decimal.new(12)}]
+      expected_d3 = [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}]
+
       assert [
                %Query.DataSet{
-                 rows: [%{x: ^t1, y: 1}, %{x: ^t2, y: 2}],
+                 rows: ^expected_d1,
                  label: "l1",
                  type: :line
                },
                %Query.DataSet{
-                 rows: [%{x: ^t1, y: 11}, %{x: ^t2, y: 12}],
+                 rows: ^expected_d2,
                  label: "l2",
                  type: :line
                },
                %Query.DataSet{
-                 rows: [%{x: ^t1, y: 111}, %{x: ^t2, y: 112}],
+                 rows: ^expected_d3,
                  label: "l3",
                  type: :line
                }
@@ -77,21 +87,51 @@ defmodule Luminous.QueryTest do
       t1 = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
       t2 = DateTime.to_unix(~U[2022-08-04T00:00:00Z], :millisecond)
 
+      expected_d1 = [%{x: t1, y: Decimal.new(1)}]
+      expected_d2 = [%{x: t2, y: Decimal.new(12)}]
+      expected_d3 = [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}]
+
       assert [
                %Query.DataSet{
-                 rows: [%{x: ^t1, y: 1}],
+                 rows: ^expected_d1,
                  label: "l1",
                  type: :bar
                },
                %Query.DataSet{
-                 rows: [%{x: ^t2, y: 12}],
+                 rows: ^expected_d2,
                  label: "l2",
                  type: :line
                },
                %Query.DataSet{
-                 rows: [%{x: ^t1, y: 111}, %{x: ^t2, y: 112}],
+                 rows: ^expected_d3,
                  label: "l3",
                  type: :bar
+               }
+             ] = results
+    end
+
+    test "can fetch and transform query results that contain nil" do
+      results =
+        :null
+        |> Query.define(TestQueries)
+        |> Query.execute(nil, [])
+        |> Query.Result.transform()
+
+      t = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
+
+      expected_d1 = [%{x: t, y: Decimal.new(1)}]
+      expected_d2 = [%{x: t, y: nil}]
+
+      assert [
+               %Query.DataSet{
+                 rows: ^expected_d1,
+                 label: "l1",
+                 type: :line
+               },
+               %Query.DataSet{
+                 rows: ^expected_d2,
+                 label: "l2",
+                 type: :line
                }
              ] = results
     end
@@ -103,11 +143,13 @@ defmodule Luminous.QueryTest do
         |> Query.execute(nil, [])
         |> Query.Result.transform()
 
+      expected = [%{y: Decimal.new(666)}]
+
       assert [
                %Query.DataSet{
                  fill: true,
                  label: "",
-                 rows: [%{y: 666}],
+                 rows: ^expected,
                  type: :line
                }
              ] = result
@@ -120,26 +162,29 @@ defmodule Luminous.QueryTest do
         |> Query.execute(nil, [])
         |> Query.Result.transform()
 
+      expected_1 = [%{y: Decimal.new(11)}]
+      expected_2 = [%{y: Decimal.new(13)}]
+
       assert [
                %Query.DataSet{
                  fill: true,
                  label: "foo",
-                 rows: [%{y: 11}],
+                 rows: ^expected_1,
                  type: :line
                },
                %Query.DataSet{
                  fill: true,
                  label: "bar",
-                 rows: [%{y: 13}],
+                 rows: ^expected_2,
                  type: :line
                }
              ] = results
     end
   end
 
-  describe "Dataset statistics" do
+  describe "Dataset.statistics/1" do
     test "calculates the basic statistics" do
-      ds = DataSet.new([%{y: 1}, %{y: 3}, %{y: -2}], "foo")
+      ds = DataSet.new([%{y: Decimal.new(1)}, %{y: Decimal.new(3)}, %{y: Decimal.new(-2)}], "foo")
 
       assert %{label: "foo", n: 3, min: min, max: max, avg: avg, sum: sum} =
                DataSet.statistics(ds)
@@ -164,7 +209,18 @@ defmodule Luminous.QueryTest do
     end
 
     test "can handle datasets that contain nils" do
-      ds = DataSet.new([%{y: 4}, %{y: nil}, %{y: 3}, %{y: 5}, %{y: nil}], "foo")
+      ds =
+        DataSet.new(
+          [
+            %{y: Decimal.new(4)},
+            %{y: nil},
+            %{y: Decimal.new(3)},
+            %{y: Decimal.new(5)},
+            %{y: nil}
+          ],
+          "foo"
+        )
+
       assert %{n: 3, avg: avg, sum: sum, min: min, max: max} = DataSet.statistics(ds)
       assert min == Decimal.new(3)
       assert max == Decimal.new(5)
