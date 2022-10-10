@@ -239,7 +239,7 @@ function ChartJSHook() {
       datasets = payload.datasets.map(function (dataset, idx) {
         return {
           label: dataset.label,
-          unit: payload.unit,
+          unit: dataset.unit,
           borderColor: colors[idx % n] + "FF", // full opaque
           backgroundColor: colors[idx % n] + '40', // 1/4 opaque
           borderWidth: 1,

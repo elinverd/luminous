@@ -77,9 +77,10 @@ defmodule Luminous.Live do
 
       @impl true
       def handle_info({_task_ref, {%Panel{type: :chart} = panel, datasets}}, socket) do
+        datasets = Enum.map(datasets, &Query.DataSet.maybe_override_unit(&1, panel.unit))
+
         panel_data = %{
           datasets: datasets,
-          unit: panel.unit,
           ylabel: panel.ylabel,
           xlabel: panel.xlabel,
           stacked_x: panel.stacked_x,
@@ -104,13 +105,9 @@ defmodule Luminous.Live do
       end
 
       def handle_info({_task_ref, {%Panel{type: :stat} = panel, datasets}}, socket) do
-        stat_data = %{
-          values: Enum.map(datasets, &Query.DataSet.first_value/1),
-          ylabel: panel.ylabel,
-          unit: panel.unit
-        }
+        datasets = Enum.map(datasets, &Query.DataSet.maybe_override_unit(&1, panel.unit))
 
-        new_stats = Map.put(socket.assigns.stats, panel.id, stat_data)
+        new_stats = Map.put(socket.assigns.stats, panel.id, datasets)
 
         socket =
           socket

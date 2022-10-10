@@ -18,6 +18,7 @@ defmodule Luminous.LiveTest do
               %{x: 1_660_906_800_000, y: Decimal.new(11)}
             ],
             type: :line,
+            unit: "μCKR",
             fill: true
           },
           %Query.DataSet{
@@ -27,10 +28,10 @@ defmodule Luminous.LiveTest do
               %{x: 1_660_906_800_000, y: Decimal.new(101)}
             ],
             type: :bar,
+            unit: "μCKR",
             fill: true
           }
         ],
-        unit: "μCKR",
         xlabel: nil,
         ylabel: "Foo (μCKR)",
         stacked_x: false,
@@ -41,13 +42,27 @@ defmodule Luminous.LiveTest do
       assert_push_event(view, "panel-p1::refresh-data", ^expected_data)
     end
 
-    test "renders the correct data in the stat panel", %{conn: conn} do
+    test "renders the correct data in the stat panels", %{conn: conn} do
       {:ok, view, _} = live(conn, Routes.test_dashboard_path(conn, :index))
 
       assert view |> element("#panel-p2-title") |> render() =~ "Panel 2"
       assert view |> element("#panel-p2-stat-values") |> render() =~ ">666<"
       assert view |> element("#panel-p2-stat-values") |> render() =~ ">$<"
-      assert view |> element("#panel-p2-stat-values") |> render() =~ "Bar ($)"
+      # ylabel is not taken into account in stat panels
+      refute view |> element("#panel-p2-stat-values") |> render() =~ "Bar ($)"
+
+      assert view |> element("#panel-p4-title") |> render() =~ "Panel 4"
+      assert view |> element("#panel-p4-stat-values") |> render() =~ ">666<"
+      assert view |> element("#panel-p4-stat-values") |> render() =~ ">$<"
+
+      assert view |> element("#panel-p5-title") |> render() =~ "Panel 5"
+      assert view |> element("#panel-p5-stat-values") |> render() =~ ">66<"
+      assert view |> element("#panel-p5-stat-values") |> render() =~ ">$<"
+      assert view |> element("#panel-p5-stat-values") |> render() =~ ">88<"
+      assert view |> element("#panel-p5-stat-values") |> render() =~ ">€<"
+
+      assert view |> element("#panel-p6-title") |> render() =~ "Panel 6"
+      assert view |> element("#panel-p6-stat-values") |> render() =~ ">Just show this<"
     end
 
     test "sends the loading/loaded event to all panels", %{conn: conn} do
@@ -68,7 +83,8 @@ defmodule Luminous.LiveTest do
       assert has_element?(view, "#panel-p3-title", "Panel 3")
       assert has_element?(view, "#panel-p3-stat-values", "0")
       assert has_element?(view, "#panel-p3-stat-values", "$")
-      assert has_element?(view, "#panel-p3-stat-values", "Bar ($)")
+      # ylabel is not taken into account in stat panels
+      refute has_element?(view, "#panel-p3-stat-values", "Bar ($)")
 
       from = DateTime.new!(~D[2022-09-19], ~T[00:00:00], "Europe/Athens")
       to = DateTime.new!(~D[2022-09-24], ~T[23:59:59], "Europe/Athens")

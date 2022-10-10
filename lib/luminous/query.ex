@@ -11,22 +11,25 @@ defmodule Luminous.Query do
     that has a label and a type (for visualization)
     """
     @type type :: :line | :bar
-    @type row :: %{y: Decimal.t()} | %{x: any(), y: Decimal.t()}
+    @type value :: Decimal.t() | binary()
+    @type row :: %{y: value()} | %{x: any(), y: value()}
     @type t :: %__MODULE__{
             rows: [row()],
             label: binary(),
+            unit: binary(),
             type: type(),
             fill: boolean()
           }
 
     @derive Jason.Encoder
-    defstruct [:rows, :label, :type, :fill]
+    defstruct [:rows, :label, :unit, :type, :fill]
 
     @spec new([row()], atom() | binary(), Keyword.t()) :: t()
     def new(rows, label, opts \\ []) do
       %__MODULE__{
         rows: rows,
         label: to_string(label),
+        unit: Keyword.get(opts, :unit),
         type: Keyword.get(opts, :type) || :line,
         fill:
           if(Keyword.has_key?(opts, :fill),
@@ -43,10 +46,7 @@ defmodule Luminous.Query do
     @spec first_value(t()) :: nil | any()
     def first_value(%{rows: []}), do: nil
 
-    def first_value(%{rows: rows}) do
-      %{y: val} = hd(rows)
-      val
-    end
+    def first_value(%{rows: [%{y: val} | _]}), do: val
 
     @doc """
     calculate and return the basic statistics of the dataset in one pass (loop)
@@ -117,12 +117,18 @@ defmodule Luminous.Query do
       |> Map.put(:label, dataset.label)
       |> Map.delete(:max_decimal_digits)
     end
+
+    @doc """
+    override the dataset's unit with the provided string only if it's not already present
+    """
+    @spec maybe_override_unit(t(), binary()) :: t()
+    def maybe_override_unit(%{unit: nil} = dataset, unit), do: Map.put(dataset, :unit, unit)
+    def maybe_override_unit(dataset, _), do: dataset
   end
 
   defmodule Result do
     @moduledoc """
     a query Result wraps a columnar data frame with multiple variables
-    if time_series? is true then we expect to find :time in the row tuples
 
     `var_attrs` is a map where keys are variable labels (as specified
     in the query's select statement) and values are keyword lists with
@@ -130,42 +136,40 @@ defmodule Luminous.Query do
     Dataset.new/3 for details.
     """
 
-    @type value :: any()
-    @type row :: [{atom() | binary, value()}]
+    @type label :: atom() | binary()
+    @type value :: number() | Decimal.t() | binary()
+    @type point :: {label(), value()}
+    @type row :: [point()]
     @type t :: %__MODULE__{
             rows: row(),
-            var_attrs: %{binary() => Keyword.t()},
-            time_series?: boolean()
+            var_attrs: %{binary() => Keyword.t()}
           }
 
-    @enforce_keys [:rows, :var_attrs, :time_series?]
-    defstruct [:rows, :var_attrs, :time_series?]
+    @enforce_keys [:rows, :var_attrs]
+    defstruct [:rows, :var_attrs]
 
     @doc """
-    new/2 can be called in 2 ways:
-    - with a list of rows, i.e. a list of 2-tuples (label, value)
-    - with a single value (for use in a single-valued stat panel) -- the label in this case is :value by default
+    new/2 can be called in the following ways:
+    - with a list of rows, i.e. a list of lists containing 2-tuples {label, value}
+    - with a single row, i.e. a list of 2-tuples of the form {label, value} (e.g. in the case of single- or multi- stats)
+    - with a single value (for use in a single-valued stat panel with no label)
     """
-    @spec new([row()] | value(), Keyword.t()) :: t()
+    @spec new([row()] | row() | point() | value(), Keyword.t()) :: t()
     def new(_, opts \\ [])
 
     def new(rows, opts) when is_list(rows) do
       %__MODULE__{
         rows: rows,
-        var_attrs: Keyword.get(opts, :var_attrs, %{}),
-        time_series?:
-          if(Keyword.has_key?(opts, :time_series?),
-            do: Keyword.get(opts, :time_series?),
-            else: true
-          )
+        var_attrs: Keyword.get(opts, :var_attrs, %{})
       }
     end
+
+    def new({_, _} = row, opts), do: new([row], opts)
 
     def new(value, opts) do
       %__MODULE__{
         rows: value,
-        var_attrs: Keyword.get(opts, :var_attrs, %{}),
-        time_series?: false
+        var_attrs: Keyword.get(opts, :var_attrs, %{})
       }
     end
 
@@ -186,38 +190,53 @@ defmodule Luminous.Query do
       |> Enum.map(fn label ->
         data =
           Enum.map(result.rows, fn row ->
-            # each key in a row can be either a string or an atom
-            # in the case of a string we can't use Keyword.get/2
-            Enum.find(row, fn {k, _v} -> k == label end)
-            |> case do
-              {^label, value} ->
-                if result.time_series? do
-                  time = Keyword.get(row, :time)
+            {x, y} =
+              case row do
+                # chart: row is a list of {label, value} tuples
+                l when is_list(l) ->
+                  x =
+                    case Keyword.get(row, :time) do
+                      %DateTime{} = time -> DateTime.to_unix(time, :millisecond)
+                      _ -> nil
+                    end
 
-                  if is_nil(time),
-                    do:
-                      raise(
-                        "Failed to transform query result: no `time` field in row. If this is not a time series, then `time_series?: false` needs to be passed to `Query.Result.new/2"
-                      )
+                  y =
+                    Enum.find_value(l, fn
+                      {^label, value} -> value
+                      _ -> nil
+                    end)
 
-                  %{x: DateTime.to_unix(time, :millisecond), y: convert_to_decimal(value)}
-                else
-                  %{y: convert_to_decimal(value)}
-                end
+                  {x, y}
 
-              nil ->
-                nil
+                # stat: row is a single {label, value} tuple
+                {^label, value} ->
+                  {nil, value}
+
+                # stat: row is a single {label, value} tuple but we are processing a different label
+                {_, _} ->
+                  {nil, nil}
+
+                # stat: row is a single number
+                n when is_number(n) ->
+                  {nil, n}
+
+                _ ->
+                  raise "Can not process data row #{inspect(row)}"
+              end
+
+            case {x, y} do
+              {nil, y} -> %{y: convert_to_decimal(y)}
+              {x, y} -> %{x: x, y: convert_to_decimal(y)}
             end
           end)
+          |> Enum.reject(&is_nil(&1.y))
 
         var_attrs =
           Map.get(result.var_attrs, label) ||
             Map.get(result.var_attrs, to_string(label)) ||
             []
 
-        data
-        |> Enum.reject(&is_nil/1)
-        |> DataSet.new(label, var_attrs)
+        DataSet.new(data, label, var_attrs)
       end)
       |> Enum.sort_by(fn dataset -> order[dataset.label] end)
     end
@@ -227,10 +246,16 @@ defmodule Luminous.Query do
 
     defp extract_labels(rows) when is_list(rows) do
       rows
-      |> Enum.flat_map(fn row ->
-        row
-        |> Enum.map(fn {label, _value} -> label end)
-        |> Enum.reject(&(&1 == :time))
+      |> Enum.flat_map(fn
+        # example: [{:time, #DateTime<2022-10-01 01:00:00+00:00 UTC UTC>}, {"foo", #Decimal<0.65>}]
+        row when is_list(row) ->
+          row
+          |> Enum.map(fn {label, _value} -> label end)
+          |> Enum.reject(&(&1 == :time))
+
+        # example: {:single_stat, #Decimal<0.65>}
+        {label, _} ->
+          [label]
       end)
       |> Enum.uniq()
     end
@@ -240,7 +265,7 @@ defmodule Luminous.Query do
     defp convert_to_decimal(value) do
       case Decimal.cast(value) do
         {:ok, dec} -> dec
-        _ -> raise "failed to convert #{inspect(value)} to Decimal"
+        _ -> value
       end
     end
   end

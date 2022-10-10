@@ -88,10 +88,36 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         |> Variable.get_current_and_extract_value(:multiplier_var)
         |> String.to_integer()
 
-      :rand.uniform()
-      |> Decimal.from_float()
-      |> Decimal.mult(multiplier)
-      |> Decimal.round(2)
+      value =
+        :rand.uniform()
+        |> Decimal.from_float()
+        |> Decimal.mult(multiplier)
+        |> Decimal.round(2)
+
+      Query.Result.new({"foo", value})
+    end
+
+    def query(:string_stat, %{from: from}, _variables) do
+      s = Calendar.strftime(from, "%b %Y")
+
+      Query.Result.new({"String stat", s})
+    end
+
+    def query(:more_stats, _time_range, variables) do
+      multiplier =
+        variables
+        |> Variable.get_current_and_extract_value(:multiplier_var)
+        |> String.to_integer()
+
+      Enum.map(1..2, fn i ->
+        v =
+          :rand.uniform()
+          |> Decimal.from_float()
+          |> Decimal.mult(multiplier)
+          |> Decimal.round(2)
+
+        {"var_#{i}", v}
+      end)
       |> Query.Result.new()
     end
   end
@@ -114,11 +140,19 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
           ),
           Panel.define(
             :single_stat,
-            "Single Stat",
+            "Single-stat panel",
             :stat,
             [Query.define(:single_stat, Queries)],
-            unit: "μCKR",
-            ylabel: "This is the description"
+            unit: "μCKR"
+          ),
+          Panel.define(
+            :multi_stat,
+            "This is a multi-stat panel",
+            :stat,
+            [
+              Query.define(:string_stat, Queries),
+              Query.define(:more_stats, Queries)
+            ]
           ),
           Panel.define(
             :multiple_time_series,

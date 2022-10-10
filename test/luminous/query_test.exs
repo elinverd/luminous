@@ -38,8 +38,7 @@ defmodule Luminous.QueryTest do
     def query(:single_stat, _time_range, _variables), do: Query.Result.new(666)
 
     def query(:multiple_stats, _time_range, _variables) do
-      [[{"foo", 11}, {"bar", 13}]]
-      |> Query.Result.new(time_series?: false)
+      Query.Result.new([{"foo", 11}, {"bar", 13}])
     end
   end
 
@@ -120,7 +119,7 @@ defmodule Luminous.QueryTest do
       t = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
 
       expected_d1 = [%{x: t, y: Decimal.new(1)}]
-      expected_d2 = [%{x: t, y: nil}]
+      expected_d2 = []
 
       assert [
                %Query.DataSet{

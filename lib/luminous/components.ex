@@ -2,7 +2,7 @@ defmodule Luminous.Components do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  alias Luminous.{Dashboard, Helpers}
+  alias Luminous.{Dashboard, Query, Helpers}
 
   @doc """
   the dashboard component is responsible for rendering all the necessary elements:
@@ -140,26 +140,28 @@ defmodule Luminous.Components do
           <span class="sr-only">Loading...</span>
         </div>
 
-        <div class="flex flex-row space-x-4">
-          <div id={"#{panel_id(panel)}-title"} class="text-xl font-medium"><%= Helpers.interpolate(panel.title, variables) %></div>
-          <.description description={panel.description}/>
-        </div>
+        <%= if panel.title != "" or panel.description != "" do %>
+          <div class="flex flex-row space-x-4">
+            <div id={"#{panel_id(panel)}-title"} class="text-xl font-medium"><%= Helpers.interpolate(panel.title, variables) %></div>
+            <.description description={panel.description}/>
+          </div>
+        <% end %>
       </div>
 
-      <div class="w-full">
-        <%= if stat_data = stats[panel.id] do %>
-          <div id={"#{panel_id(panel)}-stat-values"} class="flex flex-row items-center justify-center space-x-8">
-            <%= for stat <- stat_data.values do %>
+        <%= if datasets = stats[panel.id] do %>
+          <div id={"#{panel_id(panel)}-stat-values"} class={stats_grid_structure(length(datasets))}>
+            <%= for dataset <- datasets do %>
               <div class="flex flex-col items-center">
-                <%= if is_nil(stat) do %>
-                  <span class="text-4xl font-bold">-</span>
-                <% else %>
-                  <div><span class="text-4xl font-bold"><%= print_number(stat) %></span> <span class="text-2xl font-semibold"><%= stat_data.unit %></span></div>
+                <%= if dataset.label do %>
+                  <div class="text-lg"><%= dataset.label %></div>
                 <% end %>
 
-                <%= unless is_nil(stat_data.ylabel) do %>
-                  <div class="text-sm"><%= stat_data.ylabel %></div>
+                <%= if value = Query.DataSet.first_value(dataset) do %>
+                  <div><span class="text-4xl font-bold"><%= print_number(value) %></span> <span class="text-2xl font-semibold"><%= dataset.unit %></span></div>
+                <% else %>
+                  <span class="text-4xl font-bold">-</span>
                 <% end %>
+
               </div>
             <% end %>
           </div>
@@ -168,7 +170,6 @@ defmodule Luminous.Components do
             <div class="text-4xl font-bold">-</div>
           </div>
         <% end %>
-      </div>
     </div>
     """
   end
@@ -313,4 +314,10 @@ defmodule Luminous.Components do
         n
     end
   end
+
+  defp stats_grid_structure(n) when n <= 3 do
+    "grid grid-cols-#{n} w-full"
+  end
+
+  defp stats_grid_structure(_), do: "grid grid-cols-4 w-full"
 end

@@ -31,6 +31,20 @@ defmodule Luminous.Dashboards.TestDashboardLive do
         Query.Result.new(Decimal.new(0))
       end
     end
+
+    def query(:q4, _time_range, _variables) do
+      Query.Result.new({"foo", 666}, var_attrs: %{"foo" => [unit: "$"]})
+    end
+
+    def query(:q5, _time_range, _variables) do
+      Query.Result.new([{"foo", 66}, {"bar", 88}],
+        var_attrs: %{"foo" => [unit: "$"], "bar" => [unit: "€"]}
+      )
+    end
+
+    def query(:q6, _time_range, _variables) do
+      Query.Result.new("Just show this")
+    end
   end
 
   use Luminous.Live,
@@ -64,6 +78,24 @@ defmodule Luminous.Dashboards.TestDashboardLive do
             [Query.define(:q3, Queries)],
             unit: "$",
             ylabel: "Bar ($)"
+          ),
+          Panel.define(
+            :p4,
+            "Panel 4",
+            :stat,
+            [Query.define(:q4, Queries)]
+          ),
+          Panel.define(
+            :p5,
+            "Panel 5",
+            :stat,
+            [Query.define(:q5, Queries)]
+          ),
+          Panel.define(
+            :p6,
+            "Panel 6",
+            :stat,
+            [Query.define(:q6, Queries)]
           )
         ],
         variables: [
