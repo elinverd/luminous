@@ -17,7 +17,12 @@ defmodule Luminous.Dashboards.TestDashboardLive do
         [{:time, ~U[2022-08-19T10:00:00Z]}, {"foo", 10}, {"bar", 100}],
         [{:time, ~U[2022-08-19T11:00:00Z]}, {"foo", 11}, {"bar", 101}]
       ]
-      |> Query.Result.new(var_attrs: %{"foo" => [type: :line], "bar" => [type: :bar]})
+      |> Query.Result.new(
+        attrs: %{
+          "foo" => Query.Attributes.define(type: :line),
+          "bar" => Query.Attributes.define(type: :bar)
+        }
+      )
     end
 
     def query(:q2, _time_range, _variables) do
@@ -33,12 +38,15 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     end
 
     def query(:q4, _time_range, _variables) do
-      Query.Result.new({"foo", 666}, var_attrs: %{"foo" => [unit: "$"]})
+      Query.Result.new({"foo", 666}, attrs: %{"foo" => Query.Attributes.define(unit: "$")})
     end
 
     def query(:q5, _time_range, _variables) do
       Query.Result.new([{"foo", 66}, {"bar", 88}],
-        var_attrs: %{"foo" => [unit: "$"], "bar" => [unit: "€"]}
+        attrs: %{
+          "foo" => Query.Attributes.define(unit: "$"),
+          "bar" => Query.Attributes.define(unit: "€")
+        }
       )
     end
 

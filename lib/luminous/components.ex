@@ -157,7 +157,7 @@ defmodule Luminous.Components do
                 <% end %>
 
                 <%= if value = Query.DataSet.first_value(dataset) do %>
-                  <div><span class="text-4xl font-bold"><%= print_number(value) %></span> <span class="text-2xl font-semibold"><%= dataset.unit %></span></div>
+                  <div><span class="text-4xl font-bold"><%= print_number(value) %></span> <span class="text-2xl font-semibold"><%= dataset.attrs.unit %></span></div>
                 <% else %>
                   <span class="text-4xl font-bold">-</span>
                 <% end %>
@@ -315,9 +315,8 @@ defmodule Luminous.Components do
     end
   end
 
-  defp stats_grid_structure(n) when n <= 3 do
-    "grid grid-cols-#{n} w-full"
-  end
-
+  defp stats_grid_structure(1), do: "grid grid-cols-1 w-full"
+  defp stats_grid_structure(2), do: "grid grid-cols-2 w-full"
+  defp stats_grid_structure(3), do: "grid grid-cols-3 w-full"
   defp stats_grid_structure(_), do: "grid grid-cols-4 w-full"
 end

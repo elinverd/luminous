@@ -5,6 +5,40 @@ defmodule Luminous.Query do
   """
   alias Luminous.{TimeRange, Variable}
 
+  defmodule Attributes do
+    @moduledoc """
+    This struct collects all the attributes that apply to a particular Dataset
+
+    it is specified in the `attrs` argument of Query.result.new
+    """
+    @type t :: %__MODULE__{
+            type: :line | :bar,
+            order: non_neg_integer() | nil,
+            fill: boolean(),
+            unit: binary()
+          }
+
+    @derive Jason.Encoder
+    defstruct [:type, :order, :fill, :unit]
+
+    @spec define(Keyword.t()) :: t()
+    def define(opts) do
+      %__MODULE__{
+        type: Keyword.get(opts, :type, :line),
+        order: Keyword.get(opts, :order),
+        fill:
+          if(Keyword.has_key?(opts, :fill),
+            do: Keyword.get(opts, :fill),
+            else: true
+          ),
+        unit: Keyword.get(opts, :unit)
+      }
+    end
+
+    @spec define() :: t()
+    def define(), do: define([])
+  end
+
   defmodule DataSet do
     @moduledoc """
     a DataSet essentially wraps a list of 1-d or 2-d data points
@@ -16,26 +50,18 @@ defmodule Luminous.Query do
     @type t :: %__MODULE__{
             rows: [row()],
             label: binary(),
-            unit: binary(),
-            type: type(),
-            fill: boolean()
+            attrs: Attributes.t()
           }
 
     @derive Jason.Encoder
-    defstruct [:rows, :label, :unit, :type, :fill]
+    defstruct [:rows, :label, :attrs]
 
-    @spec new([row()], atom() | binary(), Keyword.t()) :: t()
-    def new(rows, label, opts \\ []) do
+    @spec new([row()], atom() | binary(), Attributes.t() | nil) :: t()
+    def new(rows, label, attrs \\ nil) do
       %__MODULE__{
         rows: rows,
         label: to_string(label),
-        unit: Keyword.get(opts, :unit),
-        type: Keyword.get(opts, :type) || :line,
-        fill:
-          if(Keyword.has_key?(opts, :fill),
-            do: Keyword.get(opts, :fill),
-            else: true
-          )
+        attrs: if(is_nil(attrs), do: Attributes.define(), else: attrs)
       }
     end
 
@@ -122,7 +148,11 @@ defmodule Luminous.Query do
     override the dataset's unit with the provided string only if it's not already present
     """
     @spec maybe_override_unit(t(), binary()) :: t()
-    def maybe_override_unit(%{unit: nil} = dataset, unit), do: Map.put(dataset, :unit, unit)
+    def maybe_override_unit(%{attrs: %{unit: nil}} = dataset, unit) do
+      attrs = Map.put(dataset.attrs, :unit, unit)
+      Map.put(dataset, :attrs, attrs)
+    end
+
     def maybe_override_unit(dataset, _), do: dataset
   end
 
@@ -130,23 +160,22 @@ defmodule Luminous.Query do
     @moduledoc """
     a query Result wraps a columnar data frame with multiple variables
 
-    `var_attrs` is a map where keys are variable labels (as specified
+    `attrs` is a map where keys are variable labels (as specified
     in the query's select statement) and values are keyword lists with
     visualization properties for the corresponding Dataset. See
     Dataset.new/3 for details.
     """
-
     @type label :: atom() | binary()
     @type value :: number() | Decimal.t() | binary()
     @type point :: {label(), value()}
     @type row :: [point()]
     @type t :: %__MODULE__{
             rows: row(),
-            var_attrs: %{binary() => Keyword.t()}
+            attrs: %{binary() => Attributes.t()}
           }
 
-    @enforce_keys [:rows, :var_attrs]
-    defstruct [:rows, :var_attrs]
+    @enforce_keys [:rows, :attrs]
+    defstruct [:rows, :attrs]
 
     @doc """
     new/2 can be called in the following ways:
@@ -160,7 +189,7 @@ defmodule Luminous.Query do
     def new(rows, opts) when is_list(rows) do
       %__MODULE__{
         rows: rows,
-        var_attrs: Keyword.get(opts, :var_attrs, %{})
+        attrs: Keyword.get(opts, :attrs, %{})
       }
     end
 
@@ -169,7 +198,7 @@ defmodule Luminous.Query do
     def new(value, opts) do
       %__MODULE__{
         rows: value,
-        var_attrs: Keyword.get(opts, :var_attrs, %{})
+        attrs: Keyword.get(opts, :attrs, %{})
       }
     end
 
@@ -181,8 +210,8 @@ defmodule Luminous.Query do
     def transform(%__MODULE__{rows: rows} = result) when is_list(rows) do
       # first, let's see if there's a specified ordering in var attrs
       order =
-        Enum.reduce(result.var_attrs, %{}, fn {label, attrs}, acc ->
-          Map.put(acc, label, Keyword.get(attrs, :order))
+        Enum.reduce(result.attrs, %{}, fn {label, attrs}, acc ->
+          Map.put(acc, label, attrs.order)
         end)
 
       result.rows
@@ -231,18 +260,18 @@ defmodule Luminous.Query do
           end)
           |> Enum.reject(&is_nil(&1.y))
 
-        var_attrs =
-          Map.get(result.var_attrs, label) ||
-            Map.get(result.var_attrs, to_string(label)) ||
-            []
+        attrs =
+          Map.get(result.attrs, label) ||
+            Map.get(result.attrs, to_string(label)) ||
+            Attributes.define()
 
-        DataSet.new(data, label, var_attrs)
+        DataSet.new(data, label, attrs)
       end)
       |> Enum.sort_by(fn dataset -> order[dataset.label] end)
     end
 
     def transform(%__MODULE__{rows: value}),
-      do: [DataSet.new([%{y: convert_to_decimal(value)}], nil)]
+      do: [DataSet.new([%{y: convert_to_decimal(value)}], nil, Attributes.define())]
 
     defp extract_labels(rows) when is_list(rows) do
       rows

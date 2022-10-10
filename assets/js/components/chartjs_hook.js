@@ -239,13 +239,13 @@ function ChartJSHook() {
       datasets = payload.datasets.map(function (dataset, idx) {
         return {
           label: dataset.label,
-          unit: dataset.unit,
+          unit: dataset.attrs.unit,
           borderColor: colors[idx % n] + "FF", // full opaque
           backgroundColor: colors[idx % n] + '40', // 1/4 opaque
           borderWidth: 1,
           pointRadius: 1,
-          fill: dataset.fill ? 'origin' : false,
-          type: dataset.type,
+          fill: dataset.attrs.fill ? 'origin' : false,
+          type: dataset.attrs.type,
           data: dataset.rows
         }
       })

@@ -17,9 +17,7 @@ defmodule Luminous.LiveTest do
               %{x: 1_660_903_200_000, y: Decimal.new(10)},
               %{x: 1_660_906_800_000, y: Decimal.new(11)}
             ],
-            type: :line,
-            unit: "μCKR",
-            fill: true
+            attrs: Query.Attributes.define(type: :line, unit: "μCKR", fill: true)
           },
           %Query.DataSet{
             label: "bar",
@@ -27,9 +25,7 @@ defmodule Luminous.LiveTest do
               %{x: 1_660_903_200_000, y: Decimal.new(100)},
               %{x: 1_660_906_800_000, y: Decimal.new(101)}
             ],
-            type: :bar,
-            unit: "μCKR",
-            fill: true
+            attrs: Query.Attributes.define(type: :bar, unit: "μCKR", fill: true)
           }
         ],
         xlabel: nil,

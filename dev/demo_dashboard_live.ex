@@ -47,10 +47,10 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         [{"a-b", Decimal.sub(a, b)} | row]
       end)
       |> Query.Result.new(
-        var_attrs: %{
-          "a" => [type: :line, order: 0],
-          "b" => [type: :line, order: 1],
-          "a-b" => [type: :bar, order: 2]
+        attrs: %{
+          "a" => Query.Attributes.define(type: :line, order: 0),
+          "b" => Query.Attributes.define(type: :line, order: 1),
+          "a-b" => Query.Attributes.define(type: :bar, order: 2)
         }
       )
     end
@@ -74,10 +74,10 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         [{"total", Decimal.add(a, b)} | row]
       end)
       |> Query.Result.new(
-        var_attrs: %{
-          "a" => [type: :bar, order: 0],
-          "b" => [type: :bar, order: 1],
-          "total" => [fill: false]
+        attrs: %{
+          "a" => Query.Attributes.define(type: :bar, order: 0),
+          "b" => Query.Attributes.define(type: :bar, order: 1),
+          "total" => Query.Attributes.define(fill: false)
         }
       )
     end

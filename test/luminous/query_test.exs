@@ -2,7 +2,7 @@ defmodule Luminous.QueryTest do
   use ExUnit.Case
 
   alias Luminous.Query
-  alias Luminous.Query.DataSet
+  alias Luminous.Query.{Attributes, DataSet}
 
   defmodule TestQueries do
     @behaviour Query
@@ -21,10 +21,10 @@ defmodule Luminous.QueryTest do
         [{:time, ~U[2022-08-04T00:00:00Z]}, {:l2, 12}, {"l3", 112}]
       ]
       |> Query.Result.new(
-        var_attrs: %{
-          "l1" => [type: :bar, order: 0],
-          "l2" => [order: 1],
-          "l3" => [type: :bar, order: 2]
+        attrs: %{
+          "l1" => Attributes.define(type: :bar, order: 0),
+          "l2" => Attributes.define(order: 1),
+          "l3" => Attributes.define(type: :bar, order: 2)
         }
       )
     end
@@ -60,18 +60,15 @@ defmodule Luminous.QueryTest do
       assert [
                %Query.DataSet{
                  rows: ^expected_d1,
-                 label: "l1",
-                 type: :line
+                 label: "l1"
                },
                %Query.DataSet{
                  rows: ^expected_d2,
-                 label: "l2",
-                 type: :line
+                 label: "l2"
                },
                %Query.DataSet{
                  rows: ^expected_d3,
-                 label: "l3",
-                 type: :line
+                 label: "l3"
                }
              ] = results
     end
@@ -90,21 +87,25 @@ defmodule Luminous.QueryTest do
       expected_d2 = [%{x: t2, y: Decimal.new(12)}]
       expected_d3 = [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}]
 
+      expected_attrs_1 = Attributes.define(type: :bar, order: 0)
+      expected_attrs_2 = Attributes.define(order: 1)
+      expected_attrs_3 = Attributes.define(type: :bar, order: 2)
+
       assert [
                %Query.DataSet{
                  rows: ^expected_d1,
                  label: "l1",
-                 type: :bar
+                 attrs: ^expected_attrs_1
                },
                %Query.DataSet{
                  rows: ^expected_d2,
                  label: "l2",
-                 type: :line
+                 attrs: ^expected_attrs_2
                },
                %Query.DataSet{
                  rows: ^expected_d3,
                  label: "l3",
-                 type: :bar
+                 attrs: ^expected_attrs_3
                }
              ] = results
     end
@@ -124,13 +125,11 @@ defmodule Luminous.QueryTest do
       assert [
                %Query.DataSet{
                  rows: ^expected_d1,
-                 label: "l1",
-                 type: :line
+                 label: "l1"
                },
                %Query.DataSet{
                  rows: ^expected_d2,
-                 label: "l2",
-                 type: :line
+                 label: "l2"
                }
              ] = results
     end
@@ -146,10 +145,8 @@ defmodule Luminous.QueryTest do
 
       assert [
                %Query.DataSet{
-                 fill: true,
                  label: "",
-                 rows: ^expected,
-                 type: :line
+                 rows: ^expected
                }
              ] = result
     end
@@ -166,16 +163,12 @@ defmodule Luminous.QueryTest do
 
       assert [
                %Query.DataSet{
-                 fill: true,
                  label: "foo",
-                 rows: ^expected_1,
-                 type: :line
+                 rows: ^expected_1
                },
                %Query.DataSet{
-                 fill: true,
                  label: "bar",
-                 rows: ^expected_2,
-                 type: :line
+                 rows: ^expected_2
                }
              ] = results
     end

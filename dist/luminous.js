@@ -21228,13 +21228,13 @@ function ChartJSHook() {
       datasets = payload.datasets.map(function(dataset, idx) {
         return {
           label: dataset.label,
-          unit: payload.unit,
+          unit: dataset.attrs.unit,
           borderColor: colors2[idx % n] + "FF",
           backgroundColor: colors2[idx % n] + "40",
           borderWidth: 1,
           pointRadius: 1,
-          fill: dataset.fill ? "origin" : false,
-          type: dataset.type,
+          fill: dataset.attrs.fill ? "origin" : false,
+          type: dataset.attrs.type,
           data: dataset.rows
         };
       });
