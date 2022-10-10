@@ -6,6 +6,32 @@ on:
       - main
 
 jobs:
+  mix_verify:
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: dev
+    strategy:
+      matrix:
+        include:
+          - pair:
+              elixir: 1.14.0
+              otp: 24.3
+            lint: lint
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.pair.otp}}
+          elixir-version: ${{matrix.pair.elixir}}
+
+      - name: Install Dependencies
+        run: mix deps.get --only dev
+
+      - run: mix deps.compile
+
+      - run: mix dialyzer
+
   mix_test:
     runs-on: ubuntu-latest
     env:

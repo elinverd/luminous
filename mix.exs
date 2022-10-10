@@ -23,7 +23,8 @@ defmodule Luminous.MixProject do
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:prod), do: ["lib"]
-  defp elixirc_paths(_), do: ["lib", "dev", "test/support"]
+  defp elixirc_paths(:dev), do: ["lib", "dev"]
+  defp elixirc_paths(:test), do: ["lib", "dev", "test/support"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
@@ -37,6 +38,7 @@ defmodule Luminous.MixProject do
       # dev & test dependencies
       {:tailwind, "~> 0.1.8", runtime: Mix.env() == :dev},
       {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:plug_cowboy, "~> 2.0", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:floki, ">= 0.30.0", only: :test}
