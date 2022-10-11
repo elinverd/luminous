@@ -240,8 +240,8 @@ function ChartJSHook() {
         return {
           label: dataset.label,
           unit: dataset.attrs.unit,
-          borderColor: colors[idx % n] + "FF", // full opaque
-          backgroundColor: colors[idx % n] + '40', // 1/4 opaque
+          borderColor: colors[idx % colors.length] + "FF", // full opaque
+          backgroundColor: colors[idx % colors.length] + '40', // 1/4 opaque
           borderWidth: 1,
           pointRadius: 1,
           fill: dataset.attrs.fill ? 'origin' : false,

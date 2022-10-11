@@ -21229,8 +21229,8 @@ function ChartJSHook() {
         return {
           label: dataset.label,
           unit: dataset.attrs.unit,
-          borderColor: colors2[idx % n] + "FF",
-          backgroundColor: colors2[idx % n] + "40",
+          borderColor: colors2[idx % colors2.length] + "FF",
+          backgroundColor: colors2[idx % colors2.length] + "40",
           borderWidth: 1,
           pointRadius: 1,
           fill: dataset.attrs.fill ? "origin" : false,
