@@ -41,7 +41,7 @@ defmodule Luminous.TimeRange do
   @spec today(binary()) :: t()
   def today(tz) do
     from = DateTime.now!(tz) |> round(:day)
-    to = add(from, 1, :day)
+    to = from |> add(1, :day) |> add(-1, :second)
     new(from, to)
   end
 
@@ -49,13 +49,14 @@ defmodule Luminous.TimeRange do
   def yesterday(tz) do
     to = DateTime.now!(tz) |> round(:day)
     from = to |> add(-1, :day)
+    to = add(to, -1, :second)
     new(from, to)
   end
 
   @spec tomorrow(binary()) :: t()
   def tomorrow(tz) do
     from = DateTime.now!(tz) |> add(1, :day) |> round(:day)
-    to = add(from, 1, :day)
+    to = from |> add(1, :day) |> add(-1, :second)
     new(from, to)
   end
 
@@ -63,20 +64,21 @@ defmodule Luminous.TimeRange do
   def last_n_days(n, tz) do
     to = DateTime.now!(tz) |> round(:day) |> add(1, :day)
     from = add(to, -n, :day)
+    to = add(to, -1, :second)
     new(from, to)
   end
 
   @spec next_n_days(non_neg_integer(), binary()) :: t()
   def next_n_days(n, tz) do
     from = DateTime.now!(tz) |> add(1, :day) |> round(:day)
-    to = add(from, n, :day)
+    to = from |> add(n, :day) |> add(-1, :second)
     new(from, to)
   end
 
   @spec this_week(binary()) :: t()
   def this_week(tz) do
     from = DateTime.now!(tz) |> round(:week)
-    to = add(from, 7, :day)
+    to = from |> add(7, :day) |> add(-1, :second)
     new(from, to)
   end
 
@@ -84,13 +86,14 @@ defmodule Luminous.TimeRange do
   def last_week(tz) do
     to = DateTime.now!(tz) |> round(:week)
     from = add(to, -7, :day)
+    to = add(to, -1, :second)
     new(from, to)
   end
 
   @spec this_month(binary()) :: t()
   def this_month(tz) do
     from = DateTime.now!(tz) |> round(:month)
-    to = add(from, 1, :month)
+    to = from |> add(1, :month) |> add(-1, :second)
     new(from, to)
   end
 
@@ -98,6 +101,7 @@ defmodule Luminous.TimeRange do
   def last_month(tz) do
     to = DateTime.now!(tz) |> round(:month)
     from = add(to, -1, :month)
+    to = add(to, -1, :second)
     new(from, to)
   end
 
@@ -120,6 +124,10 @@ defmodule Luminous.TimeRange do
   end
 
   @spec add(DateTime.t(), integer(), atom()) :: DateTime.t()
+  def add(dt, n, :second) do
+    DateTime.add(dt, n, :second)
+  end
+
   def add(dt, n, :minute) do
     DateTime.add(dt, n * 60, :second)
   end
