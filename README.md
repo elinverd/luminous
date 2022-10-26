@@ -3,7 +3,7 @@
 # Luminous
 
 Luminous is a framework for creating dashboards within [Phoenix Live
-Views](https://www.phoenixframework.org/). It is somewhat inspired by
+View](https://www.phoenixframework.org/). It is somewhat inspired by
 grafana both conceptually and functionally in that:
 
 - it focuses on time series data (albeit not exclusively)

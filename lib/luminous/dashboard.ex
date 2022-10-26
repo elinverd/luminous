@@ -1,13 +1,13 @@
 defmodule Luminous.Dashboard do
   @moduledoc """
-    a dashboard is a high-level components initialized by the dashboard
-    live view
+  A dashboard is a high-level component initialized by the dashboard
+  live view
 
-    it contains all the necessary dashboard attributes such as the
-    panels, variables and the time range selector
+  it contains all the necessary dashboard attributes such as the
+  panels, variables and the time range selector
 
-    it is initialized at compile time using define/4 and populated at
-    runtime using populate/1
+  it is initialized at compile time using define/4 and populated at
+  runtime using populate/1
   """
 
   alias Luminous.{Panel, TimeRange, TimeRangeSelector, Variable}
