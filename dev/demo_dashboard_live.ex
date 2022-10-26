@@ -3,6 +3,21 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
   alias Luminous.{Variable, Query, Dashboard, TimeRange, Components}
 
   defmodule Variables do
+    @moduledoc """
+    This is where we implement the `Variable` behaviour, i.e. define
+    the dashboard's variables displayed as dropdowns in the view
+
+    The first value in each list is the default one.
+
+    Values can be either simple (a single binary) or descriptive
+    (label different than the value).
+
+    Variables values are available within queries where they can serve
+    as parameters.
+
+    More details in `Luminous.Variable`.
+    """
+
     @behaviour Variable
     @impl true
     def variable(:multiplier_var), do: ["1", "10", "100"]
@@ -10,6 +25,21 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
   end
 
   defmodule Queries do
+    @moduledoc """
+    This is where we implement the Query behaviour, i.e. all queries
+    that will be visualized in the dashboard's panels (a panel can
+    have multiple queries).
+
+    All queries have access to the current dashboard variable values
+    and the selected time range.
+
+    All queries must return a `Query.Result` with optional attributes
+    that specify the visual characteristics of the particular data set
+    (see `Query.Attributes`).
+
+    More details in `Lumninous.Query`.
+    """
+
     @behaviour Query
     @impl true
     def query(:simple_time_series, time_range, variables) do
@@ -122,6 +152,13 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
     end
   end
 
+  # This is where the actual dashboard is defined (compile-time) by
+  # specifying all of its components.
+
+  # In general, a dashboard can have multiple panels and each panel
+  # can have multiple queries. A dashboard also has a set of variables
+  # and a time range component from which the user can select
+  # arbitrary time windows.
   use Luminous.Live,
     dashboard:
       Dashboard.define(
@@ -180,10 +217,16 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         time_zone: "UTC"
       )
 
+  # a live dashboard also needs to specify its default time range
   @behaviour TimeRangeSelector
   @impl true
   def default_time_range(tz), do: TimeRange.last_n_days(7, tz)
 
+  # Here, we make use of the default component (`dashboard`) that
+  # renders all the other components on screen
+  # A live dashboard can also specify custom layouts by making use of
+  # individual components from `Luminous.Components` or completely
+  # custom components
   def render(assigns) do
     ~H"""
     <Components.dashboard socket={@socket} dashboard={@dashboard} stats={@stats} panel_statistics={@panel_statistics}/>
