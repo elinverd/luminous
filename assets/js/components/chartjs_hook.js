@@ -124,6 +124,9 @@ function ChartJSHook() {
                 return label
               }
             }
+          },
+          legend: {
+            onClick: this.legendClickHandler
           }
         }
       }
@@ -185,6 +188,85 @@ function ChartJSHook() {
     canvas.addEventListener("panel:" + this.el.id + ":download:csv", this.downloadCSV())
     // setup the download PNG event handler
     canvas.addEventListener("panel:" + this.el.id + ":download:png", this.downloadPNG())
+    // listeners to detect when "Control" button is pressed
+    // used by legend click handler to alter its behavior
+    document.addEventListener("keydown", e => {
+      if (e.key === "Control") {
+        this.chart.isCtrlPressed = true;
+      }
+    })
+    document.addEventListener("keyup", e => {
+      if (e.key === "Control") {
+        this.chart.isCtrlPressed = false;
+      }
+    })
+  }
+
+  this.legendClickHandler = (e, legendItem, legend) => {
+    // when the user holds the control key pressed
+    // toggle the visibility of the clicked item
+    if (legend.chart.isCtrlPressed) {
+      this.toggleLegendItem(legendItem, legend);
+      return;
+    }
+
+    // when all legend items are hidden, by clicking any one
+    // will make all legends items visible
+    if (this.allLegendItemsHidden(legend)) {
+      legend.legendItems.forEach(item => this.toggleLegendItem(item, legend));
+      return;
+    }
+
+    // when the user clicks on a visible legend item
+    // the visibility of the rest is toggled
+    if (legend.chart.isDatasetVisible(legendItem.datasetIndex)) {
+      this.toggleOtherLegendItems(legendItem, legend);
+      return;
+    }
+
+    // in any other case highlight the clicked legend item
+    // by hiding all the rest
+    this.highlightLegendItem(legendItem, legend);
+  }
+
+  this.toggleOtherLegendItems = (legendItem, legend) => {
+    legend.legendItems.forEach(item => {
+      if (item.datasetIndex != legendItem.datasetIndex) {
+        this.toggleLegendItem(item, legend);
+      }
+    });
+  }
+
+  this.toggleLegendItem = (legendItem, legend) => {
+    if (legendItem.hidden) {
+      legend.chart.show(legendItem.datasetIndex);
+    } else {
+      legend.chart.hide(legendItem.datasetIndex);
+    }
+    legendItem.hidden = !legendItem.hidden;
+  }
+
+  this.highlightLegendItem = (legendItem, legend) => {
+    legend.legendItems.forEach(item => {
+      if (item.datasetIndex == legendItem.datasetIndex) {
+        legend.chart.show(item.datasetIndex);
+        item.hidden = false;
+      } else {
+        legend.chart.hide(item.datasetIndex);
+        item.hidden = true;
+      }
+    });
+  }
+
+  this.allLegendItemsHidden = legend => {
+    let result = true;
+    for (i = 0; i < legend.legendItems.length; i++) {
+      if (!legend.legendItems[i].hidden) {
+        result = false;
+        break;
+      }
+    }
+    return result;
   }
 
   // download the chart's data as CSV
