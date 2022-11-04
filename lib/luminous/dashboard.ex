@@ -21,7 +21,6 @@ defmodule Luminous.Dashboard do
           panels: [Panel.t()],
           variables: [Variable.t()],
           time_range_selector: TimeRangeSelector.t(),
-          time_range_presets: [%{label: binary(), value: TimeRange.t()}],
           time_zone: binary()
         }
 
@@ -34,7 +33,6 @@ defmodule Luminous.Dashboard do
     :panels,
     :variables,
     :time_range_selector,
-    :time_range_presets,
     :time_zone
   ]
 
@@ -50,7 +48,6 @@ defmodule Luminous.Dashboard do
       time_range_selector: time_range_selector,
       panels: Keyword.get(opts, :panels, []),
       variables: Keyword.get(opts, :variables, []),
-      time_range_presets: [],
       time_zone: Keyword.get(opts, :time_zone, @default_time_zone)
     }
   end
@@ -62,7 +59,6 @@ defmodule Luminous.Dashboard do
   def populate(dashboard) do
     dashboard
     |> Map.put(:variables, Enum.map(dashboard.variables, &Variable.populate/1))
-    |> Map.put(:time_range_presets, default_presets(dashboard))
     |> Map.put(
       :time_range_selector,
       TimeRangeSelector.populate(dashboard.time_range_selector, dashboard.time_zone)
@@ -101,42 +97,5 @@ defmodule Luminous.Dashboard do
       | time_range_selector:
           TimeRangeSelector.update_current(dashboard.time_range_selector, time_range)
     }
-  end
-
-  defp default_presets(dashboard) do
-    [
-      %{
-        label: "Default",
-        value: default_time_range(dashboard)
-      },
-      %{
-        label: "Today",
-        value: TimeRange.today(dashboard.time_zone)
-      },
-      %{
-        label: "Yesterday",
-        value: TimeRange.yesterday(dashboard.time_zone)
-      },
-      %{
-        label: "Last 7 days",
-        value: TimeRange.last_n_days(7, dashboard.time_zone)
-      },
-      %{
-        label: "This week",
-        value: TimeRange.this_week(dashboard.time_zone)
-      },
-      %{
-        label: "Previous week",
-        value: TimeRange.last_week(dashboard.time_zone)
-      },
-      %{
-        label: "This month",
-        value: TimeRange.this_month(dashboard.time_zone)
-      },
-      %{
-        label: "Previous month",
-        value: TimeRange.last_month(dashboard.time_zone)
-      }
-    ]
   end
 end

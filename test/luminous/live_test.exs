@@ -96,6 +96,29 @@ defmodule Luminous.LiveTest do
       refute has_element?(view, "#panel-p3-stat-values", "0")
       assert has_element?(view, "#panel-p3-stat-values", "666")
     end
+
+    test "when a time range preset is selected", %{conn: conn} do
+      {:ok, view, _} = live(conn, Routes.test_dashboard_path(conn, :index))
+
+      view
+      |> element("#time-range-preset-Yesterday")
+      |> render_click()
+
+      # we use "Europe/Athens" because this is the time zone defined in TestDashboardLive module
+      yesterday = DateTime.now!("Europe/Athens") |> DateTime.to_date() |> Date.add(-1)
+
+      from =
+        yesterday
+        |> DateTime.new!(~T[00:00:00], "Europe/Athens")
+        |> DateTime.to_unix()
+
+      to = DateTime.new!(yesterday, ~T[23:59:59], "Europe/Athens") |> DateTime.to_unix()
+
+      assert_patched(
+        view,
+        Routes.test_dashboard_path(conn, :index, var1: "a", var2: 1, from: from, to: to)
+      )
+    end
   end
 
   describe "variables" do

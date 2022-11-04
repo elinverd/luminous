@@ -31,7 +31,7 @@ defmodule Luminous.Components do
           </div>
 
           <div class="flex space-x-2 items-center">
-            <.time_range dashboard={dashboard}, link_fun={generate_link_fun(socket, dashboard)} />
+            <.time_range dashboard={dashboard} />
           </div>
         </div>
       </div>
@@ -201,7 +201,7 @@ defmodule Luminous.Components do
     """
   end
 
-  def time_range(%{dashboard: dashboard, link_fun: link_fun} = assigns) do
+  def time_range(%{dashboard: dashboard} = assigns) do
     ~H"""
       <div class="btn btn-ghost no-animation cursor-default space-x-4 px-0 hover:bg-transparent">
         <div class="flex items-center outline outline-1 rounded-lg ">
@@ -213,9 +213,11 @@ defmodule Luminous.Components do
               </svg>
             </label>
             <ul x-show="open" id="preset-dropdown" tabindex="0" class="p-2 shadow menu dropdown-content bg-base-100 rounded-box min-w-max overflow-auto normal-case font-normal text-base">
-              <%= for preset <- dashboard.time_range_presets do %>
+              <%= for preset <- Luminous.TimeRangeSelector.presets() do %>
               <li>
-                <%= live_patch preset.label, to: link_fun.(from: DateTime.to_unix(preset.value.from), to: DateTime.to_unix(preset.value.to)), "@click": "open = false" %>
+                <div id={"time-range-preset-#{preset}"} phx-click="preset_time_range_selected" phx-value-preset={preset} @click="open = false">
+                  <%= preset %>
+                </div>
               </li>
               <% end %>
             </ul>

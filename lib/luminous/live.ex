@@ -76,6 +76,30 @@ defmodule Luminous.Live do
       end
 
       @impl true
+      def handle_event(
+            "preset_time_range_selected",
+            %{"preset" => preset},
+            %{assigns: %{dashboard: dashboard}} = socket
+          ) do
+        time_range =
+          TimeRangeSelector.get_time_range_for(
+            dashboard.time_range_selector,
+            preset,
+            dashboard.time_zone
+          )
+
+        url_params =
+          dashboard.variables
+          |> Enum.map(&{&1.id, &1.current.value})
+          |> Keyword.merge(
+            from: DateTime.to_unix(time_range.from),
+            to: DateTime.to_unix(time_range.to)
+          )
+
+        {:noreply, push_patch(socket, to: Dashboard.path(dashboard, socket, url_params))}
+      end
+
+      @impl true
       def handle_info({_task_ref, {%Panel{type: :chart} = panel, datasets}}, socket) do
         datasets = Enum.map(datasets, &Query.DataSet.maybe_override_unit(&1, panel.unit))
 
