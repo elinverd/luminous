@@ -14,8 +14,7 @@ defmodule Luminous.Components do
   it also registers callbacks for reacting to panel loading states
   """
   def dashboard(
-        %{dashboard: dashboard, stats: stats, panel_statistics: panel_statistics, socket: socket} =
-          assigns
+        %{dashboard: dashboard, stats: stats, panel_statistics: panel_statistics} = assigns
       ) do
     ~H"""
     <.listeners />
@@ -26,7 +25,7 @@ defmodule Luminous.Components do
         <div class="flex flex-col md:flex-row justify-between">
           <div class="flex space-x-2 items-center">
             <%= for var <- dashboard.variables do %>
-            <.variable variable={var} link_fun={generate_link_fun(socket, dashboard)} />
+              <.variable variable={var} />
             <% end %>
           </div>
 
@@ -230,14 +229,14 @@ defmodule Luminous.Components do
     """
   end
 
-  def variable(%{variable: variable, link_fun: link_fun} = assigns) do
+  def variable(%{variable: variable} = assigns) do
     ~H"""
       <.dropdown
         id={"#{variable.id}-dropdown"}
         value={variable.current.label} description={variable.label}
         items={variable.values}
         let={%{label: label, value: value}}>
-        <%= live_patch label, to: link_fun.("#{variable.id}": value) %>
+        <div id={"#{variable.id}-#{value}"} phx-click="variable_updated" phx-value-variable={"#{variable.id}"} phx-value-value={"#{value}"}><%= label %></div>
       </.dropdown>
     """
   end
