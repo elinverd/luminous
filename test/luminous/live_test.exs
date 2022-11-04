@@ -128,5 +128,36 @@ defmodule Luminous.LiveTest do
       assert has_element?(view, "#var1-dropdown li", "a")
       assert has_element?(view, "#var2-dropdown li", "1")
     end
+
+    test "when a variable value is selected", %{conn: conn} do
+      {:ok, view, _} = live(conn, Routes.test_dashboard_path(conn, :index))
+
+      view |> element("#var1-b") |> render_click()
+
+      # we use "Europe/Athens" because this is the time zone defined in TestDashboardLive module
+      tr = Luminous.TimeRange.yesterday("Europe/Athens")
+
+      assert_patched(
+        view,
+        Routes.test_dashboard_path(conn, :index,
+          var1: "b",
+          var2: 1,
+          from: DateTime.to_unix(tr.from),
+          to: DateTime.to_unix(tr.to)
+        )
+      )
+
+      view |> element("#var2-3") |> render_click()
+
+      assert_patched(
+        view,
+        Routes.test_dashboard_path(conn, :index,
+          var2: 3,
+          var1: "b",
+          from: DateTime.to_unix(tr.from),
+          to: DateTime.to_unix(tr.to)
+        )
+      )
+    end
   end
 end

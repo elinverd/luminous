@@ -100,6 +100,24 @@ defmodule Luminous.Live do
       end
 
       @impl true
+      def handle_event(
+            "variable_updated",
+            %{"variable" => variable, "value" => value},
+            %{assigns: %{dashboard: dashboard}} = socket
+          ) do
+        url_params =
+          dashboard.variables
+          |> Enum.map(&{&1.id, &1.current.value})
+          |> Keyword.put(String.to_atom(variable), value)
+          |> Keyword.merge(
+            from: DateTime.to_unix(dashboard.time_range_selector.current_time_range.from),
+            to: DateTime.to_unix(dashboard.time_range_selector.current_time_range.to)
+          )
+
+        {:noreply, push_patch(socket, to: Dashboard.path(dashboard, socket, url_params))}
+      end
+
+      @impl true
       def handle_info({_task_ref, {%Panel{type: :chart} = panel, datasets}}, socket) do
         datasets = Enum.map(datasets, &Query.DataSet.maybe_override_unit(&1, panel.unit))
 
