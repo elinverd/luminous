@@ -77,6 +77,27 @@ defmodule Luminous.Live do
 
       @impl true
       def handle_event(
+            "time_range_change",
+            %{"from" => from_iso, "to" => to_iso},
+            %{assigns: %{dashboard: dashboard}} = socket
+          ) do
+        time_range =
+          TimeRange.from_iso(from_iso, to_iso)
+          |> TimeRange.shift_zone!(dashboard.time_zone)
+
+        url_params =
+          dashboard.variables
+          |> Enum.map(&{&1.id, &1.current.value})
+          |> Keyword.merge(
+            from: DateTime.to_unix(time_range.from),
+            to: DateTime.to_unix(time_range.to)
+          )
+
+        {:noreply, push_patch(socket, to: Dashboard.path(dashboard, socket, url_params))}
+      end
+
+      @impl true
+      def handle_event(
             "preset_time_range_selected",
             %{"preset" => preset},
             %{assigns: %{dashboard: dashboard}} = socket
@@ -174,28 +195,6 @@ defmodule Luminous.Live do
       end
 
       defp get_time_range(dashboard, _), do: Dashboard.default_time_range(dashboard)
-
-      @impl true
-      def handle_event("time_range_change", %{"from" => from_iso, "to" => to_iso}, socket) do
-        time_range =
-          TimeRange.from_iso(from_iso, to_iso)
-          |> TimeRange.shift_zone!(socket.assigns.dashboard.time_zone)
-
-        dashboard = Dashboard.update_current_time_range(socket.assigns.dashboard, time_range)
-
-        socket =
-          socket
-          |> assign(dashboard: dashboard)
-          |> push_patch(
-            to:
-              Components.generate_link(socket, socket.assigns.dashboard,
-                from: DateTime.to_unix(time_range.from),
-                to: DateTime.to_unix(time_range.to)
-              )
-          )
-
-        {:noreply, socket}
-      end
 
       defp push_panel_load_event(socket, :start, panel_id),
         do: push_event(socket, "panel:load:start", %{id: panel_id})
