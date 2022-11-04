@@ -19,6 +19,8 @@ defmodule Luminous.TimeRangeSelector do
 
   @type time_zone :: binary()
 
+  @type preset :: binary()
+
   @type t :: %__MODULE__{
           mod: module(),
           hook: binary(),
@@ -28,6 +30,16 @@ defmodule Luminous.TimeRangeSelector do
 
   @enforce_keys [:mod]
   defstruct [:mod, :hook, :id, :current_time_range]
+
+  @presets [
+    {"Today", &TimeRange.today/1, []},
+    {"Yesterday", &TimeRange.yesterday/1, []},
+    {"Last 7 days", &TimeRange.last_n_days/2, [7]},
+    {"This week", &TimeRange.this_week/1, []},
+    {"Previous week", &TimeRange.last_week/1, []},
+    {"This month", &TimeRange.this_month/1, []},
+    {"Previous month", &TimeRange.last_month/1, []}
+  ]
 
   @spec populate(t(), time_zone()) :: t()
   def populate(selector, time_zone) do
@@ -51,5 +63,20 @@ defmodule Luminous.TimeRangeSelector do
   @spec update_current(t(), TimeRange.t()) :: t()
   def update_current(selector, time_range) do
     Map.put(selector, :current_time_range, time_range)
+  end
+
+  @spec presets() :: [preset()]
+  def presets(), do: ["Default" | Enum.map(@presets, fn {label, _, _} -> label end)]
+
+  @doc """
+  Calculates and returns the time range for the given preset in the given
+  time zone.
+  """
+  @spec get_time_range_for(t(), preset(), time_zone()) :: TimeRange.t()
+  def get_time_range_for(selector, preset, time_zone) do
+    case Enum.find(@presets, fn {label, _, _} -> label == preset end) do
+      {_, function, args} -> apply(function, List.insert_at(args, -1, time_zone))
+      _ -> default_time_range(selector, time_zone)
+    end
   end
 end
