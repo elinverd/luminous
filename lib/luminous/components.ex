@@ -2,7 +2,7 @@ defmodule Luminous.Components do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  alias Luminous.{Dashboard, Query, Helpers}
+  alias Luminous.{Query, Helpers}
 
   @doc """
   the dashboard component is responsible for rendering all the necessary elements:
@@ -274,34 +274,6 @@ defmodule Luminous.Components do
       </ul>
     </div>
     """
-  end
-
-  def generate_link_fun(socket, dashboard) do
-    fn opts -> generate_link(socket, dashboard, opts) end
-  end
-
-  def generate_link(socket, dashboard, opts) do
-    var_args =
-      Enum.map(dashboard.variables, fn var ->
-        {var.id, Keyword.get(opts, var.id, var.current.value)}
-      end)
-
-    time_range_args = [
-      from:
-        Keyword.get(
-          opts,
-          :from,
-          DateTime.to_unix(dashboard.time_range_selector.current_time_range.from)
-        ),
-      to:
-        Keyword.get(
-          opts,
-          :to,
-          DateTime.to_unix(dashboard.time_range_selector.current_time_range.to)
-        )
-    ]
-
-    Dashboard.path(dashboard, socket, Keyword.merge(var_args, time_range_args))
   end
 
   def panel_id(panel), do: "panel-#{panel.id}"
