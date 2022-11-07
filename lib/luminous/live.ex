@@ -85,18 +85,12 @@ defmodule Luminous.Live do
           TimeRange.from_iso(from_iso, to_iso)
           |> TimeRange.shift_zone!(dashboard.time_zone)
 
-        url_params =
-          dashboard.variables
-          |> Enum.map(&{&1.id, &1.current.value})
-          |> Keyword.merge(
-            from: DateTime.to_unix(time_range.from),
-            to: DateTime.to_unix(time_range.to)
-          )
-
-        {:noreply, push_patch(socket, to: Dashboard.path(dashboard, socket, url_params))}
+        {:noreply,
+         push_patch(socket,
+           to: Dashboard.path(dashboard, socket, from: time_range.from, to: time_range.to)
+         )}
       end
 
-      @impl true
       def handle_event(
             "preset_time_range_selected",
             %{"preset" => preset},
@@ -109,33 +103,21 @@ defmodule Luminous.Live do
             dashboard.time_zone
           )
 
-        url_params =
-          dashboard.variables
-          |> Enum.map(&{&1.id, &1.current.value})
-          |> Keyword.merge(
-            from: DateTime.to_unix(time_range.from),
-            to: DateTime.to_unix(time_range.to)
-          )
-
-        {:noreply, push_patch(socket, to: Dashboard.path(dashboard, socket, url_params))}
+        {:noreply,
+         push_patch(socket,
+           to: Dashboard.path(dashboard, socket, from: time_range.from, to: time_range.to)
+         )}
       end
 
-      @impl true
       def handle_event(
             "variable_updated",
             %{"variable" => variable, "value" => value},
             %{assigns: %{dashboard: dashboard}} = socket
           ) do
-        url_params =
-          dashboard.variables
-          |> Enum.map(&{&1.id, &1.current.value})
-          |> Keyword.put(String.to_atom(variable), value)
-          |> Keyword.merge(
-            from: DateTime.to_unix(dashboard.time_range_selector.current_time_range.from),
-            to: DateTime.to_unix(dashboard.time_range_selector.current_time_range.to)
-          )
-
-        {:noreply, push_patch(socket, to: Dashboard.path(dashboard, socket, url_params))}
+        {:noreply,
+         push_patch(socket,
+           to: Dashboard.path(dashboard, socket, [{String.to_existing_atom(variable), value}])
+         )}
       end
 
       @impl true
@@ -181,7 +163,6 @@ defmodule Luminous.Live do
       end
 
       # this will be called each time a panel refresh async task terminates
-      @impl true
       def handle_info({:DOWN, _task_ref, :process, _, _}, socket) do
         {:noreply, socket}
       end

@@ -69,7 +69,25 @@ defmodule Luminous.Dashboard do
   return the LV path for the specific dashboard based on its configuration
   """
   @spec path(t(), Phoenix.LiveView.Socket.t(), Keyword.t()) :: binary()
-  def path(dashboard, socket, args), do: dashboard.path.(socket, dashboard.action, args)
+  def path(dashboard, socket, params) do
+    var_params =
+      Enum.map(dashboard.variables, fn var ->
+        {var.id, Keyword.get(params, var.id, var.current.value)}
+      end)
+
+    time_range_params = [
+      from:
+        params
+        |> Keyword.get(:from, dashboard.time_range_selector.current_time_range.from)
+        |> DateTime.to_unix(),
+      to:
+        params
+        |> Keyword.get(:to, dashboard.time_range_selector.current_time_range.to)
+        |> DateTime.to_unix()
+    ]
+
+    dashboard.path.(socket, dashboard.action, Keyword.merge(var_params, time_range_params))
+  end
 
   @doc """
   return the dashboard's default time range

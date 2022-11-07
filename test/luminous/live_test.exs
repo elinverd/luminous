@@ -152,8 +152,8 @@ defmodule Luminous.LiveTest do
       assert_patched(
         view,
         Routes.test_dashboard_path(conn, :index,
-          var2: 3,
           var1: "b",
+          var2: 3,
           from: DateTime.to_unix(tr.from),
           to: DateTime.to_unix(tr.to)
         )
