@@ -42,6 +42,12 @@ defmodule Luminous.Variable do
   """
   @spec define(atom(), binary(), module()) :: t()
   def define(id, label, mod) do
+    if id in [:from, :to] do
+      raise ArgumentError,
+        message:
+          ":from and :to are reserved atoms in luminous and can not be used as variable IDs"
+    end
+
     %__MODULE__{
       id: id,
       label: label,
