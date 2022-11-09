@@ -7,7 +7,6 @@
     "chartjs-adapter-date-fns": "^1.1.0-beta.1",
     "chartjs-adapter-luxon": "^1.2.0",
     "chartjs-plugin-zoom": "^1.2.1",
-    "daisyui": "^2.13.4",
     "flatpickr": "^4.6.9",
     "luxon": "^3.0.3"
   },
