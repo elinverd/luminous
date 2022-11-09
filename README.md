@@ -34,7 +34,7 @@ dependencies in `mix.exs` like so:
 ```elixir
 def deps do
   [
-    {:luminous, git: "https://github.com/elinverd/luminous.git", branch: "master"}
+    {:luminous, git: "https://github.com/elinverd/luminous.git", branch: "main"}
   ]
 end
 ```
