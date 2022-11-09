@@ -1,6 +1,4 @@
 // https://tailwindcss.com/docs/configuration
-const colors = require('tailwindcss/colors')
-
 module.exports = {
   mode: "jit",
   content: ["../lib/luminous/components.ex"],
@@ -9,8 +7,5 @@ module.exports = {
     textOpacity: false,
     backgroundOpacity: false,
     borderOpacity: false
-  },
-  plugins: [
-    require('daisyui'),
-  ]
+  }
 }

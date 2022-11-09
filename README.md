@@ -40,27 +40,13 @@ end
 ```
 
 For the moment, Luminous assumes that it will be embedded in a Phoenix
-Live View application with [tailwind](https://tailwindcss.com/),
-[alpinejs](https://alpinejs.dev/) and [daisyui](https://daisyui.com/).
+LiveView application with [tailwind](https://tailwindcss.com/) and
+[alpinejs](https://alpinejs.dev/). While this assumption may change in
+the future, the fact is that these two libraries (tailwind and alpine)
+are pretty standard in Phoenix LiveView apps.
 
-While this assumption may change in the future, the fact is that the
-first two libraries (tailwind and alpine) are pretty standard in
-phoenix live view apps. Daisyui can be added in `assets/package.json`:
-
-```javascript
-{
-    ...
-    "dependencies": {
-        ...
-        "daisyui": "^2.13.4",
-        ...
-    }
-}
-```
-
-and installed using `cd assets && npm install`.
-
-Then in `assets/tailwind.config.js`:
+Configure `tailwind` to parse `luminous`'s files.
+Add the following In `assets/tailwind.config.js`:
 
 ```javascript
 ...
@@ -68,11 +54,6 @@ module.exports = {
     ...
     content: [..., "../deps/luminous/lib/luminous/components.ex"],
     ...
-    plugins: [
-        ...
-        require('daisyui'),
-        ...
-    ]
 }
 ```
 

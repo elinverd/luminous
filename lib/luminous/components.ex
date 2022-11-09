@@ -94,19 +94,23 @@ defmodule Luminous.Components do
           <span class="sr-only">Loading...</span>
         </div>
 
-        <div id={"#{panel_id(panel)}-actions"} class="dropdown dropdown-end absolute inline-block top-0 right-0" x-data="{open: false}">
-          <div tabindex="0" class="w-6 h-6" @click="open = true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/></svg>
+        <div id={"#{panel_id(panel)}-actions"} class="absolute inline-block top-0 right-0" x-data="{open: false}" @click.away="open = false">
+          <div tabindex="0" class="w-6 h-6 focus:outline-none" @click="open = true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/>
+            </svg>
           </div>
-          <ul x-show="open" tabindex="0" class="menu dropdown-content p-2 shadow bg-base-100 text-sm rounded-box w-48 mt-4">
-            <li>
-              <button phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:csv", to: "##{panel_id(panel)}")} @click="open = false">
+          <ul x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
+            class="absolute p-2 min-w-max z-50 bg-white rounded-lg shadow-lg text-sm right-0">
+            <li @click="open = false" class="text-left rounded-lg cursor-pointer hover:bg-slate-200">
+              <a href="#" class="block px-4 py-3" phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:csv", to: "##{panel_id(panel)}")}>
                 Download CSV
-              </button>
+              </a>
             </li>
-            <li>
-              <button phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:png", to: "##{panel_id(panel)}")} @click="open = false">
+            <li @click="open = false" class="text-left rounded-lg cursor-pointer hover:bg-slate-200">
+              <a href="#" class="block px-4 py-3" phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:png", to: "##{panel_id(panel)}")}>
                 Download image
-              </button>
+              </a>
             </li>
           </ul>
         </div>
@@ -202,27 +206,31 @@ defmodule Luminous.Components do
 
   def time_range(%{dashboard: dashboard} = assigns) do
     ~H"""
-      <div class="btn btn-ghost no-animation cursor-default space-x-4 px-0 hover:bg-transparent">
-        <div class="flex items-center outline outline-1 rounded-lg ">
-          <input id={dashboard.time_range_selector.id} phx-hook={dashboard.time_range_selector.hook} phx-update="ignore" readonly="readonly" class="w-52 btn btn-sm btn-outline border-0 rounded-r-none focus:outline-none" />
-          <div class="dropdown dropdown-end" x-data="{open: false}">
-            <label tabindex="0" class="btn btn-sm btn-outline border-0 px-1 rounded-l-none" @click="open = true">
+      <div class="flex items-center no-animation cursor-default space-x-4">
+        <div class="flex items-center rounded-lg border border-slate-800 h-8 cursor-pointer">
+          <!-- Date picker -->
+          <input id={dashboard.time_range_selector.id} phx-hook={dashboard.time_range_selector.hook} phx-update="ignore" readonly="readonly"
+            class="h-8 w-52 rounded-lg rounded-r-none cursor-pointer bg-transparent text-sm text-center uppercase font-bold hover:text-white hover:bg-slate-800 focus:outline-none active:bg-slate-900" />
+          <!-- Presets button & dropdown -->
+          <div class="relative" x-data="{open: false}" @click.away="open = false">
+            <button class="h-8 px-1 rounded-lg rounded-l-none bg-transparent hover:bg-slate-800 hover:text-white focus:outline-none active:bg-slate-900" @click="open = true">
               <svg id="chevron-down" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
-            </label>
-            <ul x-show="open" id="preset-dropdown" tabindex="0" class="p-2 shadow menu dropdown-content bg-base-100 rounded-box min-w-max overflow-auto normal-case font-normal text-base">
+            </button>
+            <ul id="preset-dropdown" x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
+              class="absolute p-2 min-w-max z-50 bg-white rounded-lg shadow-lg top-10 right-0">
               <%= for preset <- Luminous.TimeRangeSelector.presets() do %>
-              <li>
-                <div id={"time-range-preset-#{preset}"} phx-click="preset_time_range_selected" phx-value-preset={preset} @click="open = false">
-                  <%= preset %>
-                </div>
-              </li>
+                <li @click="open = false" class="text-left rounded-lg cursor-pointer hover:bg-slate-200">
+                  <a href="#" class="block px-4 py-3" id={"time-range-preset-#{preset}"} phx-click="preset_time_range_selected" phx-value-preset={preset} @click="open = false">
+                    <%= preset %>
+                  </a>
+                </li>
               <% end %>
             </ul>
           </div>
         </div>
-        <div class="badge badge-primary cursor-default font-bold ">
+        <div class="px-2 rounded-full bg-slate-800 text-sm font-bold text-white cursor-default">
           <%= dashboard.time_zone |> DateTime.now!() |> Calendar.strftime("%Z") %>
         </div>
       </div>
@@ -231,13 +239,27 @@ defmodule Luminous.Components do
 
   def variable(%{variable: variable} = assigns) do
     ~H"""
-      <.dropdown
-        id={"#{variable.id}-dropdown"}
-        value={variable.current.label} description={variable.label}
-        items={variable.values}
-        let={%{label: label, value: value}}>
-        <div id={"#{variable.id}-#{value}"} phx-click="variable_updated" phx-value-variable={"#{variable.id}"} phx-value-value={"#{value}"}><%= label %></div>
-      </.dropdown>
+    <div id={"#{variable.id}-dropdown"} class="relative" x-data="{open: false}" @click.away="open = false">
+      <button @click="open = true" class="h-8 px-3 py-2.5 flex items-center gap-2 text-sm text-center font-bold uppercase rounded-lg border border-slate-800 hover:text-white hover:bg-slate-800 focus:outline-none transition duration active:bg-slate-900 active:scale-95">
+        <div class="text-left text-ellipsis whitespace-nowrap overflow-hidden max-w-xs">
+          <span class="text-xs"><%= "#{variable.label}: " %></span><%= variable.current.label %>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+      <!-- Dropdown content -->
+      <ul id={"#{variable.id}-dropdown-content"} x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
+        class="absolute p-2 min-w-max max-h-96 overflow-auto z-50 bg-white rounded-lg shadow-lg">
+        <%= for %{label: label, value: value} <- variable.values do %>
+          <li @click="open = false" class="text-left rounded-lg cursor-pointer hover:bg-slate-200">
+            <a href="#" id={"#{variable.id}-#{value}"} class="block px-4 py-3" phx-click="variable_updated" phx-value-variable={"#{variable.id}"} phx-value-value={"#{value}"}>
+              <%= label %>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    </div>
     """
   end
 
@@ -249,29 +271,6 @@ defmodule Luminous.Components do
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-    </div>
-    """
-  end
-
-  def dropdown(%{value: value, description: description, id: id, items: items} = assigns)
-      when is_binary(value) and is_binary(description) and is_binary(id) and is_list(items) do
-    ~H"""
-    <div id={id} class="dropdown" x-data="{open: false}">
-      <label tabindex="0" class="btn btn-outline btn-sm gap-2 flex-nowrap" @click="open = true">
-        <span class="text-left text-ellipsis whitespace-nowrap overflow-hidden max-w-xs">
-          <span class="text-xs"><%= "#{description}: " %></span><%= @value %>
-        </span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-        </svg>
-      </label>
-      <ul x-show="open" tabindex="0" class="p-2 shadow menu dropdown-content bg-base-100 rounded-box min-w-max max-h-96 overflow-auto">
-        <%= for item <- @items do %>
-          <li class="text-left" @click="open = false">
-            <%= render_slot(@inner_block, item) %>
-          </li>
-        <% end %>
-      </ul>
     </div>
     """
   end
