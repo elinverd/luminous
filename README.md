@@ -16,32 +16,32 @@ Dashboards are defined at compile time using elixir code (see
 following javascript libraries (as [live view
 hooks](https://hexdocs.pm/phoenix_live_view/js-interop.html#client-hooks-via-phx-hook))
 for supporting client-side visualizations and interactions with the
-server-side process:
+live view process:
 
 - [chartjs](https://www.chartjs.org/) for plots
 - [flatpickr](https://flatpickr.js.org/) for time range selection
 
 Luminous is currently used in production systems and has demonstrated
-solid performance and stability characteristics.
+solid performance and stability characteristics. At the same time, it
+is currently under development and some things may change.
 
 ## Installation
 
-The package can be installed by adding `luminous` to your list of
-dependencies in `mix.exs`:
+The package is not yet published to `hex.pm` but can be installed
+directly from this repo by adding `luminous` to your list of
+dependencies in `mix.exs` like so:
 
 ```elixir
 def deps do
   [
-    {:luminous, "~> 0.5.0"}
+    {:luminous, git: "https://github.com/elinverd/luminous.git", branch: "master"}
   ]
 end
 ```
 
-For the moment, Luminous assumes that it will be embedded in a typical
-Phoenix Live View application with
-[tailwind](https://tailwindcss.com/),
-[alpinejs](https://alpinejs.dev/) and
-[daisyui](https://daisyui.com/).
+For the moment, Luminous assumes that it will be embedded in a Phoenix
+Live View application with [tailwind](https://tailwindcss.com/),
+[alpinejs](https://alpinejs.dev/) and [daisyui](https://daisyui.com/).
 
 While this assumption may change in the future, the fact is that the
 first two libraries (tailwind and alpine) are pretty standard in
@@ -66,7 +66,7 @@ Then in `assets/tailwind.config.js`:
 ...
 module.exports = {
     ...
-    content: [..., "../lib/luminous/components.ex"],
+    content: [..., "../deps/luminous/lib/luminous/components.ex"],
     ...
     plugins: [
         ...
