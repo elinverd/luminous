@@ -49,7 +49,7 @@ defmodule Luminous.MixProject do
     [
       setup: ["deps.get", "cmd --cd assets npm install"],
       dev: "run --no-halt dev/run.exs",
-      "assets.build": ["esbuild dist"]
+      "assets.build": ["tailwind dist", "esbuild dist"]
     ]
   end
 
