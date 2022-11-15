@@ -22,6 +22,14 @@ config :tailwind,
       --output=../priv/static/assets/app.css
     ),
     cd: Path.expand("../assets", __DIR__)
+  ],
+  dist: [
+    args: ~w(
+      --config=tailwind.config.js
+      --input=css/app.css
+      --output=../dist/luminous.css
+    ),
+    cd: Path.expand("../assets", __DIR__)
   ]
 
 # JS
