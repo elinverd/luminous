@@ -14,7 +14,7 @@ config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
 
 # CSS
 config :tailwind,
-  version: "3.1.6",
+  version: "3.2.3",
   default: [
     args: ~w(
       --config=tailwind.config.js

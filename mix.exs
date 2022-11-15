@@ -36,7 +36,7 @@ defmodule Luminous.MixProject do
       {:tzdata, "~> 1.1"},
 
       # dev & test dependencies
-      {:tailwind, "~> 0.1.8", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.1.9", runtime: Mix.env() == :dev},
       {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:plug_cowboy, "~> 2.0", only: :dev},
