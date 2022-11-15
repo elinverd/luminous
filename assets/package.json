@@ -9,8 +9,5 @@
     "chartjs-plugin-zoom": "^1.2.1",
     "flatpickr": "^4.6.9",
     "luxon": "^3.0.3"
-  },
-  "devDependencies": {
-    "tailwindcss": "^3.2.3"
   }
 }
