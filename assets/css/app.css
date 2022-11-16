@@ -32,7 +32,7 @@
 	}
 
 	.time-range .range-selector .range-presets .dropdown {
-		@apply p-2 min-w-max z-50 bg-white rounded-lg shadow-lg
+		@apply flex flex-col p-2 min-w-max z-50 bg-white rounded-lg shadow-lg
 	}
 
 	.time-range .range-selector .range-presets .dropdown .list-item-container {
@@ -74,7 +74,7 @@
 
 	/* Panel actions (download image/csv) */
 	.panel-actions-dropdown {
-		@apply p-2 min-w-max z-50 bg-white rounded-lg shadow-lg text-sm
+		@apply flex flex-col p-2 min-w-max z-50 bg-white rounded-lg shadow-lg text-sm
 	}
 
 	.panel-actions-dropdown .list-item-container {
@@ -83,5 +83,18 @@
 
 	.panel-actions-dropdown .list-item-content {
 		@apply px-4 py-3
+	}
+
+	/* dropdown transition classes */
+	.dropdown-transition-enter {
+		@apply transition ease-out duration-100
+	}
+
+	.dropdown-transition-start {
+		@apply opacity-0 scale-90
+	}
+
+	.dropdown-transition-end {
+		@apply opacity-100 scale-100
 	}
 }

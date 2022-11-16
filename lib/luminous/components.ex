@@ -94,25 +94,26 @@ defmodule Luminous.Components do
           <span class="sr-only">Loading...</span>
         </div>
 
-        <div id={"#{panel_id(panel)}-actions"} class="absolute inline-block top-0 right-0" x-data="{open: false}" @click.away="open = false">
-          <div tabindex="0" class="w-6 h-6 focus:outline-none" @click="open = true">
+        <div id={"#{panel_id(panel)}-actions"} class="absolute inline-block top-0 right-0" phx-click-away={hide_dropdown("#{panel_id(panel)}-actions-dropdown")}>
+          <div tabindex="0" class="w-6 h-6 focus:outline-none" phx-click={show_dropdown("#{panel_id(panel)}-actions-dropdown")}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/>
             </svg>
           </div>
-          <ul x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-            class="absolute right-0 panel-actions-dropdown">
-            <li @click="open = false" class="list-item-container">
-              <div class="list-item-content" phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:csv", to: "##{panel_id(panel)}")}>
-                Download CSV
-              </div>
-            </li>
-            <li @click="open = false" class="list-item-container">
-              <div class="list-item-content" phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:png", to: "##{panel_id(panel)}")}>
-                Download image
-              </div>
-            </li>
-          </ul>
+          <div id={"#{panel_id(panel)}-actions-dropdown"} class="absolute hidden right-0">
+            <ul class="panel-actions-dropdown">
+              <li class="list-item-container">
+                <div class="list-item-content" phx-click={hide_dropdown("#{panel_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{panel_id(panel)}:download:csv", to: "##{panel_id(panel)}")}>
+                  Download CSV
+                </div>
+              </li>
+              <li class="list-item-container">
+                <div class="list-item-content" phx-click={hide_dropdown("#{panel_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{panel_id(panel)}:download:png", to: "##{panel_id(panel)}")}>
+                  Download image
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div class="flex flex-row space-x-4">
@@ -214,25 +215,25 @@ defmodule Luminous.Components do
             phx-update="ignore" readonly="readonly"
             class="custom-range-input" />
           <!-- Presets button & dropdown -->
-          <div class="relative range-presets" x-data="{open: false}" @click.away="open = false">
-            <button class="button" @click="open = true">
+          <div class="relative range-presets" phx-click-away={hide_dropdown("preset-dropdown")}>
+            <button class="button" phx-click={show_dropdown("preset-dropdown")}>
               <svg id="chevron-down" xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
             </button>
-            <ul id="preset-dropdown" x-show="open"
-              x-transition:enter="transition ease-out duration-100"
-              x-transition:enter-start="opacity-0 scale-90"
-              x-transition:enter-end="opacity-100 scale-100"
-              class="absolute top-10 right-0 dropdown">
-              <%= for preset <- Luminous.TimeRangeSelector.presets() do %>
-                <li @click="open = false" class="list-item-container">
-                  <div class="list-item-content" id={"time-range-preset-#{preset}"} phx-click="preset_time_range_selected" phx-value-preset={preset} @click="open = false">
-                    <%= preset %>
-                  </div>
-                </li>
-              <% end %>
-            </ul>
+            <div id="preset-dropdown" class="absolute hidden top-10 right-0">
+              <ul class="dropdown">
+                <%= for preset <- Luminous.TimeRangeSelector.presets() do %>
+                  <li class="list-item-container">
+                    <div class="list-item-content" id={"time-range-preset-#{preset}"}
+                      phx-click={hide_dropdown("preset-dropdown") |> JS.push("preset_time_range_selected")}
+                      phx-value-preset={preset}>
+                      <%= preset %>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
           </div>
         </div>
         <div class="time-zone">
@@ -244,8 +245,8 @@ defmodule Luminous.Components do
 
   def variable(%{variable: variable} = assigns) do
     ~H"""
-    <div id={"#{variable.id}-dropdown"} class="relative variable" x-data="{open: false}" @click.away="open = false">
-      <button @click="open = true" class="button">
+    <div id={"#{variable.id}-dropdown"} class="relative variable" phx-click-away={hide_dropdown("#{variable.id}-dropdown-content")}>
+      <button class="button" phx-click={show_dropdown("#{variable.id}-dropdown-content")}>
         <div class="label">
           <span class="label-prefix"><%= "#{variable.label}: " %></span><%= variable.current.label %>
         </div>
@@ -254,19 +255,19 @@ defmodule Luminous.Components do
         </svg>
       </button>
       <!-- Dropdown content -->
-      <ul id={"#{variable.id}-dropdown-content"} x-show="open"
-        x-transition:enter="transition ease-out duration-100"
-        x-transition:enter-start="opacity-0 scale-90"
-        x-transition:enter-end="opacity-100 scale-100"
-        class="absolute dropdown">
-        <%= for %{label: label, value: value} <- variable.values do %>
-          <li @click="open = false" class="list-item-container">
-            <div id={"#{variable.id}-#{value}"} class="list-item-content" phx-click="variable_updated" phx-value-variable={"#{variable.id}"} phx-value-value={"#{value}"}>
-              <%= label %>
-            </div>
-          </li>
-        <% end %>
-      </ul>
+      <div id={"#{variable.id}-dropdown-content"} class="absolute hidden">
+        <ul class="dropdown">
+          <%= for %{label: label, value: value} <- variable.values do %>
+            <li class="list-item-container">
+              <div id={"#{variable.id}-#{value}"} class="list-item-content"
+                phx-click={hide_dropdown("#{variable.id}-dropdown-content") |> JS.push("variable_updated")}
+                phx-value-variable={"#{variable.id}"} phx-value-value={"#{value}"}>
+                <%= label %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
     </div>
     """
   end
@@ -299,4 +300,16 @@ defmodule Luminous.Components do
   defp stats_grid_structure(2), do: "grid grid-cols-2 w-full"
   defp stats_grid_structure(3), do: "grid grid-cols-3 w-full"
   defp stats_grid_structure(_), do: "grid grid-cols-4 w-full"
+
+  defp show_dropdown(dropdown_id) do
+    JS.show(
+      to: "##{dropdown_id}",
+      transition:
+        {"dropdown-transition-enter", "dropdown-transition-start", "dropdown-transition-end"}
+    )
+  end
+
+  defp hide_dropdown(dropdown_id) do
+    JS.hide(to: "##{dropdown_id}")
+  end
 end
