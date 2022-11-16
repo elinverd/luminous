@@ -101,16 +101,16 @@ defmodule Luminous.Components do
             </svg>
           </div>
           <ul x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-            class="absolute p-2 min-w-max z-50 bg-white rounded-lg shadow-lg text-sm right-0">
-            <li @click="open = false" class="text-left rounded-lg cursor-pointer hover:bg-slate-200">
-              <a href="#" class="block px-4 py-3" phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:csv", to: "##{panel_id(panel)}")}>
+            class="absolute right-0 panel-actions-dropdown">
+            <li @click="open = false" class="list-item-container">
+              <div class="list-item-content" phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:csv", to: "##{panel_id(panel)}")}>
                 Download CSV
-              </a>
+              </div>
             </li>
-            <li @click="open = false" class="text-left rounded-lg cursor-pointer hover:bg-slate-200">
-              <a href="#" class="block px-4 py-3" phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:png", to: "##{panel_id(panel)}")}>
+            <li @click="open = false" class="list-item-container">
+              <div class="list-item-content" phx-click={JS.dispatch("panel:#{panel_id(panel)}:download:png", to: "##{panel_id(panel)}")}>
                 Download image
-              </a>
+              </div>
             </li>
           </ul>
         </div>
@@ -206,31 +206,36 @@ defmodule Luminous.Components do
 
   def time_range(%{dashboard: dashboard} = assigns) do
     ~H"""
-      <div class="flex items-center no-animation cursor-default space-x-4">
-        <div class="flex items-center rounded-lg border border-slate-800 h-8 cursor-pointer">
+      <div class="time-range">
+        <div class="range-selector">
           <!-- Date picker -->
-          <input id={dashboard.time_range_selector.id} phx-hook={dashboard.time_range_selector.hook} phx-update="ignore" readonly="readonly"
-            class="h-8 w-52 rounded-lg rounded-r-none cursor-pointer bg-transparent text-sm text-center uppercase font-bold hover:text-white hover:bg-slate-800 focus:outline-none active:bg-slate-900" />
+          <input id={dashboard.time_range_selector.id}
+            phx-hook={dashboard.time_range_selector.hook}
+            phx-update="ignore" readonly="readonly"
+            class="custom-range-input" />
           <!-- Presets button & dropdown -->
-          <div class="relative" x-data="{open: false}" @click.away="open = false">
-            <button class="h-8 px-1 rounded-lg rounded-l-none bg-transparent hover:bg-slate-800 hover:text-white focus:outline-none active:bg-slate-900" @click="open = true">
-              <svg id="chevron-down" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <div class="relative range-presets" x-data="{open: false}" @click.away="open = false">
+            <button class="button" @click="open = true">
+              <svg id="chevron-down" xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
             </button>
-            <ul id="preset-dropdown" x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-              class="absolute p-2 min-w-max z-50 bg-white rounded-lg shadow-lg top-10 right-0">
+            <ul id="preset-dropdown" x-show="open"
+              x-transition:enter="transition ease-out duration-100"
+              x-transition:enter-start="opacity-0 scale-90"
+              x-transition:enter-end="opacity-100 scale-100"
+              class="absolute top-10 right-0 dropdown">
               <%= for preset <- Luminous.TimeRangeSelector.presets() do %>
-                <li @click="open = false" class="text-left rounded-lg cursor-pointer hover:bg-slate-200">
-                  <a href="#" class="block px-4 py-3" id={"time-range-preset-#{preset}"} phx-click="preset_time_range_selected" phx-value-preset={preset} @click="open = false">
+                <li @click="open = false" class="list-item-container">
+                  <div class="list-item-content" id={"time-range-preset-#{preset}"} phx-click="preset_time_range_selected" phx-value-preset={preset} @click="open = false">
                     <%= preset %>
-                  </a>
+                  </div>
                 </li>
               <% end %>
             </ul>
           </div>
         </div>
-        <div class="px-2 rounded-full bg-slate-800 text-sm font-bold text-white cursor-default">
+        <div class="time-zone">
           <%= dashboard.time_zone |> DateTime.now!() |> Calendar.strftime("%Z") %>
         </div>
       </div>
@@ -239,23 +244,26 @@ defmodule Luminous.Components do
 
   def variable(%{variable: variable} = assigns) do
     ~H"""
-    <div id={"#{variable.id}-dropdown"} class="relative" x-data="{open: false}" @click.away="open = false">
-      <button @click="open = true" class="h-8 px-3 py-2.5 flex items-center gap-2 text-sm text-center font-bold uppercase rounded-lg border border-slate-800 hover:text-white hover:bg-slate-800 focus:outline-none transition duration active:bg-slate-900 active:scale-95">
-        <div class="text-left text-ellipsis whitespace-nowrap overflow-hidden max-w-xs">
-          <span class="text-xs"><%= "#{variable.label}: " %></span><%= variable.current.label %>
+    <div id={"#{variable.id}-dropdown"} class="relative variable" x-data="{open: false}" @click.away="open = false">
+      <button @click="open = true" class="button">
+        <div class="label">
+          <span class="label-prefix"><%= "#{variable.label}: " %></span><%= variable.current.label %>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
       </button>
       <!-- Dropdown content -->
-      <ul id={"#{variable.id}-dropdown-content"} x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
-        class="absolute p-2 min-w-max max-h-96 overflow-auto z-50 bg-white rounded-lg shadow-lg">
+      <ul id={"#{variable.id}-dropdown-content"} x-show="open"
+        x-transition:enter="transition ease-out duration-100"
+        x-transition:enter-start="opacity-0 scale-90"
+        x-transition:enter-end="opacity-100 scale-100"
+        class="absolute dropdown">
         <%= for %{label: label, value: value} <- variable.values do %>
-          <li @click="open = false" class="text-left rounded-lg cursor-pointer hover:bg-slate-200">
-            <a href="#" id={"#{variable.id}-#{value}"} class="block px-4 py-3" phx-click="variable_updated" phx-value-variable={"#{variable.id}"} phx-value-value={"#{value}"}>
+          <li @click="open = false" class="list-item-container">
+            <div id={"#{variable.id}-#{value}"} class="list-item-content" phx-click="variable_updated" phx-value-variable={"#{variable.id}"} phx-value-value={"#{value}"}>
               <%= label %>
-            </a>
+            </div>
           </li>
         <% end %>
       </ul>

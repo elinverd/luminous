@@ -4,3 +4,84 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+
+@layer components {
+	/* Time range classes */
+	.time-range {
+		@apply flex items-center cursor-default space-x-4
+	}
+
+	.time-range .time-zone {
+		@apply px-2 rounded-full cursor-default text-sm font-bold text-white bg-slate-800
+	}
+
+	.time-range .range-selector {
+		@apply flex items-center rounded-lg border border-slate-800 h-8 cursor-pointer
+	}
+
+	.time-range .range-selector .custom-range-input {
+		@apply h-8 w-52 rounded-l-lg rounded-r-none cursor-pointer bg-transparent text-sm text-center uppercase font-bold hover:text-white hover:bg-slate-800 focus:outline-none active:bg-slate-900
+	}
+
+	.time-range .range-selector .range-presets .button {
+		@apply h-8 rounded-l-none rounded-r-lg cursor-pointer bg-transparent hover:bg-slate-800 hover:text-white focus:outline-none active:bg-slate-900
+	}
+
+	.time-range .range-selector .range-presets .button .icon {
+		@apply mx-1 h-5 w-5
+	}
+
+	.time-range .range-selector .range-presets .dropdown {
+		@apply p-2 min-w-max z-50 bg-white rounded-lg shadow-lg
+	}
+
+	.time-range .range-selector .range-presets .dropdown .list-item-container {
+		@apply text-left rounded-lg cursor-pointer hover:bg-slate-200
+	}
+
+	.time-range .range-selector .range-presets .dropdown .list-item-content {
+		@apply px-4 py-3
+	}
+
+	/* Variable classes */
+	.variable .button {
+		@apply h-8 px-3 py-2.5 flex items-center gap-2 rounded-lg border border-slate-800 hover:text-white hover:bg-slate-800 focus:outline-none transition duration-200 active:bg-slate-900 active:scale-95
+	}
+
+	.variable .button .label {
+		@apply text-sm font-bold uppercase text-left text-ellipsis whitespace-nowrap overflow-hidden max-w-xs
+	}
+
+	.variable .button .label-prefix {
+		@apply text-xs
+	}
+
+	.variable .button .icon {
+		@apply h-5 w-5
+	}
+
+	.variable .dropdown {
+		@apply flex flex-col p-2 z-50 max-h-96 min-w-max overflow-auto bg-white rounded-lg shadow-lg
+	}
+
+	.variable .dropdown .list-item-container {
+		@apply text-left rounded-lg cursor-pointer hover:bg-slate-200
+	}
+
+	.variable .dropdown .list-item-content {
+		@apply px-4 py-3
+	}
+
+	/* Panel actions (download image/csv) */
+	.panel-actions-dropdown {
+		@apply p-2 min-w-max z-50 bg-white rounded-lg shadow-lg text-sm
+	}
+
+	.panel-actions-dropdown .list-item-container {
+		@apply text-left rounded-lg cursor-pointer hover:bg-slate-200
+	}
+
+	.panel-actions-dropdown .list-item-content {
+		@apply px-4 py-3
+	}
+}
