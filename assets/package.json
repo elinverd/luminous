@@ -2,7 +2,6 @@
   "description": "",
   "license": "MIT",
   "devDependencies": {
-    "alpinejs": "^2.8.0",
     "chart.js": "^3.3.0",
     "chartjs-adapter-luxon": "^1.2.0",
     "chartjs-plugin-zoom": "^1.2.1",
