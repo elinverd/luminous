@@ -102,13 +102,13 @@ defmodule Luminous.Components do
           </div>
           <div id={"#{panel_id(panel)}-actions-dropdown"} class="absolute hidden right-0">
             <ul class="lmn-panel-actions-dropdown">
-              <li class="lmn-list-item-container">
-                <div class="lmn-list-item-content" phx-click={hide_dropdown("#{panel_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{panel_id(panel)}:download:csv", to: "##{panel_id(panel)}")}>
+              <li class="lmn-panel-actions-dropdown-item-container">
+                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{panel_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{panel_id(panel)}:download:csv", to: "##{panel_id(panel)}")}>
                   Download CSV
                 </div>
               </li>
-              <li class="lmn-list-item-container">
-                <div class="lmn-list-item-content" phx-click={hide_dropdown("#{panel_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{panel_id(panel)}:download:png", to: "##{panel_id(panel)}")}>
+              <li class="lmn-panel-actions-dropdown-item-container">
+                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{panel_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{panel_id(panel)}:download:png", to: "##{panel_id(panel)}")}>
                   Download image
                 </div>
               </li>
@@ -207,25 +207,25 @@ defmodule Luminous.Components do
 
   def time_range(%{dashboard: dashboard} = assigns) do
     ~H"""
-      <div class="lmn-time-range">
-        <div class="lmn-range-selector">
+      <div class="lmn-time-range-compound">
+        <div class="lmn-time-range-selector">
           <!-- Date picker -->
           <input id={dashboard.time_range_selector.id}
             phx-hook={dashboard.time_range_selector.hook}
             phx-update="ignore" readonly="readonly"
-            class="lmn-custom-range-input" />
+            class="lmn-custom-time-range-input" />
           <!-- Presets button & dropdown -->
-          <div class="relative lmn-range-presets" phx-click-away={hide_dropdown("preset-dropdown")}>
-            <button class="lmn-button" phx-click={show_dropdown("preset-dropdown")}>
-              <svg id="chevron-down" xmlns="http://www.w3.org/2000/svg" class="lmn-icon" viewBox="0 0 20 20" fill="currentColor">
+          <div class="relative" phx-click-away={hide_dropdown("preset-dropdown")}>
+            <button class="lmn-time-range-presets-button" phx-click={show_dropdown("preset-dropdown")}>
+              <svg class="lmn-time-range-presets-button-icon" id="chevron-down" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
             </button>
             <div id="preset-dropdown" class="absolute hidden top-10 right-0">
-              <ul class="lmn-dropdown">
+              <ul class="lmn-time-range-presets-dropdown">
                 <%= for preset <- Luminous.TimeRangeSelector.presets() do %>
-                  <li class="lmn-list-item-container">
-                    <div class="lmn-list-item-content" id={"time-range-preset-#{preset}"}
+                  <li class="lmn-time-range-presets-dropdown-item-container">
+                    <div class="lmn-time-range-presets-dropdown-item-content" id={"time-range-preset-#{preset}"}
                       phx-click={hide_dropdown("preset-dropdown") |> JS.push("preset_time_range_selected")}
                       phx-value-preset={preset}>
                       <%= preset %>
@@ -245,21 +245,21 @@ defmodule Luminous.Components do
 
   def variable(%{variable: variable} = assigns) do
     ~H"""
-    <div id={"#{variable.id}-dropdown"} class="relative lmn-variable" phx-click-away={hide_dropdown("#{variable.id}-dropdown-content")}>
-      <button class="lmn-button" phx-click={show_dropdown("#{variable.id}-dropdown-content")}>
-        <div class="lmn-label">
-          <span class="lmn-label-prefix"><%= "#{variable.label}: " %></span><%= variable.current.label %>
+    <div id={"#{variable.id}-dropdown"} class="relative" phx-click-away={hide_dropdown("#{variable.id}-dropdown-content")}>
+      <button class="lmn-variable-button" phx-click={show_dropdown("#{variable.id}-dropdown-content")}>
+        <div class="lmn-variable-button-label">
+          <span class="lmn-variable-button-label-prefix"><%= "#{variable.label}: " %></span><%= variable.current.label %>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="lmn-icon" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="lmn-variable-button-icon" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
         </svg>
       </button>
       <!-- Dropdown content -->
       <div id={"#{variable.id}-dropdown-content"} class="absolute hidden">
-        <ul class="lmn-dropdown">
+        <ul class="lmn-variable-dropdown">
           <%= for %{label: label, value: value} <- variable.values do %>
-            <li class="lmn-list-item-container">
-              <div id={"#{variable.id}-#{value}"} class="lmn-list-item-content"
+            <li class="lmn-variable-dropdown-item-container">
+              <div id={"#{variable.id}-#{value}"} class="lmn-variable-dropdown-item-content"
                 phx-click={hide_dropdown("#{variable.id}-dropdown-content") |> JS.push("variable_updated")}
                 phx-value-variable={"#{variable.id}"} phx-value-value={"#{value}"}>
                 <%= label %>
