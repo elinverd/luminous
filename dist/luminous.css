@@ -1469,19 +1469,19 @@ video {
 
 /* Time range classes */
 
-.time-range {
+.lmn-time-range {
   display: flex;
   cursor: default;
   align-items: center;
 }
 
-.time-range > :not([hidden]) ~ :not([hidden]) {
+.lmn-time-range > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(1rem * var(--tw-space-x-reverse));
   margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
-.time-range .time-zone {
+.lmn-time-range .lmn-time-zone {
   cursor: default;
   border-radius: 9999px;
   background-color: #1e293b;
@@ -1493,7 +1493,7 @@ video {
   color: #fff;
 }
 
-.time-range .range-selector {
+.lmn-time-range .lmn-range-selector {
   display: flex;
   height: 2rem;
   cursor: pointer;
@@ -1503,7 +1503,7 @@ video {
   border-color: #1e293b;
 }
 
-.time-range .range-selector .custom-range-input {
+.lmn-time-range .lmn-range-selector .lmn-custom-range-input {
   height: 2rem;
   width: 13rem;
   cursor: pointer;
@@ -1519,21 +1519,21 @@ video {
   text-transform: uppercase;
 }
 
-.time-range .range-selector .custom-range-input:hover {
+.lmn-time-range .lmn-range-selector .lmn-custom-range-input:hover {
   background-color: #1e293b;
   color: #fff;
 }
 
-.time-range .range-selector .custom-range-input:focus {
+.lmn-time-range .lmn-range-selector .lmn-custom-range-input:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
 
-.time-range .range-selector .custom-range-input:active {
+.lmn-time-range .lmn-range-selector .lmn-custom-range-input:active {
   background-color: #0f172a;
 }
 
-.time-range .range-selector .range-presets .button {
+.lmn-time-range .lmn-range-selector .lmn-range-presets .lmn-button {
   height: 2rem;
   cursor: pointer;
   border-top-left-radius: 0px;
@@ -1543,28 +1543,28 @@ video {
   background-color: transparent;
 }
 
-.time-range .range-selector .range-presets .button:hover {
+.lmn-time-range .lmn-range-selector .lmn-range-presets .lmn-button:hover {
   background-color: #1e293b;
   color: #fff;
 }
 
-.time-range .range-selector .range-presets .button:focus {
+.lmn-time-range .lmn-range-selector .lmn-range-presets .lmn-button:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
 
-.time-range .range-selector .range-presets .button:active {
+.lmn-time-range .lmn-range-selector .lmn-range-presets .lmn-button:active {
   background-color: #0f172a;
 }
 
-.time-range .range-selector .range-presets .button .icon {
+.lmn-time-range .lmn-range-selector .lmn-range-presets .lmn-button .lmn-icon {
   margin-left: 0.25rem;
   margin-right: 0.25rem;
   height: 1.25rem;
   width: 1.25rem;
 }
 
-.time-range .range-selector .range-presets .dropdown {
+.lmn-time-range .lmn-range-selector .lmn-range-presets .lmn-dropdown {
   z-index: 50;
   display: flex;
   min-width: -moz-max-content;
@@ -1578,17 +1578,17 @@ video {
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-.time-range .range-selector .range-presets .dropdown .list-item-container {
+.lmn-time-range .lmn-range-selector .lmn-range-presets .lmn-dropdown .lmn-list-item-container {
   cursor: pointer;
   border-radius: 0.5rem;
   text-align: left;
 }
 
-.time-range .range-selector .range-presets .dropdown .list-item-container:hover {
+.lmn-time-range .lmn-range-selector .lmn-range-presets .lmn-dropdown .lmn-list-item-container:hover {
   background-color: #e2e8f0;
 }
 
-.time-range .range-selector .range-presets .dropdown .list-item-content {
+.lmn-time-range .lmn-range-selector .lmn-range-presets .lmn-dropdown .lmn-list-item-content {
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: 0.75rem;
@@ -1597,7 +1597,7 @@ video {
 
 /* Variable classes */
 
-.variable .button {
+.lmn-variable .lmn-button {
   display: flex;
   height: 2rem;
   align-items: center;
@@ -1616,24 +1616,24 @@ video {
   transition-duration: 200ms;
 }
 
-.variable .button:hover {
+.lmn-variable .lmn-button:hover {
   background-color: #1e293b;
   color: #fff;
 }
 
-.variable .button:focus {
+.lmn-variable .lmn-button:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
 
-.variable .button:active {
+.lmn-variable .lmn-button:active {
   --tw-scale-x: .95;
   --tw-scale-y: .95;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
   background-color: #0f172a;
 }
 
-.variable .button .label {
+.lmn-variable .lmn-button .lmn-label {
   max-width: 20rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1645,17 +1645,17 @@ video {
   text-transform: uppercase;
 }
 
-.variable .button .label-prefix {
+.lmn-variable .lmn-button .lmn-label-prefix {
   font-size: 0.75rem;
   line-height: 1rem;
 }
 
-.variable .button .icon {
+.lmn-variable .lmn-button .lmn-icon {
   height: 1.25rem;
   width: 1.25rem;
 }
 
-.variable .dropdown {
+.lmn-variable .lmn-dropdown {
   z-index: 50;
   display: flex;
   max-height: 24rem;
@@ -1671,17 +1671,17 @@ video {
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-.variable .dropdown .list-item-container {
+.lmn-variable .lmn-dropdown .lmn-list-item-container {
   cursor: pointer;
   border-radius: 0.5rem;
   text-align: left;
 }
 
-.variable .dropdown .list-item-container:hover {
+.lmn-variable .lmn-dropdown .lmn-list-item-container:hover {
   background-color: #e2e8f0;
 }
 
-.variable .dropdown .list-item-content {
+.lmn-variable .lmn-dropdown .lmn-list-item-content {
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: 0.75rem;
@@ -1690,7 +1690,7 @@ video {
 
 /* Panel actions (download image/csv) */
 
-.panel-actions-dropdown {
+.lmn-panel-actions-dropdown {
   z-index: 50;
   display: flex;
   min-width: -moz-max-content;
@@ -1706,17 +1706,17 @@ video {
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-.panel-actions-dropdown .list-item-container {
+.lmn-panel-actions-dropdown .lmn-list-item-container {
   cursor: pointer;
   border-radius: 0.5rem;
   text-align: left;
 }
 
-.panel-actions-dropdown .list-item-container:hover {
+.lmn-panel-actions-dropdown .lmn-list-item-container:hover {
   background-color: #e2e8f0;
 }
 
-.panel-actions-dropdown .list-item-content {
+.lmn-panel-actions-dropdown .lmn-list-item-content {
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: 0.75rem;
@@ -1725,7 +1725,7 @@ video {
 
 /* dropdown transition classes */
 
-.dropdown-transition-enter {
+.lmn-dropdown-transition-enter {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-backdrop-filter;
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-backdrop-filter;
@@ -1734,14 +1734,14 @@ video {
   transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
 }
 
-.dropdown-transition-start {
+.lmn-dropdown-transition-start {
   --tw-scale-x: .9;
   --tw-scale-y: .9;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
   opacity: 0;
 }
 
-.dropdown-transition-end {
+.lmn-dropdown-transition-end {
   --tw-scale-x: 1;
   --tw-scale-y: 1;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -1873,6 +1873,10 @@ video {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .grid-cols-10 {
