@@ -39,29 +39,23 @@ def deps do
 end
 ```
 
-For the moment, Luminous assumes that it will be embedded in a Phoenix
-LiveView application with [tailwind](https://tailwindcss.com/) and
-[alpinejs](https://alpinejs.dev/). While this assumption may change in
-the future, the fact is that these two libraries (tailwind and alpine)
-are pretty standard in Phoenix LiveView apps.
+`luminous` assumes that it will be embedded in a standard Phoenix LiveView application with [tailwindcss](https://tailwindcss.com/).
 
-Configure `tailwind` to parse `luminous`'s files.
-Add the following In `assets/tailwind.config.js`:
+In order to be able to use the provided components, the library's `javascript` and
+`CSS` files must be imported to your project:
 
+In `assets/package.json`:
 ```javascript
 ...
-module.exports = {
-    ...
-    content: [..., "../deps/luminous/lib/luminous/components.ex"],
-    ...
+"dependencies": {
+  "luminous": "file:../deps/luminous"
 }
 ```
 
-Finally in `assets/js/app.js`:
+In `assets/js/app.js`:
 
 ```javascript
-import 'alpinejs'
-import { ChartJSHook, TimeRangeHook } from "../../deps/luminous/dist/luminous"
+import { ChartJSHook, TimeRangeHook } from "luminous"
 
 let Hooks = {
   TimeRangeHook: new TimeRangeHook(),
@@ -71,21 +65,16 @@ let Hooks = {
 ...
 
 let liveSocket = new LiveSocket("/live", Socket, {
-    dom: {
-        onBeforeElUpdated(from, to) {
-            if (from.__x) {
-                window.Alpine.clone(from.__x, to)
-            }
-        }
-    },
-    params: { _csrf_token: csrfToken },
-    hooks: Hooks
+  ...
+  hooks: Hooks
 })
 ...
 ```
 
-Based on the above setup, your app's asset pipeline will build and
-include the necessary luminous js and css resources.
+Finally, in `assets/css/app.css`:
+```CSS
+@import "luminous/dist/luminous";
+```
 
 ## Usage
 
