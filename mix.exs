@@ -19,7 +19,7 @@ defmodule Luminous.MixProject do
       docs: [
         # The main page in the docs
         main: "Luminous",
-        extras: ["README.md"]
+        extras: ["README.md", "docs/Applying custom CSS.md"]
       ]
     ]
   end
