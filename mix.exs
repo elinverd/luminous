@@ -10,7 +10,17 @@ defmodule Luminous.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      package: package()
+      package: package(),
+
+      # Docs
+      name: "luminous",
+      source_url: "https://github.com/elinverd/luminous",
+      homepage_url: "https://github.com/elinverd/luminous",
+      docs: [
+        # The main page in the docs
+        main: "Luminous",
+        extras: ["README.md"]
+      ]
     ]
   end
 
@@ -41,7 +51,8 @@ defmodule Luminous.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:plug_cowboy, "~> 2.0", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:floki, ">= 0.30.0", only: :test}
+      {:floki, ">= 0.30.0", only: :test},
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false}
     ]
   end
 
