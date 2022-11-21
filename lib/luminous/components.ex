@@ -1,17 +1,21 @@
 defmodule Luminous.Components do
+  @moduledoc """
+  This module contains a set of components that can be used to create a dashboard.
+  """
+
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
   alias Luminous.{Query, Helpers}
 
   @doc """
-  the dashboard component is responsible for rendering all the necessary elements:
+  The dashboard component is responsible for rendering all the necessary elements:
   - title
   - variables
   - time range selector
   - panels
 
-  it also registers callbacks for reacting to panel loading states
+  Additinally, it registers callbacks for reacting to panel loading states.
   """
   def dashboard(
         %{dashboard: dashboard, stats: stats, panel_statistics: panel_statistics} = assigns
@@ -45,8 +49,7 @@ defmodule Luminous.Components do
   end
 
   @doc """
-  this component registers the js event listeners
-  for the panel spinners
+  This component registers the JS event listeners for the panel spinners.
   """
   def listeners(assigns) do
     ~H"""
@@ -68,8 +71,8 @@ defmodule Luminous.Components do
   end
 
   @doc """
-  this component is responsible for rendering the panel's data
-  depending on the panel's type, there will be a different visualization
+  This component is responsible for rendering the panel's data.
+  Depending on the panel's type, there will be a different visualization.
   """
   def panel(
         %{
@@ -178,6 +181,7 @@ defmodule Luminous.Components do
     """
   end
 
+  @doc false
   def panel_statistics(%{panel_statistics: nil} = assigns), do: ~H""
 
   def panel_statistics(%{panel_statistics: statistics} = assigns) when length(statistics) == 0,
@@ -205,6 +209,10 @@ defmodule Luminous.Components do
     """
   end
 
+  @doc """
+  This component is responsible for rendering the time range component.
+  It consists of a date range picker and a presets dropdown.
+  """
   def time_range(%{dashboard: dashboard} = assigns) do
     ~H"""
       <div class="lmn-time-range-compound">
@@ -243,6 +251,9 @@ defmodule Luminous.Components do
     """
   end
 
+  @doc """
+  This component is responsible for rendering the dropdown of the assigned variable.
+  """
   def variable(%{variable: variable} = assigns) do
     ~H"""
     <div id={"#{variable.id}-dropdown"} class="relative" phx-click-away={hide_dropdown("#{variable.id}-dropdown-content")}>
@@ -272,18 +283,22 @@ defmodule Luminous.Components do
     """
   end
 
+  @doc false
   def description(%{description: nil} = assigns), do: ~H""
 
   def description(%{description: description} = assigns) do
     ~H"""
       <div data-tip={description} class="tooltip z-50">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    </div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
     """
   end
 
+  @doc """
+  This is a helper function that returns the DOM id of the given panel.
+  """
   def panel_id(panel), do: "panel-#{panel.id}"
 
   defp print_number(n) do

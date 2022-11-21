@@ -1,19 +1,14 @@
 defmodule Luminous.TimeRangeSelector do
   @moduledoc """
-  a selector represents the widget in the dashboard that
-  allows for selecting a time range/period
-
-  it is defined at compile time and populated at compile time (current
-  value)
-
-  it can also be updated with a new value
-
+  A selector represents the widget in the dashboard that allows
+  for selecting a time range/period. It is defined at compile time
+  and populated at compile time (current value).
+  It can also be updated with a new value.
   """
   alias Luminous.TimeRange
 
   @doc """
-  this behaviour needs to be implemented by the module
-  that is passed to define/2
+  This behaviour needs to be implemented by the module that is passed to `define/2`.
   """
   @callback default_time_range(time_zone()) :: TimeRange.t()
 
@@ -41,11 +36,9 @@ defmodule Luminous.TimeRangeSelector do
     {"Previous month", &TimeRange.last_month/1, []}
   ]
 
-  @spec populate(t(), time_zone()) :: t()
-  def populate(selector, time_zone) do
-    Map.put(selector, :current_time_range, default_time_range(selector, time_zone))
-  end
-
+  @doc """
+  Initialize and return a time range selector at compile time.
+  """
   @spec define(module(), Keyword.t()) :: t()
   def define(mod, opts \\ []) do
     %__MODULE__{
@@ -55,16 +48,33 @@ defmodule Luminous.TimeRangeSelector do
     }
   end
 
+  @doc """
+  Populate the selector's dynamic properties (e.g. current time range) at runtime.
+  """
+  @spec populate(t(), time_zone()) :: t()
+  def populate(selector, time_zone) do
+    Map.put(selector, :current_time_range, default_time_range(selector, time_zone))
+  end
+
+  @doc """
+  Returns the default time range of the selector, in the given time zone.
+  """
   @spec default_time_range(t(), time_zone()) :: TimeRange.t()
   def default_time_range(selector, time_zone) do
     apply(selector.mod, :default_time_range, [time_zone])
   end
 
+  @doc """
+  Updates the current time range of the selector.
+  """
   @spec update_current(t(), TimeRange.t()) :: t()
   def update_current(selector, time_range) do
     Map.put(selector, :current_time_range, time_range)
   end
 
+  @doc """
+  Returns a list with the available time range presets.
+  """
   @spec presets() :: [preset()]
   def presets(), do: ["Default" | Enum.map(@presets, fn {label, _, _} -> label end)]
 

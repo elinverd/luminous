@@ -1,4 +1,9 @@
 defmodule Luminous.TimeRange do
+  @moduledoc """
+  This module defines a struct with two fields (`:from` and `:to`) to represent a time range.
+  Additionally, various helper functions are defined that operate on time ranges.
+  """
+
   @type t() :: %__MODULE__{from: DateTime.t(), to: DateTime.t()}
 
   defstruct [:from, :to]

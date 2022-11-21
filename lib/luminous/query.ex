@@ -1,15 +1,15 @@
 defmodule Luminous.Query do
   @moduledoc """
-  a query is embedded in a panel and contains a function
-  which will be executed upon panel refresh to fetch the query's data
+  A query is embedded in a panel and contains a function
+  which will be executed upon panel refresh to fetch the query's data.
   """
+
   alias Luminous.{TimeRange, Variable}
 
   defmodule Attributes do
     @moduledoc """
-    This struct collects all the attributes that apply to a particular Dataset
-
-    it is specified in the `attrs` argument of Query.result.new
+    This struct collects all the attributes that apply to a particular Dataset.
+    It is specified in the `attrs` argument of `Luminous.Query.Result.new/2`.
     """
     @type t :: %__MODULE__{
             type: :line | :bar,
@@ -41,8 +41,8 @@ defmodule Luminous.Query do
 
   defmodule DataSet do
     @moduledoc """
-    a DataSet essentially wraps a list of 1-d or 2-d data points
-    that has a label and a type (for visualization)
+    A `DataSet` essentially wraps a list of 1-d or 2-d data points
+    that has a label and a type (for visualization).
     """
     @type type :: :line | :bar
     @type value :: Decimal.t() | binary()
@@ -66,8 +66,7 @@ defmodule Luminous.Query do
     end
 
     @doc """
-    extract and return the first value out of rows
-    e.g. for use in stat panels
+    Extract and return the first value out of rows.
     """
     @spec first_value(t()) :: nil | any()
     def first_value(%{rows: []}), do: nil
@@ -75,7 +74,7 @@ defmodule Luminous.Query do
     def first_value(%{rows: [%{y: val} | _]}), do: val
 
     @doc """
-    calculate and return the basic statistics of the dataset in one pass (loop)
+    Calculate and return the basic statistics of the dataset in one pass (loop).
     """
     @spec statistics(t()) :: %{
             label: binary(),
@@ -145,7 +144,7 @@ defmodule Luminous.Query do
     end
 
     @doc """
-    override the dataset's unit with the provided string only if it's not already present
+    Override the dataset's unit with the provided string only if it's not already present.
     """
     @spec maybe_override_unit(t(), binary()) :: t()
     def maybe_override_unit(%{attrs: %{unit: nil}} = dataset, unit) do
@@ -158,12 +157,11 @@ defmodule Luminous.Query do
 
   defmodule Result do
     @moduledoc """
-    a query Result wraps a columnar data frame with multiple variables
-
+    A query Result wraps a columnar data frame with multiple variables.
     `attrs` is a map where keys are variable labels (as specified
     in the query's select statement) and values are keyword lists with
-    visualization properties for the corresponding Dataset. See
-    Dataset.new/3 for details.
+    visualization properties for the corresponding `DataSet`. See
+    `Luminous.Query.DataSet.new/3` for details.
     """
     @type label :: atom() | binary()
     @type value :: number() | Decimal.t() | binary()
@@ -178,7 +176,7 @@ defmodule Luminous.Query do
     defstruct [:rows, :attrs]
 
     @doc """
-    new/2 can be called in the following ways:
+    This function can be called in the following ways:
     - with a list of rows, i.e. a list of lists containing 2-tuples {label, value}
     - with a single row, i.e. a list of 2-tuples of the form {label, value} (e.g. in the case of single- or multi- stats)
     - with a single value (for use in a single-valued stat panel with no label)
@@ -203,8 +201,8 @@ defmodule Luminous.Query do
     end
 
     @doc """
-    transform the query Result (multiple variables as columns) to a list of Datasets
-    timestamps are converted to unix time in milliseconds (js-compatible)
+    Transform the query Result (multiple variables as columns) to a list of Datasets
+    timestamps are converted to unix time in milliseconds (JS-compatible).
     """
     @spec transform(t()) :: [DataSet.t()]
     def transform(%__MODULE__{rows: rows} = result) when is_list(rows) do
@@ -300,12 +298,11 @@ defmodule Luminous.Query do
   end
 
   @doc """
-  a module must implement this behaviour to be passed
-  as an argument to define/3
-  a query must return a list of 2-tuples:
+  A module must implement this behaviour to be passed as an argument to `Luminous.Query.define/2`.
+  A query must return a list of 2-tuples:
     - the 2-tuple's first element is the time series' label
     - the 2-tuple's second element is the label's value
-  the list must contain a 2-tuple with the label `:time` and a `DateTime` value
+  the list must contain a 2-tuple with the label `:time` and a `DateTime` value.
   """
   @callback query(atom(), TimeRange.t(), [Variable.t()]) :: Result.t()
 
@@ -318,17 +315,16 @@ defmodule Luminous.Query do
   defstruct [:id, :mod]
 
   @doc """
-  initialize a query at compile time
-  the module must implement the Query behaviour
+  Initialize a query at compile time. The module must implement the `Luminous.Query` behaviour.
   """
   @spec define(atom(), module()) :: t()
   def define(id, mod), do: %__MODULE__{id: id, mod: mod}
 
   @doc """
-  execute the query and return the data as multiple TimeSeries structs
+  Execute the query and return the data as multiple TimeSeries structs.
   """
   @spec execute(t(), TimeRange.t(), [Variable.t()]) :: Result.t()
-  def(execute(query, time_range, variables)) do
+  def execute(query, time_range, variables) do
     apply(query.mod, :query, [query.id, time_range, variables])
   end
 end

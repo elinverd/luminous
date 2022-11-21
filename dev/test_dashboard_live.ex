@@ -1,8 +1,12 @@
 defmodule Luminous.Dashboards.TestDashboardLive do
+  @moduledoc false
+
   alias Luminous.Router.Helpers, as: Routes
   alias Luminous.{Variable, Query, Dashboard, TimeRange, Components}
 
   defmodule Variables do
+    @moduledoc false
+
     @behaviour Variable
     @impl true
     def variable(:var1), do: ["a", "b", "c"]
@@ -10,6 +14,8 @@ defmodule Luminous.Dashboards.TestDashboardLive do
   end
 
   defmodule Queries do
+    @moduledoc false
+
     @behaviour Query
     @impl true
     def query(:q1, _time_range, _variables) do

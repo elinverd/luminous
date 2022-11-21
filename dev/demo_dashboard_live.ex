@@ -1,10 +1,14 @@
 defmodule Luminous.Dashboards.DemoDashboardLive do
+  @moduledoc """
+  This module demonstrates the functionality of a dashboard using `Luminous.Live`.
+  """
+
   alias Luminous.Router.Helpers, as: Routes
   alias Luminous.{Variable, Query, Dashboard, TimeRange, Components}
 
   defmodule Variables do
     @moduledoc """
-    This is where we implement the `Variable` behaviour, i.e. define
+    This is where we implement the `Luminous.Variable` behaviour, i.e. define
     the dashboard's variables displayed as dropdowns in the view
 
     The first value in each list is the default one.
@@ -26,18 +30,18 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
 
   defmodule Queries do
     @moduledoc """
-    This is where we implement the Query behaviour, i.e. all queries
+    This is where we implement the `Luminous.Query` behaviour, i.e. all queries
     that will be visualized in the dashboard's panels (a panel can
     have multiple queries).
 
     All queries have access to the current dashboard variable values
     and the selected time range.
 
-    All queries must return a `Query.Result` with optional attributes
+    All queries must return a `Luminous.Query.Result` with optional attributes
     that specify the visual characteristics of the particular data set
-    (see `Query.Attributes`).
+    (see `Luminous.Query.Attributes`).
 
-    More details in `Lumninous.Query`.
+    More details in `Luminous.Query`.
     """
 
     @behaviour Query
@@ -222,6 +226,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
   @impl true
   def default_time_range(tz), do: TimeRange.last_n_days(7, tz)
 
+  @doc false
   # Here, we make use of the default component (`dashboard`) that
   # renders all the other components on screen
   # A live dashboard can also specify custom layouts by making use of
