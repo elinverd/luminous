@@ -1,4 +1,4 @@
-[![test](https://github.com/elinverd/luminous/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/elinverd/luminous/actions/workflows/test.yml)
+[![test](https://github.com/elinverd/luminous/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/elinverd/luminous/actions/workflows/test.yml) ![Hex.pm](https://img.shields.io/hexpm/v/luminous)
 
 # Luminous
 
@@ -21,28 +21,31 @@ live view process:
 - [chartjs](https://www.chartjs.org/) for plots
 - [flatpickr](https://flatpickr.js.org/) for time range selection
 
-Luminous is currently used in production systems and has demonstrated
-solid performance and stability characteristics. At the same time, it
-is currently under development and some things may change.
+## Features
+
+- Time range selection and refresh of all dashboard panel queries
+- Asynchronous queries and page updates
+- User-facing variable dropdowns that are available to panel queries
+- Client-side zoom in charts
+- Multiple supported chart types (currently `:line` and `:bar`)
+- Download panel data (CSV, PNG)
+- Stat panels (show single or multiple stats)
+- Summary statistics in panels
 
 ## Installation
 
-The package is not yet published to `hex.pm` but can be installed
-directly from this repo by adding `luminous` to your list of
-dependencies in `mix.exs` like so:
+The package can be installed from `hex.pm` as follows:
 
 ```elixir
 def deps do
   [
-    {:luminous, git: "https://github.com/elinverd/luminous.git", branch: "main"}
+    {:luminous, "~> 0.9.0"}
   ]
 end
 ```
 
-`luminous` assumes that it will be embedded in a standard Phoenix LiveView application with [tailwindcss](https://tailwindcss.com/).
-
-In order to be able to use the provided components, the library's `javascript` and
-`CSS` files must be imported to your project:
+In order to be able to use the provided components, the library's
+`javascript` and `CSS` files must be imported to your project:
 
 In `assets/package.json`:
 ```javascript
@@ -103,21 +106,3 @@ In general, a custom dashboard needs to:
   `Luminous.Components.dashboard` is necessary but the layout can be
   customized by using directly the various components in
   `Luminous.Components`)
-
-## Features
-
-- Time range selection and refresh of all dashboard panel queries
-- Asynchronous queries and page updates
-- User-facing variable dropdowns that are available to panel queries
-- Client-side zoom in charts
-- Multiple supported chart types (currently `:line` and `:bar`)
-- Download panel data (CSV, PNG)
-- Stat panels (show single or multiple stats)
-- Summary statistics in panels
-
-## Development
-
-Documentation can be generated with
-[ExDoc](https://github.com/elixir-lang/ex_doc) and published on
-[HexDocs](https://hexdocs.pm). Once published, the docs can be found
-at <https://hexdocs.pm/luminous>.

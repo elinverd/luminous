@@ -4,14 +4,14 @@ defmodule Luminous.MixProject do
   def project do
     [
       app: :luminous,
-      version: "0.1.0",
+      version: "0.9.0",
       elixir: ">= 1.12.0",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
       package: package(),
-
+      description: description(),
       # Docs
       name: "luminous",
       source_url: "https://github.com/elinverd/luminous",
@@ -46,8 +46,8 @@ defmodule Luminous.MixProject do
       {:tzdata, "~> 1.1"},
 
       # dev & test dependencies
-      {:tailwind, "~> 0.1.9", runtime: Mix.env() == :dev},
-      {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.1.9", only: [:dev, :test]},
+      {:esbuild, "~> 0.5", only: [:dev, :test]},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:plug_cowboy, "~> 2.0", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
@@ -69,7 +69,11 @@ defmodule Luminous.MixProject do
       maintainers: ["Kyriakos Kentzoglanakis", "Thanasis Karetsos"],
       licenses: ["MIT"],
       links: %{github: "https://github.com/elinverd/luminous"},
-      files: ~w(dist lib mix.exs README.md)
+      files: ~w(dist lib mix.exs package.json README.md)
     ]
+  end
+
+  defp description do
+    "A dashboard framework for Phoenix Live View"
   end
 end
