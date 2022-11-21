@@ -1,4 +1,6 @@
 defmodule Luminous.Generator do
+  @moduledoc false
+
   @spec generate(Luminous.TimeRange.t(), non_neg_integer(), :hour | :day, binary() | [binary()]) ::
           [
             Luminous.Query.Result.row()

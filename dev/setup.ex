@@ -1,4 +1,6 @@
 defmodule Luminous.Router do
+  @moduledoc false
+
   use Phoenix.Router
   import Phoenix.LiveView.Router
 
@@ -16,6 +18,8 @@ defmodule Luminous.Router do
 end
 
 defmodule Luminous.Socket do
+  @moduledoc false
+
   use Phoenix.Socket
 
   @impl true
@@ -28,6 +32,8 @@ defmodule Luminous.Socket do
 end
 
 defmodule Luminous.Endpoint do
+  @moduledoc false
+
   use Phoenix.Endpoint, otp_app: :luminous
 
   socket("/live", Phoenix.LiveView.Socket)
@@ -55,6 +61,8 @@ defmodule Luminous.Endpoint do
 end
 
 defmodule Luminous.ErrorView do
+  @moduledoc false
+
   use Phoenix.View, root: "test/templates"
 
   def template_not_found(template, _assigns) do
@@ -64,6 +72,7 @@ end
 
 defmodule Luminous.LayoutView do
   @moduledoc false
+
   use Phoenix.View, root: "dev"
   use Phoenix.Component
 

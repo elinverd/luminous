@@ -1,7 +1,7 @@
 defmodule Luminous.Panel do
   @moduledoc """
-  a panel represents a single visual element (chart) in a dashboard
-  contains many queries
+  A panel represents a single visual element (chart) in a dashboard
+  contains many queries.
   """
   alias Luminous.{Query, Variable, TimeRange}
 
@@ -37,7 +37,7 @@ defmodule Luminous.Panel do
   ]
 
   @doc """
-  initialize a panel at compile time
+  Initialize a panel at compile time.
   """
   @spec define(atom(), binary(), panel_type(), [Query.t()], Keyword.t()) :: t()
   def define(id, title, type, queries, opts \\ []) do
@@ -59,7 +59,7 @@ defmodule Luminous.Panel do
   end
 
   @doc """
-  refresh all panel queries
+  Refresh all panel queries.
   """
   @spec refresh(t(), [Variable.t()], TimeRange.t()) :: [Query.DataSet.t()]
   def refresh(panel, variables, time_range) do

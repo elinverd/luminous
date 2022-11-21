@@ -19,7 +19,11 @@ defmodule Luminous.MixProject do
       docs: [
         # The main page in the docs
         main: "Luminous",
-        extras: ["README.md", "docs/Applying custom CSS.md"]
+        extras: ["README.md", "docs/Applying custom CSS.md"],
+        # `Elixir.Luminous.Router.Helpers` is an auto-generated module and we cannot
+        # exclude it with `@moduledoc false`. Therefore, we use the following option.
+        # https://hexdocs.pm/ex_doc/Mix.Tasks.Docs.html#module-configuration
+        filter_modules: &filter_modules_for_ex_doc/2
       ]
     ]
   end
@@ -75,5 +79,9 @@ defmodule Luminous.MixProject do
 
   defp description do
     "A dashboard framework for Phoenix Live View"
+  end
+
+  defp filter_modules_for_ex_doc(module, _metadata) do
+    module != Luminous.Router.Helpers
   end
 end

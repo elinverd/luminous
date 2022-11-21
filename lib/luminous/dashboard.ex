@@ -1,13 +1,9 @@
 defmodule Luminous.Dashboard do
   @moduledoc """
   A dashboard is a high-level component initialized by the dashboard
-  live view
-
-  it contains all the necessary dashboard attributes such as the
-  panels, variables and the time range selector
-
-  it is initialized at compile time using define/4 and populated at
-  runtime using populate/1
+  live view. It contains all the necessary dashboard attributes such as the
+  panels, variables and the time range selector. It is initialized at
+  compile time using `define/4` and populated at runtime using `populate/1`.
   """
 
   alias Luminous.{Panel, TimeRange, TimeRangeSelector, Variable}
@@ -37,7 +33,7 @@ defmodule Luminous.Dashboard do
   ]
 
   @doc """
-  initialize a dashboard at compile time
+  Initialize and return a dashboard at compile time.
   """
   @spec define(binary(), (... -> binary()), atom(), TimeRangeSelector.t(), Keyword.t()) :: t()
   def define(title, path, action, time_range_selector, opts \\ []) do
@@ -53,7 +49,7 @@ defmodule Luminous.Dashboard do
   end
 
   @doc """
-  populate the dashboard's dynamic properties (e.g. variable values, time range etc.) at runtime
+  Populate the dashboard's dynamic properties (e.g. variable values, time range etc.) at runtime.
   """
   @spec populate(t()) :: t()
   def populate(dashboard) do
@@ -66,7 +62,7 @@ defmodule Luminous.Dashboard do
   end
 
   @doc """
-  return the LV path for the specific dashboard based on its configuration
+  Returns the LV path for the specific dashboard based on its configuration.
   """
   @spec path(t(), Phoenix.LiveView.Socket.t(), Keyword.t()) :: binary()
   def path(dashboard, socket, params) do
@@ -90,7 +86,7 @@ defmodule Luminous.Dashboard do
   end
 
   @doc """
-  return the dashboard's default time range
+  Returns the dashboard's default time range.
   """
   @spec default_time_range(t()) :: TimeRange.t()
   def default_time_range(dashboard) do
@@ -98,7 +94,7 @@ defmodule Luminous.Dashboard do
   end
 
   @doc """
-  update the dashboard's variables with a new list
+  Update the dashboard's variables with a new list.
   """
   @spec update_variables(t(), [Variable.t()]) :: t()
   def update_variables(dashboard, new_variables) do
@@ -106,7 +102,7 @@ defmodule Luminous.Dashboard do
   end
 
   @doc """
-  update the dashboard's current time range with a new one
+  Update the dashboard's current time range with a new one.
   """
   @spec update_current_time_range(t(), TimeRange.t()) :: t()
   def update_current_time_range(dashboard, time_range) do

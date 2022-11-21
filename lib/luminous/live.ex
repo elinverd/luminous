@@ -1,5 +1,9 @@
 defmodule Luminous.Live do
-  @doc false
+  @moduledoc """
+  This module contains a macro that contains the functionality of a dashboard LiveView.
+  For more information see `Luminous.Dashboards.DemoDashboardLive`.
+  """
+
   defmacro __using__(dashboard: dashboard) do
     quote do
       use Phoenix.LiveView
