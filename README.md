@@ -1,4 +1,5 @@
-[![test](https://github.com/elinverd/luminous/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/elinverd/luminous/actions/workflows/test.yml) ![Hex.pm](https://img.shields.io/hexpm/v/luminous)
+[![test](https://github.com/elinverd/luminous/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/elinverd/luminous/actions/workflows/test.yml)
+[![Hex.pm](https://img.shields.io/hexpm/v/luminous)](https://hex.pm/packages/luminous)
 
 # Luminous
 
