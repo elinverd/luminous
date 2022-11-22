@@ -1,18 +1,21 @@
 {
 	"name": "luminous",
-	"version": "0.1.0",
-	"description": "",
+	"version": "0.9.0",
+	"description": "The JavaScript client for the Luminous framework.",
 	"license": "MIT",
+	"module": "./dist/luminous.js",
+	"main": "./dist/luminous.js",
 	"exports": {
 		"import": "./dist/luminous.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/elinverd/luminous.git"
 	},
 	"files": [
 		"README.md",
 		"package.json",
-		"dist/*"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/elinverd/luminous.git"
-	}
+		"dist/*",
+		"assets/js/*"
+	]
 }
