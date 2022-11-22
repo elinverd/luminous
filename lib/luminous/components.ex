@@ -6,7 +6,7 @@ defmodule Luminous.Components do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  alias Luminous.{Query, Helpers, Panel}
+  alias Luminous.{Panel, Query, Variable}
 
   @doc """
   The dashboard component is responsible for rendering all the necessary elements:
@@ -120,7 +120,7 @@ defmodule Luminous.Components do
         </div>
 
         <div class="flex flex-row space-x-4">
-          <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= Helpers.interpolate(panel.title, variables) %></div>
+          <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= interpolate(panel.title, variables) %></div>
           <.description description={panel.description}/>
         </div>
       </div>
@@ -149,7 +149,7 @@ defmodule Luminous.Components do
 
         <%= if panel.title != "" or panel.description != "" do %>
           <div class="flex flex-row space-x-4">
-            <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= Helpers.interpolate(panel.title, variables) %></div>
+            <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= interpolate(panel.title, variables) %></div>
             <.description description={panel.description}/>
           </div>
         <% end %>
@@ -177,34 +177,6 @@ defmodule Luminous.Components do
             <div class="text-4xl font-bold">-</div>
           </div>
         <% end %>
-    </div>
-    """
-  end
-
-  @doc false
-  def panel_statistics(%{panel_statistics: nil} = assigns), do: ~H""
-
-  def panel_statistics(%{panel_statistics: statistics} = assigns) when length(statistics) == 0,
-    do: ~H""
-
-  def panel_statistics(%{panel_statistics: statistics} = assigns) do
-    ~H"""
-    <div class="grid grid-cols-10 gap-x-4 mt-2 mx-8 text-right text-xs">
-      <div class="col-span-5 text-xs font-semibold"></div>
-      <div class="font-semibold">N</div>
-      <div class="font-semibold">Min</div>
-      <div class="font-semibold">Max</div>
-      <div class="font-semibold">Avg</div>
-      <div class="font-semibold">Total</div>
-
-      <%= for var <- statistics do %>
-        <div class="col-span-5 truncate"><%= var.label %></div>
-        <div><%= var.n %></div>
-        <div><%= print_number(var.min) %></div>
-        <div><%= print_number(var.max) %></div>
-        <div><%= print_number(var.avg) %></div>
-        <div><%= print_number(var.sum) %></div>
-      <% end %>
     </div>
     """
   end
@@ -283,10 +255,52 @@ defmodule Luminous.Components do
     """
   end
 
-  @doc false
-  def description(%{description: nil} = assigns), do: ~H""
+  # Interpolate all occurences of variable IDs in the format `$variable.id` in the string
+  # with the variable's descriptive value label. For example, the string: "Energy for asset $asset_var"
+  # will be replaced by the label of the variable with id `:asset_var` in variables.
+  @spec interpolate(binary(), [Variable.t()]) :: binary()
+  defp interpolate(string, variables) do
+    variables
+    |> Enum.reduce(string, fn var, title ->
+      val =
+        var
+        |> Variable.get_current()
+        |> Variable.extract_label()
 
-  def description(%{description: description} = assigns) do
+      String.replace(title, "$#{var.id}", "#{val}")
+    end)
+  end
+
+  defp panel_statistics(%{panel_statistics: nil} = assigns), do: ~H""
+
+  defp panel_statistics(%{panel_statistics: statistics} = assigns) when length(statistics) == 0,
+    do: ~H""
+
+  defp panel_statistics(%{panel_statistics: statistics} = assigns) do
+    ~H"""
+    <div class="grid grid-cols-10 gap-x-4 mt-2 mx-8 text-right text-xs">
+      <div class="col-span-5 text-xs font-semibold"></div>
+      <div class="font-semibold">N</div>
+      <div class="font-semibold">Min</div>
+      <div class="font-semibold">Max</div>
+      <div class="font-semibold">Avg</div>
+      <div class="font-semibold">Total</div>
+
+      <%= for var <- statistics do %>
+        <div class="col-span-5 truncate"><%= var.label %></div>
+        <div><%= var.n %></div>
+        <div><%= print_number(var.min) %></div>
+        <div><%= print_number(var.max) %></div>
+        <div><%= print_number(var.avg) %></div>
+        <div><%= print_number(var.sum) %></div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp description(%{description: nil} = assigns), do: ~H""
+
+  defp description(%{description: description} = assigns) do
     ~H"""
       <div data-tip={description} class="tooltip z-50">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -15,8 +15,7 @@ defmodule Luminous.Live do
         Query,
         TimeRange,
         TimeRangeSelector,
-        Variable,
-        Helpers
+        Variable
       }
 
       require Logger
