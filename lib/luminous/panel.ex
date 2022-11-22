@@ -69,4 +69,10 @@ defmodule Luminous.Panel do
       |> Query.Result.transform()
     end)
   end
+
+  @doc """
+  Returns the DOM id of the given panel.
+  """
+  @spec dom_id(t()) :: binary()
+  def dom_id(%__MODULE__{} = panel), do: "panel-#{panel.id}"
 end

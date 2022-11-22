@@ -6,7 +6,7 @@ defmodule Luminous.Components do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  alias Luminous.{Query, Helpers}
+  alias Luminous.{Query, Helpers, Panel}
 
   @doc """
   The dashboard component is responsible for rendering all the necessary elements:
@@ -97,21 +97,21 @@ defmodule Luminous.Components do
           <span class="sr-only">Loading...</span>
         </div>
 
-        <div id={"#{panel_id(panel)}-actions"} class="absolute inline-block top-0 right-0" phx-click-away={hide_dropdown("#{panel_id(panel)}-actions-dropdown")}>
-          <div tabindex="0" class="w-6 h-6 cursor-pointer focus:outline-none" phx-click={show_dropdown("#{panel_id(panel)}-actions-dropdown")}>
+        <div id={"#{Panel.dom_id(panel)}-actions"} class="absolute inline-block top-0 right-0" phx-click-away={hide_dropdown("#{Panel.dom_id(panel)}-actions-dropdown")}>
+          <div tabindex="0" class="w-6 h-6 cursor-pointer focus:outline-none" phx-click={show_dropdown("#{Panel.dom_id(panel)}-actions-dropdown")}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/>
             </svg>
           </div>
-          <div id={"#{panel_id(panel)}-actions-dropdown"} class="absolute hidden right-0">
+          <div id={"#{Panel.dom_id(panel)}-actions-dropdown"} class="absolute hidden right-0">
             <ul class="lmn-panel-actions-dropdown">
               <li class="lmn-panel-actions-dropdown-item-container">
-                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{panel_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{panel_id(panel)}:download:csv", to: "##{panel_id(panel)}")}>
+                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{Panel.dom_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{Panel.dom_id(panel)}:download:csv", to: "##{Panel.dom_id(panel)}")}>
                   Download CSV
                 </div>
               </li>
               <li class="lmn-panel-actions-dropdown-item-container">
-                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{panel_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{panel_id(panel)}:download:png", to: "##{panel_id(panel)}")}>
+                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{Panel.dom_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{Panel.dom_id(panel)}:download:png", to: "##{Panel.dom_id(panel)}")}>
                   Download image
                 </div>
               </li>
@@ -120,14 +120,14 @@ defmodule Luminous.Components do
         </div>
 
         <div class="flex flex-row space-x-4">
-          <div id={"#{panel_id(panel)}-title"} class="text-xl font-medium"><%= Helpers.interpolate(panel.title, variables) %></div>
+          <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= Helpers.interpolate(panel.title, variables) %></div>
           <.description description={panel.description}/>
         </div>
       </div>
 
       <div class="w-full ">
-        <div id={"#{panel_id(panel)}-container"} phx-update="ignore">
-          <canvas id={panel_id(panel)} time-range-selector-id={time_range_selector_id} phx-hook={panel.hook}></canvas>
+        <div id={"#{Panel.dom_id(panel)}-container"} phx-update="ignore">
+          <canvas id={Panel.dom_id(panel)} time-range-selector-id={time_range_selector_id} phx-hook={panel.hook}></canvas>
         </div>
         <.panel_statistics panel_statistics={panel_statistics[panel.id]}/>
       </div>
@@ -149,14 +149,14 @@ defmodule Luminous.Components do
 
         <%= if panel.title != "" or panel.description != "" do %>
           <div class="flex flex-row space-x-4">
-            <div id={"#{panel_id(panel)}-title"} class="text-xl font-medium"><%= Helpers.interpolate(panel.title, variables) %></div>
+            <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= Helpers.interpolate(panel.title, variables) %></div>
             <.description description={panel.description}/>
           </div>
         <% end %>
       </div>
 
         <%= if datasets = stats[panel.id] do %>
-          <div id={"#{panel_id(panel)}-stat-values"} class={stats_grid_structure(length(datasets))}>
+          <div id={"#{Panel.dom_id(panel)}-stat-values"} class={stats_grid_structure(length(datasets))}>
             <%= for dataset <- datasets do %>
               <div class="flex flex-col items-center">
                 <%= if dataset.label do %>
@@ -295,11 +295,6 @@ defmodule Luminous.Components do
       </div>
     """
   end
-
-  @doc """
-  This is a helper function that returns the DOM id of the given panel.
-  """
-  def panel_id(panel), do: "panel-#{panel.id}"
 
   defp print_number(n) do
     case n do

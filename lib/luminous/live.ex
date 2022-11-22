@@ -147,7 +147,7 @@ defmodule Luminous.Live do
         socket =
           socket
           |> assign(panel_statistics: panel_statistics)
-          |> push_event("#{Components.panel_id(panel)}::refresh-data", panel_data)
+          |> push_event("#{Panel.dom_id(panel)}::refresh-data", panel_data)
           |> push_panel_load_event(:end, panel.id)
 
         {:noreply, socket}
