@@ -48,14 +48,6 @@ end
 In order to be able to use the provided components, the library's
 `javascript` and `CSS` files must be imported to your project:
 
-In `assets/package.json`:
-```javascript
-...
-"dependencies": {
-  "luminous": "file:../deps/luminous"
-}
-```
-
 In `assets/js/app.js`:
 
 ```javascript
@@ -77,7 +69,7 @@ let liveSocket = new LiveSocket("/live", Socket, {
 
 Finally, in `assets/css/app.css`:
 ```CSS
-@import "luminous/dist/luminous";
+@import "../../deps/luminous/dist/luminous.css";
 ```
 
 ## Usage
