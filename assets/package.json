@@ -1,6 +1,17 @@
 {
-  "description": "",
+  "name": "luminous",
+  "version": "0.9.0",
+  "description": "The JavaScript client for the Luminous framework.",
   "license": "MIT",
+  "main": "./assets/js/app.js",
+  "module": "./assets/js/app.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/elinverd/luminous.git"
+  },
+  "exports": {
+    ".": "./js/app.js"
+  },
   "devDependencies": {
     "chart.js": "^3.3.0",
     "chartjs-adapter-luxon": "^1.2.0",
