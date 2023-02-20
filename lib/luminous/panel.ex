@@ -3,9 +3,23 @@ defmodule Luminous.Panel do
   A panel represents a single visual element (chart) in a dashboard
   contains many queries.
   """
-  alias Luminous.{Query, Variable, TimeRange}
 
-  @type panel_type :: :chart | :stat
+  alias Luminous.Query
+  alias Luminous.Panel.{Chart, Table, Stat}
+
+  @doc """
+  transform a query result to view data acc. to the panel type
+  """
+  @callback transform(Query.Result.t()) :: any()
+
+  @panel_modules %{
+    chart: Chart,
+    stat: Stat,
+    table: Table
+  }
+
+  @type panel_type :: :chart | :stat | :table
+  defguard is_panel(type) when type in [:chart, :stat, :table]
 
   @type t :: %__MODULE__{
           id: atom(),
@@ -40,7 +54,7 @@ defmodule Luminous.Panel do
   Initialize a panel at compile time.
   """
   @spec define(atom(), binary(), panel_type(), [Query.t()], Keyword.t()) :: t()
-  def define(id, title, type, queries, opts \\ []) do
+  def define(id, title, type, queries, opts \\ []) when is_panel(type) do
     %__MODULE__{
       id: id,
       title: title,
@@ -48,7 +62,7 @@ defmodule Luminous.Panel do
       queries: queries,
       unit: Keyword.get(opts, :unit, ""),
       description: Keyword.get(opts, :description),
-      hook: Keyword.get(opts, :hook, "ChartJSHook"),
+      hook: Keyword.get(opts, :hook, default_panel_type(type)),
       ylabel: Keyword.get(opts, :ylabel),
       xlabel: Keyword.get(opts, :xlabel),
       stacked_x:
@@ -61,12 +75,11 @@ defmodule Luminous.Panel do
   @doc """
   Refresh all panel queries.
   """
-  @spec refresh(t(), [Variable.t()], TimeRange.t()) :: [Query.DataSet.t()]
   def refresh(panel, variables, time_range) do
     Enum.flat_map(panel.queries, fn query ->
-      query
-      |> Query.execute(time_range, variables)
-      |> Query.Result.transform()
+      result = Query.execute(query, time_range, variables)
+
+      apply(@panel_modules[panel.type], :transform, [result])
     end)
   end
 
@@ -75,4 +88,8 @@ defmodule Luminous.Panel do
   """
   @spec dom_id(t()) :: binary()
   def dom_id(%__MODULE__{} = panel), do: "panel-#{panel.id}"
+
+  defp default_panel_type(:chart), do: "ChartJSHook"
+  defp default_panel_type(:table), do: "TableHook"
+  defp default_panel_type(_), do: nil
 end

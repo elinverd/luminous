@@ -2,6 +2,7 @@ import { Chart, registerables, Tooltip } from 'chart.js'
 import { DateTime } from 'luxon'
 import "chartjs-adapter-luxon"
 import zoomPlugin from 'chartjs-plugin-zoom';
+import {sendFileToClient} from './utils'
 
 let colors = ["#fd7f6f", "#7eb0d5", "#b2e061", "#bd7ebe", "#ffb55a", "#ffee65", "#beb9db", "#fdcce5", "#8bd3c7"]
 
@@ -352,16 +353,6 @@ function ChartJSHook() {
       this.chart.update()
     }
   }
-}
-
-function sendFileToClient(url, filename) {
-  var link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }
 
 export default ChartJSHook

@@ -128,13 +128,19 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         |> Decimal.mult(multiplier)
         |> Decimal.round(2)
 
-      Query.Result.new({"foo", value})
+      Query.Result.new(%{"foo" => value},
+        attrs: %{"foo" => Query.Attributes.define(title: "A Title")}
+      )
     end
 
     def query(:string_stat, %{from: from}, _variables) do
       s = Calendar.strftime(from, "%b %Y")
 
-      Query.Result.new({"String stat", s})
+      Query.Result.new(%{:string_stat => s},
+        attrs: %{
+          string_stat: Query.Attributes.define(title: "Just a date")
+        }
+      )
     end
 
     def query(:more_stats, _time_range, variables) do
@@ -152,7 +158,36 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
 
         {"var_#{i}", v}
       end)
-      |> Query.Result.new()
+      |> Map.new()
+      |> Query.Result.new(
+        attrs: %{
+          "var_1" => Query.Attributes.define(title: "Var A", order: 0),
+          "var_2" => Query.Attributes.define(title: "Var B", order: 1)
+        }
+      )
+    end
+
+    def query(:tabular_data, %{from: t}, _variables) do
+      data =
+        case DateTime.compare(t, DateTime.utc_now()) do
+          :lt ->
+            []
+
+          _ ->
+            [
+              %{"label" => "row1", "foo" => 3, "bar" => 88},
+              %{"label" => "row2", "foo" => 4, "bar" => 99}
+            ]
+        end
+
+      Query.Result.new(
+        data,
+        attrs: %{
+          "label" => Query.Attributes.define(title: "Label", order: 0, halign: :center),
+          "foo" => Query.Attributes.define(title: "Foo", order: 1, halign: :right),
+          "bar" => Query.Attributes.define(title: "Bar", order: 2, halign: :right)
+        }
+      )
     end
   end
 
@@ -167,8 +202,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
     dashboard:
       Dashboard.define(
         "Demo Dashboard",
-        &Routes.demo_dashboard_path/3,
-        :index,
+        {&Routes.demo_dashboard_path/3, :index},
         TimeRangeSelector.define(__MODULE__),
         panels: [
           Panel.define(
@@ -180,11 +214,16 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
             ylabel: "Description"
           ),
           Panel.define(
+            :tabular_data,
+            "Tabular Data",
+            :table,
+            [Query.define(:tabular_data, Queries)]
+          ),
+          Panel.define(
             :single_stat,
             "Single-stat panel",
             :stat,
-            [Query.define(:single_stat, Queries)],
-            unit: "μCKR"
+            [Query.define(:single_stat, Queries)]
           ),
           Panel.define(
             :multi_stat,
@@ -215,7 +254,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
           )
         ],
         variables: [
-          Variable.define(:multiplier_var, "Mutliplier", Variables),
+          Variable.define(:multiplier_var, "Multiplier", Variables),
           Variable.define(:interval_var, "Interval", Variables)
         ],
         time_zone: "UTC"
@@ -234,7 +273,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
   # custom components
   def render(assigns) do
     ~H"""
-    <Components.dashboard socket={@socket} dashboard={@dashboard} stats={@stats} panel_statistics={@panel_statistics}/>
+    <Components.dashboard socket={@socket} dashboard={@dashboard} panel_data={@panel_data}/>
     """
   end
 end

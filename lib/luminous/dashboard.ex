@@ -35,8 +35,8 @@ defmodule Luminous.Dashboard do
   @doc """
   Initialize and return a dashboard at compile time.
   """
-  @spec define(binary(), (... -> binary()), atom(), TimeRangeSelector.t(), Keyword.t()) :: t()
-  def define(title, path, action, time_range_selector, opts \\ []) do
+  @spec define(binary(), {(... -> binary()), atom()}, TimeRangeSelector.t(), Keyword.t()) :: t()
+  def define(title, {path, action}, time_range_selector, opts \\ []) do
     %__MODULE__{
       title: title,
       path: path,

@@ -5,10 +5,12 @@ import { LiveSocket } from "phoenix_live_view"
 
 import ChartJSHook from "./components/chartjs_hook"
 import TimeRangeHook from "./components/time_range_hook"
+import TableHook from "./components/table_hook"
 
 let Hooks = {
   ChartJSHook: new ChartJSHook(),
-  TimeRangeHook: new TimeRangeHook()
+  TimeRangeHook: new TimeRangeHook(),
+  TableHook: new TableHook()
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")

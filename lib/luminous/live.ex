@@ -29,7 +29,7 @@ defmodule Luminous.Live do
         {:ok,
          assign(socket,
            dashboard: dashboard,
-           stats: %{},
+           panel_data: %{},
            panel_statistics: %{}
          )}
       end
@@ -125,8 +125,6 @@ defmodule Luminous.Live do
 
       @impl true
       def handle_info({_task_ref, {%Panel{type: :chart} = panel, datasets}}, socket) do
-        datasets = Enum.map(datasets, &Query.DataSet.maybe_override_unit(&1, panel.unit))
-
         panel_data = %{
           datasets: datasets,
           ylabel: panel.ylabel,
@@ -136,30 +134,32 @@ defmodule Luminous.Live do
           time_zone: socket.assigns.dashboard.time_zone
         }
 
-        panel_statistics =
-          Map.put(
-            socket.assigns.panel_statistics,
-            panel.id,
-            Enum.map(datasets, &Query.DataSet.statistics/1)
-          )
-
         socket =
           socket
-          |> assign(panel_statistics: panel_statistics)
+          |> assign(panel_data: Map.put(socket.assigns.panel_data, panel.id, panel_data))
           |> push_event("#{Panel.dom_id(panel)}::refresh-data", panel_data)
           |> push_panel_load_event(:end, panel.id)
 
         {:noreply, socket}
       end
 
-      def handle_info({_task_ref, {%Panel{type: :stat} = panel, datasets}}, socket) do
-        datasets = Enum.map(datasets, &Query.DataSet.maybe_override_unit(&1, panel.unit))
-
-        new_stats = Map.put(socket.assigns.stats, panel.id, datasets)
-
+      def handle_info({_task_ref, {%Panel{type: :stat} = panel, dataset}}, socket) do
         socket =
           socket
-          |> assign(stats: new_stats)
+          |> assign(panel_data: Map.put(socket.assigns.panel_data, panel.id, dataset))
+          |> push_panel_load_event(:end, panel.id)
+
+        {:noreply, socket}
+      end
+
+      # a table can have only one dataset
+      def handle_info(
+            {_task_ref, {%Panel{type: :table} = panel, datasets}},
+            socket
+          ) do
+        socket =
+          socket
+          |> push_event("#{Panel.dom_id(panel)}::refresh-data", hd(datasets))
           |> push_panel_load_event(:end, panel.id)
 
         {:noreply, socket}

@@ -1,7 +1,7 @@
 defmodule Luminous.LiveTest do
   use Luminous.ConnCase, async: true
 
-  alias Luminous.Query
+  alias Luminous.Query.Attributes
 
   describe "panels" do
     test "sends the correct data to the chart panel", %{conn: conn} do
@@ -11,28 +11,58 @@ defmodule Luminous.LiveTest do
 
       expected_data = %{
         datasets: [
-          %Query.DataSet{
+          %{
+            attrs: %Attributes{
+              fill: true,
+              halign: :left,
+              order: nil,
+              title: nil,
+              type: :line,
+              unit: "μCKR"
+            },
             label: "foo",
             rows: [
               %{x: 1_660_903_200_000, y: Decimal.new(10)},
               %{x: 1_660_906_800_000, y: Decimal.new(11)}
             ],
-            attrs: Query.Attributes.define(type: :line, unit: "μCKR", fill: true)
+            stats: %{
+              avg: Decimal.new(11),
+              label: "foo",
+              max: Decimal.new(11),
+              min: Decimal.new(10),
+              n: 2,
+              sum: Decimal.new(21)
+            }
           },
-          %Query.DataSet{
+          %{
+            attrs: %Attributes{
+              fill: true,
+              halign: :left,
+              order: nil,
+              title: nil,
+              type: :bar,
+              unit: "μCKR"
+            },
             label: "bar",
             rows: [
               %{x: 1_660_903_200_000, y: Decimal.new(100)},
               %{x: 1_660_906_800_000, y: Decimal.new(101)}
             ],
-            attrs: Query.Attributes.define(type: :bar, unit: "μCKR", fill: true)
+            stats: %{
+              avg: Decimal.new(101),
+              label: "bar",
+              max: Decimal.new(101),
+              min: Decimal.new(100),
+              n: 2,
+              sum: Decimal.new(201)
+            }
           }
         ],
-        xlabel: nil,
-        ylabel: "Foo (μCKR)",
         stacked_x: false,
         stacked_y: false,
-        time_zone: "Europe/Athens"
+        time_zone: "Europe/Athens",
+        xlabel: nil,
+        ylabel: "Foo (μCKR)"
       }
 
       assert_push_event(view, "panel-p1::refresh-data", ^expected_data)
@@ -44,8 +74,7 @@ defmodule Luminous.LiveTest do
       assert view |> element("#panel-p2-title") |> render() =~ "Panel 2"
       assert view |> element("#panel-p2-stat-values") |> render() =~ ">666<"
       assert view |> element("#panel-p2-stat-values") |> render() =~ ">$<"
-      # ylabel is not taken into account in stat panels
-      refute view |> element("#panel-p2-stat-values") |> render() =~ "Bar ($)"
+      assert view |> element("#panel-p2-stat-values") |> render() =~ "Bar ($)"
 
       assert view |> element("#panel-p4-title") |> render() =~ "Panel 4"
       assert view |> element("#panel-p4-stat-values") |> render() =~ ">666<"
@@ -59,6 +88,26 @@ defmodule Luminous.LiveTest do
 
       assert view |> element("#panel-p6-title") |> render() =~ "Panel 6"
       assert view |> element("#panel-p6-stat-values") |> render() =~ ">Just show this<"
+    end
+
+    test "sends the correct data to the table panel", %{conn: conn} do
+      {:ok, view, _} = live(conn, Routes.test_dashboard_path(conn, :index))
+
+      assert view |> element("#panel-p7-title") |> render() =~ "Panel 7 (table)"
+
+      expected_data = %{
+        columns: [
+          %{field: "label", headerHozAlign: :center, hozAlign: :center, title: "Label"},
+          %{field: "foo", headerHozAlign: :right, hozAlign: :right, title: "Foo"},
+          %{field: "bar", headerHozAlign: :right, hozAlign: :right, title: "Bar"}
+        ],
+        rows: [
+          %{"bar" => 88, "foo" => 3, "label" => "row1"},
+          %{"bar" => 99, "foo" => 4, "label" => "row2"}
+        ]
+      }
+
+      assert_push_event(view, "panel-p7::refresh-data", ^expected_data)
     end
 
     test "sends the loading/loaded event to all panels", %{conn: conn} do
@@ -79,8 +128,7 @@ defmodule Luminous.LiveTest do
       assert has_element?(view, "#panel-p3-title", "Panel 3")
       assert has_element?(view, "#panel-p3-stat-values", "0")
       assert has_element?(view, "#panel-p3-stat-values", "$")
-      # ylabel is not taken into account in stat panels
-      refute has_element?(view, "#panel-p3-stat-values", "Bar ($)")
+      assert has_element?(view, "#panel-p3-stat-values", "Bar ($)")
 
       from = DateTime.new!(~D[2022-09-19], ~T[00:00:00], "Europe/Athens")
       to = DateTime.new!(~D[2022-09-24], ~T[23:59:59], "Europe/Athens")

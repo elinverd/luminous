@@ -5,6 +5,8 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+@import  "../node_modules/tabulator-tables/dist/css/tabulator_modern.min.css";
+
 @layer components {
 	/* Time range classes */
 	.lmn-time-range-compound {

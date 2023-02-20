@@ -25,30 +25,37 @@ defmodule Luminous.Dashboards.TestDashboardLive do
       ]
       |> Query.Result.new(
         attrs: %{
-          "foo" => Query.Attributes.define(type: :line),
-          "bar" => Query.Attributes.define(type: :bar)
+          "foo" => Query.Attributes.define(type: :line, unit: "μCKR"),
+          "bar" => Query.Attributes.define(type: :bar, unit: "μCKR")
         }
       )
     end
 
     def query(:q2, _time_range, _variables) do
-      Query.Result.new(666)
+      Query.Result.new(%{"foo" => 666},
+        attrs: %{"foo" => Query.Attributes.define(unit: "$", title: "Bar ($)")}
+      )
     end
 
     def query(:q3, time_range, _variables) do
-      if DateTime.compare(time_range.to, ~U[2022-09-24T20:59:59Z]) == :eq do
-        Query.Result.new(666)
-      else
-        Query.Result.new(Decimal.new(0))
-      end
+      val =
+        if DateTime.compare(time_range.to, ~U[2022-09-24T20:59:59Z]) == :eq do
+          666
+        else
+          Decimal.new(0)
+        end
+
+      Query.Result.new(%{foo: val},
+        attrs: %{foo: Query.Attributes.define(unit: "$", title: "Bar ($)")}
+      )
     end
 
     def query(:q4, _time_range, _variables) do
-      Query.Result.new({"foo", 666}, attrs: %{"foo" => Query.Attributes.define(unit: "$")})
+      Query.Result.new(%{"foo" => 666}, attrs: %{"foo" => Query.Attributes.define(unit: "$")})
     end
 
     def query(:q5, _time_range, _variables) do
-      Query.Result.new([{"foo", 66}, {"bar", 88}],
+      Query.Result.new(%{"foo" => 66, "bar" => 88},
         attrs: %{
           "foo" => Query.Attributes.define(unit: "$"),
           "bar" => Query.Attributes.define(unit: "€")
@@ -57,7 +64,21 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     end
 
     def query(:q6, _time_range, _variables) do
-      Query.Result.new("Just show this")
+      Query.Result.new(%{"str" => "Just show this"})
+    end
+
+    def query(:q7, _time_range, _variables) do
+      Query.Result.new(
+        [
+          %{"label" => "row1", "foo" => 3, "bar" => 88},
+          %{"label" => "row2", "foo" => 4, "bar" => 99}
+        ],
+        attrs: %{
+          "label" => Query.Attributes.define(title: "Label", order: 0, halign: :center),
+          "foo" => Query.Attributes.define(title: "Foo", order: 1, halign: :right),
+          "bar" => Query.Attributes.define(title: "Bar", order: 2, halign: :right)
+        }
+      )
     end
   end
 
@@ -65,8 +86,7 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     dashboard:
       Dashboard.define(
         "Test Dashboard",
-        &Routes.test_dashboard_path/3,
-        :index,
+        {&Routes.test_dashboard_path/3, :index},
         TimeRangeSelector.define(__MODULE__),
         panels: [
           Panel.define(
@@ -74,24 +94,19 @@ defmodule Luminous.Dashboards.TestDashboardLive do
             "Panel 1",
             :chart,
             [Query.define(:q1, Queries)],
-            unit: "μCKR",
             ylabel: "Foo (μCKR)"
           ),
           Panel.define(
             :p2,
             "Panel 2",
             :stat,
-            [Query.define(:q2, Queries)],
-            unit: "$",
-            ylabel: "Bar ($)"
+            [Query.define(:q2, Queries)]
           ),
           Panel.define(
             :p3,
             "Panel 3",
             :stat,
-            [Query.define(:q3, Queries)],
-            unit: "$",
-            ylabel: "Bar ($)"
+            [Query.define(:q3, Queries)]
           ),
           Panel.define(
             :p4,
@@ -110,6 +125,12 @@ defmodule Luminous.Dashboards.TestDashboardLive do
             "Panel 6",
             :stat,
             [Query.define(:q6, Queries)]
+          ),
+          Panel.define(
+            :p7,
+            "Panel 7 (table)",
+            :table,
+            [Query.define(:q7, Queries)]
           )
         ],
         variables: [
@@ -125,7 +146,7 @@ defmodule Luminous.Dashboards.TestDashboardLive do
 
   def render(assigns) do
     ~H"""
-    <Components.dashboard socket={@socket} dashboard={@dashboard} stats={@stats} panel_statistics={@panel_statistics}/>
+    <Components.dashboard socket={@socket} dashboard={@dashboard} panel_data={@panel_data} panel_statistics={@panel_statistics}/>
     """
   end
 end

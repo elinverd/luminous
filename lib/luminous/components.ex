@@ -6,7 +6,7 @@ defmodule Luminous.Components do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  alias Luminous.{Panel, Query, Variable}
+  alias Luminous.{Panel, Variable}
 
   @doc """
   The dashboard component is responsible for rendering all the necessary elements:
@@ -17,9 +17,7 @@ defmodule Luminous.Components do
 
   Additinally, it registers callbacks for reacting to panel loading states.
   """
-  def dashboard(
-        %{dashboard: dashboard, stats: stats, panel_statistics: panel_statistics} = assigns
-      ) do
+  def dashboard(%{dashboard: dashboard, panel_data: panel_data} = assigns) do
     ~H"""
     <.listeners />
     <div class="relative mx-8 lg:mx-auto max-w-screen-lg">
@@ -41,7 +39,7 @@ defmodule Luminous.Components do
 
       <div class="z-0 flex flex-col w-full space-y-8">
         <%= for panel <- dashboard.panels do %>
-          <.panel panel={panel} stats={stats} variables={dashboard.variables} panel_statistics={panel_statistics} time_range_selector={dashboard.time_range_selector} />
+          <.panel panel={panel} panel_data={panel_data} variables={dashboard.variables} time_range_selector={dashboard.time_range_selector} />
         <% end %>
       </div>
     </div>
@@ -78,7 +76,7 @@ defmodule Luminous.Components do
         %{
           panel: %{type: :chart} = panel,
           variables: variables,
-          panel_statistics: panel_statistics
+          panel_data: panel_data
         } = assigns
       ) do
     time_range_selector_id =
@@ -129,13 +127,17 @@ defmodule Luminous.Components do
         <div id={"#{Panel.dom_id(panel)}-container"} phx-update="ignore">
           <canvas id={Panel.dom_id(panel)} time-range-selector-id={time_range_selector_id} phx-hook={panel.hook}></canvas>
         </div>
-        <.panel_statistics panel_statistics={panel_statistics[panel.id]}/>
+        <%= if data = panel_data[panel.id] do %>
+        <.panel_statistics stats={Enum.map(data.datasets, & &1.stats)}/>
+        <% end %>
       </div>
     </div>
     """
   end
 
-  def panel(%{panel: %{type: :stat} = panel, stats: stats, variables: variables} = assigns) do
+  def panel(
+        %{panel: %{type: :stat} = panel, panel_data: panel_data, variables: variables} = assigns
+      ) do
     ~H"""
     <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6">
       <div class="flex relative w-full justify-center">
@@ -155,28 +157,65 @@ defmodule Luminous.Components do
         <% end %>
       </div>
 
-        <%= if datasets = stats[panel.id] do %>
-          <div id={"#{Panel.dom_id(panel)}-stat-values"} class={stats_grid_structure(length(datasets))}>
-            <%= for dataset <- datasets do %>
-              <div class="flex flex-col items-center">
-                <%= if dataset.label do %>
-                  <div class="text-lg"><%= dataset.label %></div>
-                <% end %>
+      <% dataset = panel_data[panel.id] %>
 
-                <%= if value = Query.DataSet.first_value(dataset) do %>
-                  <div><span class="text-4xl font-bold"><%= print_number(value) %></span> <span class="text-2xl font-semibold"><%= dataset.attrs.unit %></span></div>
-                <% else %>
-                  <span class="text-4xl font-bold">-</span>
-                <% end %>
+      <%= if dataset && length(dataset) > 0 do %>
+        <div id={"#{Panel.dom_id(panel)}-stat-values"} class={stats_grid_structure(length(dataset))}>
+          <%= for column <- dataset do %>
+          <div class="flex flex-col items-center">
+            <div class="text-lg"><%= column.title %></div>
+            <div><span class="text-4xl font-bold"><%= print_number(column.value) %></span> <span class="text-2xl font-semibold"><%= column.unit %></span></div>
 
-              </div>
-            <% end %>
           </div>
-        <% else %>
-          <div class="flex flex-row items-center justify-center">
-            <div class="text-4xl font-bold">-</div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="flex flex-row items-center justify-center">
+          <div class="text-4xl font-bold">-</div>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  def panel(%{panel: %{type: :table} = panel, variables: variables} = assigns) do
+    ~H"""
+    <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6">
+      <div class="flex relative w-full justify-center">
+        <div id={"#{panel.id}-loading"} class="absolute inline-block top-0 left-0 hidden" role="status" phx-update="ignore">
+          <svg aria-hidden="true" class="mr-2 w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+          </svg>
+          <span class="sr-only">Loading...</span>
+        </div>
+
+        <div id={"#{Panel.dom_id(panel)}-actions"} class="absolute inline-block top-0 right-0 z-10" phx-click-away={hide_dropdown("#{Panel.dom_id(panel)}-actions-dropdown")}>
+          <div tabindex="0" class="w-6 h-6 cursor-pointer focus:outline-none" phx-click={show_dropdown("#{Panel.dom_id(panel)}-actions-dropdown")}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/>
+            </svg>
           </div>
-        <% end %>
+          <div id={"#{Panel.dom_id(panel)}-actions-dropdown"} class="absolute hidden right-0">
+            <ul class="lmn-panel-actions-dropdown">
+              <li class="lmn-panel-actions-dropdown-item-container">
+                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{Panel.dom_id(panel)}-actions-dropdown") |> JS.dispatch("panel:#{Panel.dom_id(panel)}:download:csv", to: "##{Panel.dom_id(panel)}")}>
+                  Download CSV
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="flex flex-row space-x-4">
+          <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= interpolate(panel.title, variables) %></div>
+          <.description description={panel.description}/>
+        </div>
+      </div>
+
+      <div class="w-full z-0">
+        <div id={"#{Panel.dom_id(panel)}"} phx-hook={panel.hook} phx-update="ignore" />
+      </div>
     </div>
     """
   end
@@ -271,12 +310,12 @@ defmodule Luminous.Components do
     end)
   end
 
-  defp panel_statistics(%{panel_statistics: nil} = assigns), do: ~H""
+  defp panel_statistics(%{stats: nil} = assigns), do: ~H""
 
-  defp panel_statistics(%{panel_statistics: statistics} = assigns) when length(statistics) == 0,
+  defp panel_statistics(%{stats: statistics} = assigns) when length(statistics) == 0,
     do: ~H""
 
-  defp panel_statistics(%{panel_statistics: statistics} = assigns) do
+  defp panel_statistics(%{stats: statistics} = assigns) do
     ~H"""
     <div class="grid grid-cols-10 gap-x-4 mt-2 mx-8 text-right text-xs">
       <div class="col-span-5 text-xs font-semibold"></div>

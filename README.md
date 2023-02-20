@@ -19,7 +19,8 @@ hooks](https://hexdocs.pm/phoenix_live_view/js-interop.html#client-hooks-via-phx
 for supporting client-side visualizations and interactions with the
 live view process:
 
-- [chartjs](https://www.chartjs.org/) for plots
+- [chartjs](https://www.chartjs.org/) for rendering plots
+- [tabulator](https://tabulator.info/) for rendering tabular data
 - [flatpickr](https://flatpickr.js.org/) for time range selection
 
 ## Features
@@ -31,7 +32,8 @@ live view process:
 - Multiple supported chart types (currently `:line` and `:bar`)
 - Download panel data (CSV, PNG)
 - Stat panels (show single or multiple stats)
-- Summary statistics in panels
+- Table panels
+- Summary statistics in charts
 
 ## Installation
 
@@ -51,11 +53,12 @@ In order to be able to use the provided components, the library's
 In `assets/js/app.js`:
 
 ```javascript
-import { ChartJSHook, TimeRangeHook } from "luminous"
+import { ChartJSHook, TableHook, TimeRangeHook } from "luminous"
 
 let Hooks = {
   TimeRangeHook: new TimeRangeHook(),
-  ChartJSHook: new ChartJSHook()
+  ChartJSHook: new ChartJSHook(),
+  TableHook: new TableHook()
 }
 
 ...
