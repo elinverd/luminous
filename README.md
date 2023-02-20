@@ -13,7 +13,7 @@ grafana both conceptually and functionally in that:
 - it can be parameterized by user-defined variables
 
 Dashboards are defined at compile time using elixir code (see
-`Luminous.Dashboard.define/5`). At runtime, Luminous uses the
+`Luminous.Dashboard.define/4`). At runtime, Luminous uses the
 following javascript libraries (as [live view
 hooks](https://hexdocs.pm/phoenix_live_view/js-interop.html#client-hooks-via-phx-hook))
 for supporting client-side visualizations and interactions with the
