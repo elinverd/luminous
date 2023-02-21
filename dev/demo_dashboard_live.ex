@@ -171,7 +171,10 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
       data =
         case DateTime.compare(t, DateTime.utc_now()) do
           :lt ->
-            []
+            [
+              %{"label" => "row1", "foo" => 13, "bar" => 188},
+              %{"label" => "row2", "foo" => 14, "bar" => 199}
+            ]
 
           _ ->
             [
@@ -211,13 +214,21 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
             :chart,
             [Query.define(:simple_time_series, Queries)],
             unit: "μCKR",
-            ylabel: "Description"
+            ylabel: "Description",
+            description: """
+            All calculations are based on the line items of weekly
+            billing notes whose start date is in the selected billing
+            period, All calculations are based on the line items of
+            weekly billing notes whose start date is in the selected
+            billing period
+            """
           ),
           Panel.define(
             :tabular_data,
             "Tabular Data",
             :table,
-            [Query.define(:tabular_data, Queries)]
+            [Query.define(:tabular_data, Queries)],
+            description: "This is a panel with tabular data"
           ),
           Panel.define(
             :single_stat,

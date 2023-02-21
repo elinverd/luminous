@@ -119,7 +119,7 @@ defmodule Luminous.Components do
 
         <div class="flex flex-row space-x-4">
           <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= interpolate(panel.title, variables) %></div>
-          <.description description={panel.description}/>
+          <.description panel={panel}/>
         </div>
       </div>
 
@@ -152,7 +152,7 @@ defmodule Luminous.Components do
         <%= if panel.title != "" or panel.description != "" do %>
           <div class="flex flex-row space-x-4">
             <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= interpolate(panel.title, variables) %></div>
-            <.description description={panel.description}/>
+            <.description panel={panel}/>
           </div>
         <% end %>
       </div>
@@ -209,7 +209,7 @@ defmodule Luminous.Components do
 
         <div class="flex flex-row space-x-4">
           <div id={"#{Panel.dom_id(panel)}-title"} class="text-xl font-medium"><%= interpolate(panel.title, variables) %></div>
-          <.description description={panel.description}/>
+          <.description panel={panel}/>
         </div>
       </div>
 
@@ -337,15 +337,16 @@ defmodule Luminous.Components do
     """
   end
 
-  defp description(%{description: nil} = assigns), do: ~H""
+  defp description(%{panel: %{description: nil}} = assigns), do: ~H""
 
-  defp description(%{description: description} = assigns) do
+  defp description(%{panel: %{id: panel_id, description: description}} = assigns) do
     ~H"""
-      <div data-tip={description} class="tooltip z-50">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </div>
+    <div class="group flex relative">
+      <div id={"lum-#{panel_id}-tooltip"} class="z-10 md:w-64 group-hover:opacity-100 transition-opacity bg-gray-800 p-2 m-4 opacity-0 text-sm text-gray-100 rounded-md absolute left-1/2 -translate-x-1/2 translate-y-2"><span><%= description %></span></div>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
     """
   end
 
