@@ -1,3 +1,4 @@
 # export KERL_CONFIGURE_OPTIONS="--disable-debug --without-javac"
 erlang 24.3.4
 elixir 1.12.3-otp-24
+nodejs 18.14.2
