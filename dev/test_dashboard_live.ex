@@ -88,6 +88,19 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     def query(:q9, _time_range, _variables) do
       Query.Result.new([])
     end
+
+    def query(:q10, _time_range, _variables) do
+      Query.Result.new(
+        [
+          {"foo", "452,64"},
+          {"bar", "260.238,4"}
+        ],
+        attrs: %{
+          "foo" => Query.Attributes.define(unit: "$"),
+          "bar" => Query.Attributes.define(unit: "€")
+        }
+      )
+    end
   end
 
   use Luminous.Live,
@@ -151,6 +164,12 @@ defmodule Luminous.Dashboards.TestDashboardLive do
             "Panel 9 (empty stat)",
             :stat,
             [Query.define(:q9, Queries)]
+          ),
+          Panel.define(
+            :p10,
+            "Panel 10 (stats as list of 2-tuples)",
+            :stat,
+            [Query.define(:q10, Queries)]
           )
         ],
         variables: [

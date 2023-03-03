@@ -10,7 +10,7 @@ defmodule Luminous.Panel.Stat do
   end
 
   # we have a map of values and the relevant attributes potentially
-  def transform(%Query.Result{rows: rows, attrs: attrs}) when is_map(rows) do
+  def transform(%Query.Result{rows: rows, attrs: attrs}) when is_map(rows) or is_list(rows) do
     rows
     |> Enum.sort_by(fn {label, _} -> if(attr = attrs[label], do: attr.order) end)
     |> Enum.map(fn {label, value} ->
