@@ -52,7 +52,7 @@ defmodule Luminous.Query do
     `Luminous.Query.DataSet.new/3` for details.
     """
     @type label :: atom() | binary()
-    @type value :: number() | Decimal.t() | binary()
+    @type value :: number() | Decimal.t() | binary() | nil
     @type point :: {label(), value()}
     @type row :: [point()] | map()
     @type t :: %__MODULE__{
