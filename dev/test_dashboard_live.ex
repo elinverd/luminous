@@ -80,6 +80,10 @@ defmodule Luminous.Dashboards.TestDashboardLive do
         }
       )
     end
+
+    def query(:q8, _time_range, _variables) do
+      Query.Result.new(11)
+    end
   end
 
   use Luminous.Live,
@@ -131,6 +135,12 @@ defmodule Luminous.Dashboards.TestDashboardLive do
             "Panel 7 (table)",
             :table,
             [Query.define(:q7, Queries)]
+          ),
+          Panel.define(
+            :p8,
+            "Panel 8 (stat with simple value)",
+            :stat,
+            [Query.define(:q8, Queries)]
           )
         ],
         variables: [
