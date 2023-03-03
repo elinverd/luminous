@@ -171,7 +171,7 @@ defmodule Luminous.Components do
         </div>
       <% else %>
         <div class="flex flex-row items-center justify-center">
-          <div class="text-4xl font-bold">-</div>
+          <div id={"#{Panel.dom_id(panel)}-stat-values"} class="text-4xl font-bold">-</div>
         </div>
       <% end %>
     </div>

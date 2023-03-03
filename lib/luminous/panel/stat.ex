@@ -21,4 +21,7 @@ defmodule Luminous.Panel.Stat do
       }
     end)
   end
+
+  # fallback
+  def transform(_), do: []
 end
