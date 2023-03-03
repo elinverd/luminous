@@ -43,70 +43,67 @@ defmodule Luminous.TimeRange do
     )
   end
 
-  @spec today(binary()) :: t()
-  def today(tz) do
-    from = DateTime.now!(tz) |> round(:day)
-    to = from |> add(1, :day) |> add(-1, :second)
+  @spec today(binary(), DateTime.t() | nil) :: t()
+  def today(tz, now \\ nil) do
+    now = now || DateTime.now!(tz)
+    from = round(now, :day)
+    to = now |> add(1, :day) |> round(:day) |> add(-1, :second)
     new(from, to)
   end
 
-  @spec yesterday(binary()) :: t()
-  def yesterday(tz) do
-    to = DateTime.now!(tz) |> round(:day)
-    from = to |> add(-1, :day)
-    to = add(to, -1, :second)
+  @spec yesterday(binary(), DateTime.t() | nil) :: t()
+  def yesterday(tz, now \\ nil) do
+    now = now || DateTime.now!(tz)
+    to = now |> round(:day) |> add(-1, :second)
+    from = now |> add(-1, :day) |> round(:day)
     new(from, to)
   end
 
-  @spec tomorrow(binary()) :: t()
-  def tomorrow(tz) do
-    from = DateTime.now!(tz) |> add(1, :day) |> round(:day)
-    to = from |> add(1, :day) |> add(-1, :second)
+  @spec tomorrow(binary(), DateTime.t() | nil) :: t()
+  def tomorrow(tz, now \\ nil) do
+    now = now || DateTime.now!(tz)
+    from = now |> add(1, :day) |> round(:day)
+    to = now |> add(2, :day) |> round(:day) |> add(-1, :second)
     new(from, to)
   end
 
-  @spec last_n_days(non_neg_integer(), binary()) :: t()
-  def last_n_days(n, tz) do
-    to = DateTime.now!(tz) |> round(:day) |> add(1, :day)
-    from = add(to, -n, :day)
-    to = add(to, -1, :second)
+  @spec last_n_days(non_neg_integer(), binary(), DateTime.t() | nil) :: t()
+  def last_n_days(n, tz, now \\ nil) do
+    now = now || DateTime.now!(tz)
+    to = now |> round(:day) |> add(1, :day) |> add(-1, :second)
+    from = now |> add(1 - n, :day) |> round(:day)
     new(from, to)
   end
 
-  @spec next_n_days(non_neg_integer(), binary()) :: t()
-  def next_n_days(n, tz) do
-    from = DateTime.now!(tz) |> add(1, :day) |> round(:day)
-    to = from |> add(n, :day) |> add(-1, :second)
+  @spec this_week(binary(), DateTime.t() | nil) :: t()
+  def this_week(tz, now \\ nil) do
+    today = DateTime.to_date(now || DateTime.now!(tz))
+    from = today |> Date.beginning_of_week() |> DateTime.new!(~T[00:00:00], tz)
+    to = today |> Date.end_of_week() |> DateTime.new!(~T[23:59:59], tz)
     new(from, to)
   end
 
-  @spec this_week(binary()) :: t()
-  def this_week(tz) do
-    from = DateTime.now!(tz) |> round(:week)
-    to = from |> add(7, :day) |> add(-1, :second)
+  @spec last_week(binary(), DateTime.t() | nil) :: t()
+  def last_week(tz, now \\ nil) do
+    same_day_last_week = (now || DateTime.now!(tz)) |> DateTime.to_date() |> Date.add(-7)
+    from = same_day_last_week |> Date.beginning_of_week() |> DateTime.new!(~T[00:00:00], tz)
+    to = same_day_last_week |> Date.end_of_week() |> DateTime.new!(~T[23:59:59], tz)
     new(from, to)
   end
 
-  @spec last_week(binary()) :: t()
-  def last_week(tz) do
-    to = DateTime.now!(tz) |> round(:week)
-    from = add(to, -7, :day)
-    to = add(to, -1, :second)
+  @spec this_month(binary(), DateTime.t() | nil) :: t()
+  def this_month(tz, now \\ nil) do
+    now = now || DateTime.now!(tz)
+    from = round(now, :month)
+    to = now |> add(1, :month) |> round(:month) |> add(-1, :second)
     new(from, to)
   end
 
-  @spec this_month(binary()) :: t()
-  def this_month(tz) do
-    from = DateTime.now!(tz) |> round(:month)
-    to = from |> add(1, :month) |> add(-1, :second)
-    new(from, to)
-  end
-
-  @spec last_month(binary()) :: t()
-  def last_month(tz) do
-    to = DateTime.now!(tz) |> round(:month)
-    from = add(to, -1, :month)
-    to = add(to, -1, :second)
+  @spec last_month(binary(), DateTime.t() | nil) :: t()
+  def last_month(tz, now \\ nil) do
+    now = now || DateTime.now!(tz)
+    to = now |> round(:month) |> add(-1, :second)
+    from = now |> add(-1, :month) |> round(:month)
     new(from, to)
   end
 
