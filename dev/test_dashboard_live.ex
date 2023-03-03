@@ -101,6 +101,10 @@ defmodule Luminous.Dashboards.TestDashboardLive do
         }
       )
     end
+
+    def query(:q11, _time_range, _variables) do
+      Query.Result.new([{"foo", nil}])
+    end
   end
 
   use Luminous.Live,
@@ -170,6 +174,12 @@ defmodule Luminous.Dashboards.TestDashboardLive do
             "Panel 10 (stats as list of 2-tuples)",
             :stat,
             [Query.define(:q10, Queries)]
+          ),
+          Panel.define(
+            :p11,
+            "Panel 11 (nil stat)",
+            :stat,
+            [Query.define(:q11, Queries)]
           )
         ],
         variables: [

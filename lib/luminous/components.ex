@@ -352,11 +352,9 @@ defmodule Luminous.Components do
 
   defp print_number(n) do
     case n do
-      %Decimal{} = n ->
-        Decimal.to_string(n)
-
-      _ ->
-        n
+      %Decimal{} = n -> Decimal.to_string(n)
+      nil -> "-"
+      _ -> n
     end
   end
 

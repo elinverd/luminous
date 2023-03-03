@@ -100,6 +100,9 @@ defmodule Luminous.LiveTest do
       assert view |> element("#panel-p10-stat-values") |> render() =~ ">$<"
       assert view |> element("#panel-p10-stat-values") |> render() =~ ">260.238,4<"
       assert view |> element("#panel-p10-stat-values") |> render() =~ ">€<"
+
+      assert view |> element("#panel-p11-title") |> render() =~ "Panel 11"
+      assert view |> element("#panel-p11-stat-values") |> render() =~ ">-<"
     end
 
     test "sends the correct data to the table panel", %{conn: conn} do
