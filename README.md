@@ -42,7 +42,7 @@ The package can be installed from `hex.pm` as follows:
 ```elixir
 def deps do
   [
-    {:luminous, "~> 1.1.2"}
+    {:luminous, "~> 1.1.3"}
   ]
 end
 ```
