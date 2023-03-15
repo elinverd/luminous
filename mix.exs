@@ -46,7 +46,7 @@ defmodule Luminous.MixProject do
       # production dependencies
       {:decimal, "~> 2.0"},
       {:jason, "~> 1.2"},
-      {:phoenix_live_view, "~> 0.17.0"},
+      {:phoenix_live_view, ">= 0.17.0"},
       {:tzdata, "~> 1.1"},
 
       # dev & test dependencies
