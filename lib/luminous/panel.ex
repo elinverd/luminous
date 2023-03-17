@@ -32,7 +32,9 @@ defmodule Luminous.Panel do
           xlabel: binary(),
           stacked_x: boolean(),
           stacked_y: boolean(),
-          hook: binary()
+          hook: binary(),
+          y_min_value: number(),
+          y_max_value: number()
         }
 
   @enforce_keys [:id, :title, :type, :queries, :hook]
@@ -47,7 +49,9 @@ defmodule Luminous.Panel do
     :ylabel,
     :xlabel,
     :stacked_x,
-    :stacked_y
+    :stacked_y,
+    :y_min_value,
+    :y_max_value
   ]
 
   @doc """
@@ -68,7 +72,9 @@ defmodule Luminous.Panel do
       stacked_x:
         if(Keyword.has_key?(opts, :stacked_x), do: Keyword.get(opts, :stacked_x), else: false),
       stacked_y:
-        if(Keyword.has_key?(opts, :stacked_y), do: Keyword.get(opts, :stacked_y), else: false)
+        if(Keyword.has_key?(opts, :stacked_y), do: Keyword.get(opts, :stacked_y), else: false),
+      y_min_value: Keyword.get(opts, :y_min_value),
+      y_max_value: Keyword.get(opts, :y_max_value)
     }
   end
 

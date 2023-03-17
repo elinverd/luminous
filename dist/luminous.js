@@ -19673,6 +19673,8 @@ function ChartJSHook() {
       this.chart.options.scales.x.adapters.date.zone = payload.time_zone;
       this.chart.options.scales.y.title.display = true;
       this.chart.options.scales.y.title.text = payload.ylabel;
+      this.chart.options.scales.y.suggestedMin = payload.y_min_value;
+      this.chart.options.scales.y.suggestedMax = payload.y_max_value;
       this.chart.options.scales.y.stacked = payload.stacked_x;
       this.chart.options.scales.x.stacked = payload.stacked_y;
       this.chart.options.scales.y.grid.display = n > 0;

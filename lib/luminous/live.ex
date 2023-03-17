@@ -140,6 +140,8 @@ defmodule Luminous.Live do
           xlabel: panel.xlabel,
           stacked_x: panel.stacked_x,
           stacked_y: panel.stacked_y,
+          y_min_value: panel.y_min_value,
+          y_max_value: panel.y_max_value,
           time_zone: socket.assigns.dashboard.time_zone
         }
 

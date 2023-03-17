@@ -2,7 +2,7 @@ import { Chart, registerables, Tooltip } from 'chart.js'
 import { DateTime } from 'luxon'
 import "chartjs-adapter-luxon"
 import zoomPlugin from 'chartjs-plugin-zoom';
-import {sendFileToClient} from './utils'
+import { sendFileToClient } from './utils'
 
 let colors = ["#fd7f6f", "#7eb0d5", "#b2e061", "#bd7ebe", "#ffb55a", "#ffee65", "#beb9db", "#fdcce5", "#8bd3c7"]
 
@@ -340,6 +340,10 @@ function ChartJSHook() {
       // display ylabel
       this.chart.options.scales.y.title.display = true
       this.chart.options.scales.y.title.text = payload.ylabel
+
+      // set min and max values of Y axis
+      this.chart.options.scales.y.suggestedMin = payload.y_min_value
+      this.chart.options.scales.y.suggestedMax = payload.y_max_value
 
       // toggle stacking
       this.chart.options.scales.y.stacked = payload.stacked_x
