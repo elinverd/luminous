@@ -62,7 +62,9 @@ defmodule Luminous.LiveTest do
         stacked_y: false,
         time_zone: "Europe/Athens",
         xlabel: nil,
-        ylabel: "Foo (μCKR)"
+        ylabel: "Foo (μCKR)",
+        y_min_value: nil,
+        y_max_value: nil
       }
 
       assert_push_event(view, "panel-p1::refresh-data", ^expected_data)
