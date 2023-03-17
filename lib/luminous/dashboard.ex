@@ -6,6 +6,14 @@ defmodule Luminous.Dashboard do
   compile time using `define/4` and populated at runtime using `populate/1`.
   """
 
+  @doc """
+  The consumer can optionally implement this callback, in case they want to
+  inject custom parameters in other callbacks (e.g. `Luminous.Variable.variable/2`).
+  Those parameters can be used to scope the callback results.
+  """
+  @callback parameters(Phoenix.LiveView.Socket.t()) :: map()
+  @optional_callbacks parameters: 1
+
   alias Luminous.{Panel, TimeRange, TimeRangeSelector, Variable}
 
   @default_time_zone "Europe/Athens"
@@ -51,10 +59,10 @@ defmodule Luminous.Dashboard do
   @doc """
   Populate the dashboard's dynamic properties (e.g. variable values, time range etc.) at runtime.
   """
-  @spec populate(t()) :: t()
-  def populate(dashboard) do
+  @spec populate(t(), map()) :: t()
+  def populate(dashboard, params) do
     dashboard
-    |> Map.put(:variables, Enum.map(dashboard.variables, &Variable.populate/1))
+    |> Map.put(:variables, Enum.map(dashboard.variables, &Variable.populate(&1, params)))
     |> Map.put(
       :time_range_selector,
       TimeRangeSelector.populate(dashboard.time_range_selector, dashboard.time_zone)

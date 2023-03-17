@@ -8,6 +8,8 @@ defmodule Luminous.Live do
     quote do
       use Phoenix.LiveView
 
+      @behaviour Luminous.Dashboard
+
       alias Luminous.{
         Dashboard,
         Components,
@@ -24,7 +26,14 @@ defmodule Luminous.Live do
 
       @impl true
       def mount(_, _, socket) do
-        dashboard = Dashboard.populate(unquote(dashboard))
+        params =
+          if function_exported?(__MODULE__, :parameters, 1) do
+            apply(__MODULE__, :parameters, [socket])
+          else
+            %{}
+          end
+
+        dashboard = Dashboard.populate(dashboard(), params)
 
         {:ok,
          assign(socket,

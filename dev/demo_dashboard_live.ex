@@ -5,6 +5,99 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
 
   alias Luminous.Router.Helpers, as: Routes
   alias Luminous.{Variable, Query, Dashboard, TimeRange, Components}
+  alias Luminous.Dashboards.DemoDashboardLive.{Queries, Variables}
+
+  # This is where the actual dashboard is defined (compile-time) by
+  # specifying all of its components.
+
+  # In general, a dashboard can have multiple panels and each panel
+  # can have multiple queries. A dashboard also has a set of variables
+  # and a time range component from which the user can select
+  # arbitrary time windows.
+  use Luminous.Live,
+    dashboard:
+      Dashboard.define(
+        "Demo Dashboard",
+        {&Routes.demo_dashboard_path/3, :index},
+        TimeRangeSelector.define(__MODULE__),
+        panels: [
+          Panel.define(
+            :simple_time_series,
+            "Simple Time Series",
+            :chart,
+            [Query.define(:simple_time_series, Queries)],
+            unit: "μCKR",
+            ylabel: "Description",
+            description: """
+            All calculations are based on the line items of weekly
+            billing notes whose start date is in the selected billing
+            period, All calculations are based on the line items of
+            weekly billing notes whose start date is in the selected
+            billing period
+            """
+          ),
+          Panel.define(
+            :tabular_data,
+            "Tabular Data",
+            :table,
+            [Query.define(:tabular_data, Queries)],
+            description: "This is a panel with tabular data"
+          ),
+          Panel.define(
+            :single_stat,
+            "Single-stat panel",
+            :stat,
+            [Query.define(:single_stat, Queries)]
+          ),
+          Panel.define(
+            :multi_stat,
+            "This is a multi-stat panel",
+            :stat,
+            [
+              Query.define(:string_stat, Queries),
+              Query.define(:more_stats, Queries)
+            ]
+          ),
+          Panel.define(
+            :multiple_time_series,
+            "Multiple Time Series with Ordering",
+            :chart,
+            [Query.define(:multiple_time_series, Queries)],
+            unit: "μCKR",
+            ylabel: "Description"
+          ),
+          Panel.define(
+            :multiple_time_series_with_stacking,
+            "Multiple Time Series with Stacking",
+            :chart,
+            [
+              Query.define(
+                :multiple_time_series_with_stacking,
+                Queries
+              )
+            ],
+            unit: "μCKR",
+            ylabel: "Description",
+            stacked_x: true,
+            stacked_y: true
+          )
+        ],
+        variables: [
+          Variable.define(:multiplier_var, "Multiplier", Variables),
+          Variable.define(:interval_var, "Interval", Variables)
+        ],
+        time_zone: "UTC"
+      )
+
+  @impl true
+  def parameters(_socket) do
+    %{param_name: "some_value"}
+  end
+
+  # a live dashboard also needs to specify its default time range
+  @behaviour TimeRangeSelector
+  @impl true
+  def default_time_range(tz), do: TimeRange.last_n_days(7, tz)
 
   defmodule Variables do
     @moduledoc """
@@ -24,8 +117,13 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
 
     @behaviour Variable
     @impl true
-    def variable(:multiplier_var), do: ["1", "10", "100"]
-    def variable(:interval_var), do: ["hour", "day"]
+    def variable(:multiplier_var, %{param_name: _some_value}) do
+      # `_some_value` can be used here in order to scope the variable values.
+      # See `Luminous.Dashboards.parameters/1` callback.
+      ["1", "10", "100"]
+    end
+
+    def variable(:interval_var, %{param_name: _some_value}), do: ["hour", "day"]
   end
 
   defmodule Queries do
@@ -193,88 +291,6 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
       )
     end
   end
-
-  # This is where the actual dashboard is defined (compile-time) by
-  # specifying all of its components.
-
-  # In general, a dashboard can have multiple panels and each panel
-  # can have multiple queries. A dashboard also has a set of variables
-  # and a time range component from which the user can select
-  # arbitrary time windows.
-  use Luminous.Live,
-    dashboard:
-      Dashboard.define(
-        "Demo Dashboard",
-        {&Routes.demo_dashboard_path/3, :index},
-        TimeRangeSelector.define(__MODULE__),
-        panels: [
-          Panel.define(
-            :simple_time_series,
-            "Simple Time Series",
-            :chart,
-            [Query.define(:simple_time_series, Queries)],
-            unit: "μCKR",
-            ylabel: "Description",
-            description: """
-            All calculations are based on the line items of weekly
-            billing notes whose start date is in the selected billing
-            period, All calculations are based on the line items of
-            weekly billing notes whose start date is in the selected
-            billing period
-            """
-          ),
-          Panel.define(
-            :tabular_data,
-            "Tabular Data",
-            :table,
-            [Query.define(:tabular_data, Queries)],
-            description: "This is a panel with tabular data"
-          ),
-          Panel.define(
-            :single_stat,
-            "Single-stat panel",
-            :stat,
-            [Query.define(:single_stat, Queries)]
-          ),
-          Panel.define(
-            :multi_stat,
-            "This is a multi-stat panel",
-            :stat,
-            [
-              Query.define(:string_stat, Queries),
-              Query.define(:more_stats, Queries)
-            ]
-          ),
-          Panel.define(
-            :multiple_time_series,
-            "Multiple Time Series with Ordering",
-            :chart,
-            [Query.define(:multiple_time_series, Queries)],
-            unit: "μCKR",
-            ylabel: "Description"
-          ),
-          Panel.define(
-            :multiple_time_series_with_stacking,
-            "Multiple Time Series with Stacking",
-            :chart,
-            [Query.define(:multiple_time_series_with_stacking, Queries)],
-            unit: "μCKR",
-            ylabel: "Description",
-            stacked_x: true,
-            stacked_y: true
-          )
-        ],
-        variables: [
-          Variable.define(:multiplier_var, "Multiplier", Variables),
-          Variable.define(:interval_var, "Interval", Variables)
-        ],
-        time_zone: "UTC"
-      )
-
-  # a live dashboard also needs to specify its default time range
-  @behaviour TimeRangeSelector
-  @impl true
-  def default_time_range(tz), do: TimeRange.last_n_days(7, tz)
 
   @doc false
   # Here, we make use of the default component (`dashboard`) that

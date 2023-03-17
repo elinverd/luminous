@@ -3,14 +3,108 @@ defmodule Luminous.Dashboards.TestDashboardLive do
 
   alias Luminous.Router.Helpers, as: Routes
   alias Luminous.{Variable, Query, Dashboard, TimeRange, Components}
+  alias Luminous.Dashboards.TestDashboardLive.{Queries, Variables}
+
+  use Luminous.Live,
+    dashboard:
+      Dashboard.define(
+        "Test Dashboard",
+        {&Routes.test_dashboard_path/3, :index},
+        TimeRangeSelector.define(__MODULE__),
+        panels: [
+          Panel.define(
+            :p1,
+            "Panel 1",
+            :chart,
+            [Query.define(:q1, Queries)],
+            ylabel: "Foo (μCKR)"
+          ),
+          Panel.define(
+            :p2,
+            "Panel 2",
+            :stat,
+            [Query.define(:q2, Queries)]
+          ),
+          Panel.define(
+            :p3,
+            "Panel 3",
+            :stat,
+            [Query.define(:q3, Queries)]
+          ),
+          Panel.define(
+            :p4,
+            "Panel 4",
+            :stat,
+            [Query.define(:q4, Queries)]
+          ),
+          Panel.define(
+            :p5,
+            "Panel 5",
+            :stat,
+            [Query.define(:q5, Queries)]
+          ),
+          Panel.define(
+            :p6,
+            "Panel 6",
+            :stat,
+            [Query.define(:q6, Queries)]
+          ),
+          Panel.define(
+            :p7,
+            "Panel 7 (table)",
+            :table,
+            [Query.define(:q7, Queries)]
+          ),
+          Panel.define(
+            :p8,
+            "Panel 8 (stat with simple value)",
+            :stat,
+            [Query.define(:q8, Queries)]
+          ),
+          Panel.define(
+            :p9,
+            "Panel 9 (empty stat)",
+            :stat,
+            [Query.define(:q9, Queries)]
+          ),
+          Panel.define(
+            :p10,
+            "Panel 10 (stats as list of 2-tuples)",
+            :stat,
+            [Query.define(:q10, Queries)]
+          ),
+          Panel.define(
+            :p11,
+            "Panel 11 (nil stat)",
+            :stat,
+            [Query.define(:q11, Queries)]
+          )
+        ],
+        variables: [
+          Variable.define(:var1, "Var 1", Variables),
+          Variable.define(:var2, "Var 2", Variables),
+          Variable.define(:var3, "Var 3", Variables)
+        ],
+        time_zone: "Europe/Athens"
+      )
+
+  @impl true
+  def parameters(_socket) do
+    %{test_param: ["test_param_val_1", "test_param_val_2"]}
+  end
+
+  @behaviour TimeRangeSelector
+  @impl true
+  def default_time_range(tz), do: TimeRange.yesterday(tz)
 
   defmodule Variables do
     @moduledoc false
 
     @behaviour Variable
     @impl true
-    def variable(:var1), do: ["a", "b", "c"]
-    def variable(:var2), do: ["1", "2", "3"]
+    def variable(:var1, _), do: ["a", "b", "c"]
+    def variable(:var2, _), do: ["1", "2", "3"]
+    def variable(:var3, %{test_param: values}), do: values
   end
 
   defmodule Queries do
@@ -106,92 +200,6 @@ defmodule Luminous.Dashboards.TestDashboardLive do
       Query.Result.new([{"foo", nil}])
     end
   end
-
-  use Luminous.Live,
-    dashboard:
-      Dashboard.define(
-        "Test Dashboard",
-        {&Routes.test_dashboard_path/3, :index},
-        TimeRangeSelector.define(__MODULE__),
-        panels: [
-          Panel.define(
-            :p1,
-            "Panel 1",
-            :chart,
-            [Query.define(:q1, Queries)],
-            ylabel: "Foo (μCKR)"
-          ),
-          Panel.define(
-            :p2,
-            "Panel 2",
-            :stat,
-            [Query.define(:q2, Queries)]
-          ),
-          Panel.define(
-            :p3,
-            "Panel 3",
-            :stat,
-            [Query.define(:q3, Queries)]
-          ),
-          Panel.define(
-            :p4,
-            "Panel 4",
-            :stat,
-            [Query.define(:q4, Queries)]
-          ),
-          Panel.define(
-            :p5,
-            "Panel 5",
-            :stat,
-            [Query.define(:q5, Queries)]
-          ),
-          Panel.define(
-            :p6,
-            "Panel 6",
-            :stat,
-            [Query.define(:q6, Queries)]
-          ),
-          Panel.define(
-            :p7,
-            "Panel 7 (table)",
-            :table,
-            [Query.define(:q7, Queries)]
-          ),
-          Panel.define(
-            :p8,
-            "Panel 8 (stat with simple value)",
-            :stat,
-            [Query.define(:q8, Queries)]
-          ),
-          Panel.define(
-            :p9,
-            "Panel 9 (empty stat)",
-            :stat,
-            [Query.define(:q9, Queries)]
-          ),
-          Panel.define(
-            :p10,
-            "Panel 10 (stats as list of 2-tuples)",
-            :stat,
-            [Query.define(:q10, Queries)]
-          ),
-          Panel.define(
-            :p11,
-            "Panel 11 (nil stat)",
-            :stat,
-            [Query.define(:q11, Queries)]
-          )
-        ],
-        variables: [
-          Variable.define(:var1, "Var 1", Variables),
-          Variable.define(:var2, "Var 2", Variables)
-        ],
-        time_zone: "Europe/Athens"
-      )
-
-  @behaviour TimeRangeSelector
-  @impl true
-  def default_time_range(tz), do: TimeRange.yesterday(tz)
 
   def render(assigns) do
     ~H"""
