@@ -8,7 +8,7 @@ defmodule Luminous.Variable do
   @doc """
   A module must implement this behaviour to be passed as an argument to `define/3`.
   """
-  @callback variable(atom()) :: [simple_value() | descriptive_value()]
+  @callback variable(atom(), map()) :: [simple_value() | descriptive_value()]
 
   @type simple_value :: binary()
   @type descriptive_value :: %{label: binary(), value: binary()}
@@ -55,11 +55,11 @@ defmodule Luminous.Variable do
   Uses the query to populate the variables's values and returns the new struct.
   Additionally, it sets the current value to be the first of the calculated values.
   """
-  @spec populate(t()) :: t()
-  def populate(var) do
+  @spec populate(t(), map()) :: t()
+  def populate(var, params) do
     values =
       var.mod
-      |> apply(:variable, [var.id])
+      |> apply(:variable, [var.id, params])
       |> Enum.map(fn
         m when is_map(m) -> m
         s when is_binary(s) -> %{label: s, value: s}

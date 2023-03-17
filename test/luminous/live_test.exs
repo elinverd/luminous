@@ -179,7 +179,13 @@ defmodule Luminous.LiveTest do
 
       assert_patched(
         view,
-        Routes.test_dashboard_path(conn, :index, var1: "a", var2: 1, from: from, to: to)
+        Routes.test_dashboard_path(conn, :index,
+          var1: "a",
+          var2: 1,
+          var3: "test_param_val_1",
+          from: from,
+          to: to
+        )
       )
     end
   end
@@ -205,6 +211,7 @@ defmodule Luminous.LiveTest do
         Routes.test_dashboard_path(conn, :index,
           var1: "b",
           var2: 1,
+          var3: "test_param_val_1",
           from: DateTime.to_unix(tr.from),
           to: DateTime.to_unix(tr.to)
         )
@@ -217,10 +224,18 @@ defmodule Luminous.LiveTest do
         Routes.test_dashboard_path(conn, :index,
           var1: "b",
           var2: 3,
+          var3: "test_param_val_1",
           from: DateTime.to_unix(tr.from),
           to: DateTime.to_unix(tr.to)
         )
       )
+    end
+
+    test "when a variable requires a param from the LV socket", %{conn: conn} do
+      {:ok, view, _} = live(conn, Routes.test_dashboard_path(conn, :index))
+
+      assert has_element?(view, "#var3-dropdown li", "test_param_val_1")
+      assert has_element?(view, "#var3-dropdown li", "test_param_val_2")
     end
   end
 end
