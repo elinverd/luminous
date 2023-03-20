@@ -19670,6 +19670,9 @@ function ChartJSHook() {
         };
       });
       this.chart.data = { datasets };
+      if (Array.isArray(datasets) && datasets.length > 0 && datasets[0].type === "bar") {
+        this.chart.options.scales.x.offset = true;
+      }
       this.chart.options.scales.x.adapters.date.zone = payload.time_zone;
       this.chart.options.scales.y.title.display = true;
       this.chart.options.scales.y.title.text = payload.ylabel;

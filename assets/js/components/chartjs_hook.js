@@ -334,6 +334,14 @@ function ChartJSHook() {
       })
       this.chart.data = { datasets: datasets }
 
+      // This prevents the first and the last bars in a bar chart
+      // to be cut in half. Even though the `offset` option is set
+      // to `true` by default for bar charts, the initial value is
+      // `false` because the chart's is declared as `line`.
+      if (Array.isArray(datasets) && datasets.length > 0 && datasets[0].type === "bar") {
+        this.chart.options.scales.x.offset = true
+      }
+
       // set time zone
       this.chart.options.scales.x.adapters.date.zone = payload.time_zone
 
