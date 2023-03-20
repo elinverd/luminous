@@ -284,7 +284,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
   # custom components
   def render(assigns) do
     ~H"""
-    <Components.dashboard socket={@socket} dashboard={@dashboard} panel_data={@panel_data}/>
+    <Components.dashboard dashboard={@dashboard} panel_data={@panel_data}/>
     """
   end
 end

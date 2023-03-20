@@ -5,15 +5,15 @@ defmodule Luminous.Router do
   import Phoenix.LiveView.Router
 
   pipeline :browser do
-    plug(:put_root_layout, {Luminous.LayoutView, :root})
-    plug(:fetch_session)
+    plug :put_root_layout, {Luminous.LayoutView, :root}
+    plug :fetch_session
   end
 
   scope "/", Luminous do
-    pipe_through(:browser)
+    pipe_through :browser
 
-    live("/test", Dashboards.TestDashboardLive, :index)
-    live("/demo", Dashboards.DemoDashboardLive, :index)
+    live "/test", Dashboards.TestDashboardLive, :index
+    live "/demo", Dashboards.DemoDashboardLive, :index
   end
 end
 
