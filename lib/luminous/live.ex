@@ -79,7 +79,7 @@ defmodule Luminous.Live do
           socket =
             socket
             |> assign(dashboard: dashboard)
-            |> push_time_range_event(dashboard.time_range_selector.id, time_range)
+            |> push_time_range_event(TimeRangeSelector.id(), time_range)
 
           {:noreply, socket}
         else
@@ -109,11 +109,10 @@ defmodule Luminous.Live do
             %{assigns: %{dashboard: dashboard}} = socket
           ) do
         time_range =
-          TimeRangeSelector.get_time_range_for(
-            dashboard.time_range_selector,
-            preset,
-            dashboard.time_zone
-          )
+          case TimeRangeSelector.get_time_range_for(preset, dashboard.time_zone) do
+            nil -> default_time_range(dashboard.time_zone)
+            time_range -> time_range
+          end
 
         {:noreply,
          push_patch(socket,
@@ -189,7 +188,7 @@ defmodule Luminous.Live do
         |> TimeRange.shift_zone!(dashboard.time_zone)
       end
 
-      defp get_time_range(dashboard, _), do: Dashboard.default_time_range(dashboard)
+      defp get_time_range(dashboard, _), do: default_time_range(dashboard.time_zone)
 
       defp push_panel_load_event(socket, :start, panel_id),
         do: push_event(socket, "panel:load:start", %{id: panel_id})
