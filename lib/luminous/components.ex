@@ -238,8 +238,8 @@ defmodule Luminous.Components do
       <div class="lmn-time-range-compound">
         <div class="lmn-time-range-selector">
           <!-- Date picker -->
-          <input id={@dashboard.time_range_selector.id}
-            phx-hook={@dashboard.time_range_selector.hook}
+          <input id={TimeRangeSelector.id()}
+            phx-hook={TimeRangeSelector.hook()}
             phx-update="ignore" readonly="readonly"
             class="lmn-custom-time-range-input" />
           <!-- Presets button & dropdown -->

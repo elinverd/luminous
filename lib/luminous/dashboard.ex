@@ -3,8 +3,13 @@ defmodule Luminous.Dashboard do
   A dashboard is a high-level component initialized by the dashboard
   live view. It contains all the necessary dashboard attributes such as the
   panels, variables and the time range selector. It is initialized at
-  compile time using `define/4` and populated at runtime using `populate/1`.
+  compile time using `define/3` and populated at runtime using `populate/1`.
   """
+
+  @doc """
+  The dashboard uses a TimeRangeSelector and a default time range must be defined.
+  """
+  @callback default_time_range(binary()) :: Luminous.TimeRange.t()
 
   @doc """
   The consumer can optionally implement this callback, in case they want to
@@ -12,8 +17,10 @@ defmodule Luminous.Dashboard do
   Those parameters can be used to scope the callback results.
   """
   @callback parameters(Phoenix.LiveView.Socket.t()) :: map()
+
   @optional_callbacks parameters: 1
 
+  alias Luminous.TimeRange
   alias Luminous.{Panel, TimeRange, TimeRangeSelector, Variable}
 
   @default_time_zone "Europe/Athens"
@@ -43,16 +50,18 @@ defmodule Luminous.Dashboard do
   @doc """
   Initialize and return a dashboard at compile time.
   """
-  @spec define(binary(), {(... -> binary()), atom()}, TimeRangeSelector.t(), Keyword.t()) :: t()
-  def define(title, {path, action}, time_range_selector, opts \\ []) do
+  @spec define(binary(), {(... -> binary()), atom()}, Keyword.t()) :: t()
+  def define(title, {path, action}, opts \\ []) do
+    time_zone = Keyword.get(opts, :time_zone, @default_time_zone)
+
     %__MODULE__{
       title: title,
       path: path,
       action: action,
-      time_range_selector: time_range_selector,
+      time_range_selector: %TimeRangeSelector{},
       panels: Keyword.get(opts, :panels, []),
       variables: Keyword.get(opts, :variables, []),
-      time_zone: Keyword.get(opts, :time_zone, @default_time_zone)
+      time_zone: time_zone
     }
   end
 
@@ -91,14 +100,6 @@ defmodule Luminous.Dashboard do
     ]
 
     dashboard.path.(socket, dashboard.action, Keyword.merge(var_params, time_range_params))
-  end
-
-  @doc """
-  Returns the dashboard's default time range.
-  """
-  @spec default_time_range(t()) :: TimeRange.t()
-  def default_time_range(dashboard) do
-    TimeRangeSelector.default_time_range(dashboard.time_range_selector, dashboard.time_zone)
   end
 
   @doc """

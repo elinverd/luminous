@@ -19,7 +19,6 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
       Dashboard.define(
         "Demo Dashboard",
         {&Routes.demo_dashboard_path/3, :index},
-        TimeRangeSelector.define(__MODULE__),
         panels: [
           Panel.define(
             :simple_time_series,
@@ -95,7 +94,6 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
   end
 
   # a live dashboard also needs to specify its default time range
-  @behaviour TimeRangeSelector
   @impl true
   def default_time_range(tz), do: TimeRange.last_n_days(7, tz)
 

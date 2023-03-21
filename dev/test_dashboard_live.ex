@@ -10,7 +10,6 @@ defmodule Luminous.Dashboards.TestDashboardLive do
       Dashboard.define(
         "Test Dashboard",
         {&Routes.test_dashboard_path/3, :index},
-        TimeRangeSelector.define(__MODULE__),
         panels: [
           Panel.define(
             :p1,
@@ -93,7 +92,6 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     %{test_param: ["test_param_val_1", "test_param_val_2"]}
   end
 
-  @behaviour TimeRangeSelector
   @impl true
   def default_time_range(tz), do: TimeRange.yesterday(tz)
 
