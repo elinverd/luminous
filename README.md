@@ -13,7 +13,7 @@ grafana both conceptually and functionally in that:
 - it can be parameterized by user-defined variables
 
 Dashboards are defined at compile time using elixir code (see
-`Luminous.Dashboard.define/4`). At runtime, Luminous uses the
+`Luminous.Dashboard.define/3`). At runtime, Luminous uses the
 following javascript libraries (as [live view
 hooks](https://hexdocs.pm/phoenix_live_view/js-interop.html#client-hooks-via-phx-hook))
 for supporting client-side visualizations and interactions with the
@@ -94,8 +94,10 @@ In general, a custom dashboard needs to:
   dashboard-specific variables
 - implement the `Luminous.Query` behaviour for loading the necessary
   data that will be visualized in the client
-- implement the `Luminous.TimeRangeSelector` behaviour for determining
-  the default time range for the dashboard
+- implement the `Luminous.Dashboard` behaviour for determining
+  the default time range for the dashboard and optionally injecting
+  parameters to `Luminous.Variable.variable/2` callbacks
+  (see `Luminous.Dashboard.parameters/1`)
 - `use` the `Luminous.Live` module for leveraging the live dashboard
   functionality and capabilities
 - render the dashboard in the view template (only
