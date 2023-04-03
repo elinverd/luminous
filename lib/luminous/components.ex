@@ -85,7 +85,7 @@ defmodule Luminous.Components do
     required: false,
     doc: "only for the chart panel"
 
-  def(panel(%{panel: %{type: :chart}} = assigns)) do
+  def panel(%{panel: %{type: :chart}} = assigns) do
     time_range_selector_id =
       assigns
       |> Map.get(:time_range_selector, %{})
@@ -94,7 +94,7 @@ defmodule Luminous.Components do
     assigns = assign(assigns, time_range_selector_id: time_range_selector_id)
 
     ~H"""
-    <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6">
+    <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6 bg-white">
       <div class="flex relative w-full justify-center">
         <div id={"#{@panel.id}-loading"} class="absolute inline-block top-0 left-0 hidden" role="status" phx-update="ignore">
           <svg aria-hidden="true" class="mr-2 w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -146,7 +146,7 @@ defmodule Luminous.Components do
 
   def panel(%{panel: %{type: :stat}} = assigns) do
     ~H"""
-    <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6">
+    <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6 bg-white">
       <div class="flex relative w-full justify-center">
         <div id={"#{@panel.id}-loading"} class="absolute inline-block top-0 left-0 hidden" role="status" phx-update="ignore">
           <svg aria-hidden="true" class="mr-2 w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -187,7 +187,7 @@ defmodule Luminous.Components do
 
   def panel(%{panel: %{type: :table}} = assigns) do
     ~H"""
-    <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6">
+    <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6 bg-white">
       <div class="flex relative w-full justify-center">
         <div id={"#{@panel.id}-loading"} class="absolute inline-block top-0 left-0 hidden" role="status" phx-update="ignore">
           <svg aria-hidden="true" class="mr-2 w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">

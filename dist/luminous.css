@@ -1976,6 +1976,10 @@ video {
   border-radius: 0.375rem;
 }
 
+.bg-white {
+  background-color: #fff;
+}
+
 .bg-gray-800 {
   background-color: #1f2937;
 }
