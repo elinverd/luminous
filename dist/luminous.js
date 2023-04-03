@@ -14803,6 +14803,713 @@ var DATETIME_HUGE_WITH_SECONDS = {
   timeZoneName: l
 };
 
+// node_modules/luxon/src/zone.js
+var Zone = class {
+  get type() {
+    throw new ZoneIsAbstractError();
+  }
+  get name() {
+    throw new ZoneIsAbstractError();
+  }
+  get ianaName() {
+    return this.name;
+  }
+  get isUniversal() {
+    throw new ZoneIsAbstractError();
+  }
+  offsetName(ts, opts) {
+    throw new ZoneIsAbstractError();
+  }
+  formatOffset(ts, format) {
+    throw new ZoneIsAbstractError();
+  }
+  offset(ts) {
+    throw new ZoneIsAbstractError();
+  }
+  equals(otherZone) {
+    throw new ZoneIsAbstractError();
+  }
+  get isValid() {
+    throw new ZoneIsAbstractError();
+  }
+};
+
+// node_modules/luxon/src/zones/systemZone.js
+var singleton = null;
+var SystemZone = class extends Zone {
+  static get instance() {
+    if (singleton === null) {
+      singleton = new SystemZone();
+    }
+    return singleton;
+  }
+  get type() {
+    return "system";
+  }
+  get name() {
+    return new Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+  get isUniversal() {
+    return false;
+  }
+  offsetName(ts, { format, locale }) {
+    return parseZoneInfo(ts, format, locale);
+  }
+  formatOffset(ts, format) {
+    return formatOffset(this.offset(ts), format);
+  }
+  offset(ts) {
+    return -new Date(ts).getTimezoneOffset();
+  }
+  equals(otherZone) {
+    return otherZone.type === "system";
+  }
+  get isValid() {
+    return true;
+  }
+};
+
+// node_modules/luxon/src/zones/IANAZone.js
+var dtfCache = {};
+function makeDTF(zone) {
+  if (!dtfCache[zone]) {
+    dtfCache[zone] = new Intl.DateTimeFormat("en-US", {
+      hour12: false,
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      era: "short"
+    });
+  }
+  return dtfCache[zone];
+}
+var typeToPos = {
+  year: 0,
+  month: 1,
+  day: 2,
+  era: 3,
+  hour: 4,
+  minute: 5,
+  second: 6
+};
+function hackyOffset(dtf, date2) {
+  const formatted = dtf.format(date2).replace(/\u200E/g, ""), parsed = /(\d+)\/(\d+)\/(\d+) (AD|BC),? (\d+):(\d+):(\d+)/.exec(formatted), [, fMonth, fDay, fYear, fadOrBc, fHour, fMinute, fSecond] = parsed;
+  return [fYear, fMonth, fDay, fadOrBc, fHour, fMinute, fSecond];
+}
+function partsOffset(dtf, date2) {
+  const formatted = dtf.formatToParts(date2);
+  const filled = [];
+  for (let i2 = 0; i2 < formatted.length; i2++) {
+    const { type, value } = formatted[i2];
+    const pos = typeToPos[type];
+    if (type === "era") {
+      filled[pos] = value;
+    } else if (!isUndefined(pos)) {
+      filled[pos] = parseInt(value, 10);
+    }
+  }
+  return filled;
+}
+var ianaZoneCache = {};
+var IANAZone = class extends Zone {
+  static create(name) {
+    if (!ianaZoneCache[name]) {
+      ianaZoneCache[name] = new IANAZone(name);
+    }
+    return ianaZoneCache[name];
+  }
+  static resetCache() {
+    ianaZoneCache = {};
+    dtfCache = {};
+  }
+  static isValidSpecifier(s2) {
+    return this.isValidZone(s2);
+  }
+  static isValidZone(zone) {
+    if (!zone) {
+      return false;
+    }
+    try {
+      new Intl.DateTimeFormat("en-US", { timeZone: zone }).format();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  constructor(name) {
+    super();
+    this.zoneName = name;
+    this.valid = IANAZone.isValidZone(name);
+  }
+  get type() {
+    return "iana";
+  }
+  get name() {
+    return this.zoneName;
+  }
+  get isUniversal() {
+    return false;
+  }
+  offsetName(ts, { format, locale }) {
+    return parseZoneInfo(ts, format, locale, this.name);
+  }
+  formatOffset(ts, format) {
+    return formatOffset(this.offset(ts), format);
+  }
+  offset(ts) {
+    const date2 = new Date(ts);
+    if (isNaN(date2))
+      return NaN;
+    const dtf = makeDTF(this.name);
+    let [year, month, day, adOrBc, hour, minute, second] = dtf.formatToParts ? partsOffset(dtf, date2) : hackyOffset(dtf, date2);
+    if (adOrBc === "BC") {
+      year = -Math.abs(year) + 1;
+    }
+    const adjustedHour = hour === 24 ? 0 : hour;
+    const asUTC = objToLocalTS({
+      year,
+      month,
+      day,
+      hour: adjustedHour,
+      minute,
+      second,
+      millisecond: 0
+    });
+    let asTS = +date2;
+    const over = asTS % 1e3;
+    asTS -= over >= 0 ? over : 1e3 + over;
+    return (asUTC - asTS) / (60 * 1e3);
+  }
+  equals(otherZone) {
+    return otherZone.type === "iana" && otherZone.name === this.name;
+  }
+  get isValid() {
+    return this.valid;
+  }
+};
+
+// node_modules/luxon/src/impl/locale.js
+var intlLFCache = {};
+function getCachedLF(locString, opts = {}) {
+  const key = JSON.stringify([locString, opts]);
+  let dtf = intlLFCache[key];
+  if (!dtf) {
+    dtf = new Intl.ListFormat(locString, opts);
+    intlLFCache[key] = dtf;
+  }
+  return dtf;
+}
+var intlDTCache = {};
+function getCachedDTF(locString, opts = {}) {
+  const key = JSON.stringify([locString, opts]);
+  let dtf = intlDTCache[key];
+  if (!dtf) {
+    dtf = new Intl.DateTimeFormat(locString, opts);
+    intlDTCache[key] = dtf;
+  }
+  return dtf;
+}
+var intlNumCache = {};
+function getCachedINF(locString, opts = {}) {
+  const key = JSON.stringify([locString, opts]);
+  let inf = intlNumCache[key];
+  if (!inf) {
+    inf = new Intl.NumberFormat(locString, opts);
+    intlNumCache[key] = inf;
+  }
+  return inf;
+}
+var intlRelCache = {};
+function getCachedRTF(locString, opts = {}) {
+  const _a = opts, { base } = _a, cacheKeyOpts = __objRest(_a, ["base"]);
+  const key = JSON.stringify([locString, cacheKeyOpts]);
+  let inf = intlRelCache[key];
+  if (!inf) {
+    inf = new Intl.RelativeTimeFormat(locString, opts);
+    intlRelCache[key] = inf;
+  }
+  return inf;
+}
+var sysLocaleCache = null;
+function systemLocale() {
+  if (sysLocaleCache) {
+    return sysLocaleCache;
+  } else {
+    sysLocaleCache = new Intl.DateTimeFormat().resolvedOptions().locale;
+    return sysLocaleCache;
+  }
+}
+function parseLocaleString(localeStr) {
+  const xIndex = localeStr.indexOf("-x-");
+  if (xIndex !== -1) {
+    localeStr = localeStr.substring(0, xIndex);
+  }
+  const uIndex = localeStr.indexOf("-u-");
+  if (uIndex === -1) {
+    return [localeStr];
+  } else {
+    let options;
+    let selectedStr;
+    try {
+      options = getCachedDTF(localeStr).resolvedOptions();
+      selectedStr = localeStr;
+    } catch (e) {
+      const smaller = localeStr.substring(0, uIndex);
+      options = getCachedDTF(smaller).resolvedOptions();
+      selectedStr = smaller;
+    }
+    const { numberingSystem, calendar } = options;
+    return [selectedStr, numberingSystem, calendar];
+  }
+}
+function intlConfigString(localeStr, numberingSystem, outputCalendar) {
+  if (outputCalendar || numberingSystem) {
+    if (!localeStr.includes("-u-")) {
+      localeStr += "-u";
+    }
+    if (outputCalendar) {
+      localeStr += `-ca-${outputCalendar}`;
+    }
+    if (numberingSystem) {
+      localeStr += `-nu-${numberingSystem}`;
+    }
+    return localeStr;
+  } else {
+    return localeStr;
+  }
+}
+function mapMonths(f) {
+  const ms = [];
+  for (let i2 = 1; i2 <= 12; i2++) {
+    const dt = DateTime.utc(2016, i2, 1);
+    ms.push(f(dt));
+  }
+  return ms;
+}
+function mapWeekdays(f) {
+  const ms = [];
+  for (let i2 = 1; i2 <= 7; i2++) {
+    const dt = DateTime.utc(2016, 11, 13 + i2);
+    ms.push(f(dt));
+  }
+  return ms;
+}
+function listStuff(loc, length, defaultOK, englishFn, intlFn) {
+  const mode = loc.listingMode(defaultOK);
+  if (mode === "error") {
+    return null;
+  } else if (mode === "en") {
+    return englishFn(length);
+  } else {
+    return intlFn(length);
+  }
+}
+function supportsFastNumbers(loc) {
+  if (loc.numberingSystem && loc.numberingSystem !== "latn") {
+    return false;
+  } else {
+    return loc.numberingSystem === "latn" || !loc.locale || loc.locale.startsWith("en") || new Intl.DateTimeFormat(loc.intl).resolvedOptions().numberingSystem === "latn";
+  }
+}
+var PolyNumberFormatter = class {
+  constructor(intl, forceSimple, opts) {
+    this.padTo = opts.padTo || 0;
+    this.floor = opts.floor || false;
+    const _a = opts, { padTo, floor } = _a, otherOpts = __objRest(_a, ["padTo", "floor"]);
+    if (!forceSimple || Object.keys(otherOpts).length > 0) {
+      const intlOpts = __spreadValues({ useGrouping: false }, opts);
+      if (opts.padTo > 0)
+        intlOpts.minimumIntegerDigits = opts.padTo;
+      this.inf = getCachedINF(intl, intlOpts);
+    }
+  }
+  format(i2) {
+    if (this.inf) {
+      const fixed = this.floor ? Math.floor(i2) : i2;
+      return this.inf.format(fixed);
+    } else {
+      const fixed = this.floor ? Math.floor(i2) : roundTo(i2, 3);
+      return padStart(fixed, this.padTo);
+    }
+  }
+};
+var PolyDateFormatter = class {
+  constructor(dt, intl, opts) {
+    this.opts = opts;
+    this.originalZone = void 0;
+    let z = void 0;
+    if (this.opts.timeZone) {
+      this.dt = dt;
+    } else if (dt.zone.type === "fixed") {
+      const gmtOffset = -1 * (dt.offset / 60);
+      const offsetZ = gmtOffset >= 0 ? `Etc/GMT+${gmtOffset}` : `Etc/GMT${gmtOffset}`;
+      if (dt.offset !== 0 && IANAZone.create(offsetZ).valid) {
+        z = offsetZ;
+        this.dt = dt;
+      } else {
+        z = "UTC";
+        this.dt = dt.offset === 0 ? dt : dt.setZone("UTC").plus({ minutes: dt.offset });
+        this.originalZone = dt.zone;
+      }
+    } else if (dt.zone.type === "system") {
+      this.dt = dt;
+    } else if (dt.zone.type === "iana") {
+      this.dt = dt;
+      z = dt.zone.name;
+    } else {
+      z = "UTC";
+      this.dt = dt.setZone("UTC").plus({ minutes: dt.offset });
+      this.originalZone = dt.zone;
+    }
+    const intlOpts = __spreadValues({}, this.opts);
+    intlOpts.timeZone = intlOpts.timeZone || z;
+    this.dtf = getCachedDTF(intl, intlOpts);
+  }
+  format() {
+    if (this.originalZone) {
+      return this.formatToParts().map(({ value }) => value).join("");
+    }
+    return this.dtf.format(this.dt.toJSDate());
+  }
+  formatToParts() {
+    const parts = this.dtf.formatToParts(this.dt.toJSDate());
+    if (this.originalZone) {
+      return parts.map((part) => {
+        if (part.type === "timeZoneName") {
+          const offsetName = this.originalZone.offsetName(this.dt.ts, {
+            locale: this.dt.locale,
+            format: this.opts.timeZoneName
+          });
+          return __spreadProps(__spreadValues({}, part), {
+            value: offsetName
+          });
+        } else {
+          return part;
+        }
+      });
+    }
+    return parts;
+  }
+  resolvedOptions() {
+    return this.dtf.resolvedOptions();
+  }
+};
+var PolyRelFormatter = class {
+  constructor(intl, isEnglish, opts) {
+    this.opts = __spreadValues({ style: "long" }, opts);
+    if (!isEnglish && hasRelative()) {
+      this.rtf = getCachedRTF(intl, opts);
+    }
+  }
+  format(count, unit) {
+    if (this.rtf) {
+      return this.rtf.format(count, unit);
+    } else {
+      return formatRelativeTime(unit, count, this.opts.numeric, this.opts.style !== "long");
+    }
+  }
+  formatToParts(count, unit) {
+    if (this.rtf) {
+      return this.rtf.formatToParts(count, unit);
+    } else {
+      return [];
+    }
+  }
+};
+var Locale = class {
+  static fromOpts(opts) {
+    return Locale.create(opts.locale, opts.numberingSystem, opts.outputCalendar, opts.defaultToEN);
+  }
+  static create(locale, numberingSystem, outputCalendar, defaultToEN = false) {
+    const specifiedLocale = locale || Settings.defaultLocale;
+    const localeR = specifiedLocale || (defaultToEN ? "en-US" : systemLocale());
+    const numberingSystemR = numberingSystem || Settings.defaultNumberingSystem;
+    const outputCalendarR = outputCalendar || Settings.defaultOutputCalendar;
+    return new Locale(localeR, numberingSystemR, outputCalendarR, specifiedLocale);
+  }
+  static resetCache() {
+    sysLocaleCache = null;
+    intlDTCache = {};
+    intlNumCache = {};
+    intlRelCache = {};
+  }
+  static fromObject({ locale, numberingSystem, outputCalendar } = {}) {
+    return Locale.create(locale, numberingSystem, outputCalendar);
+  }
+  constructor(locale, numbering, outputCalendar, specifiedLocale) {
+    const [parsedLocale, parsedNumberingSystem, parsedOutputCalendar] = parseLocaleString(locale);
+    this.locale = parsedLocale;
+    this.numberingSystem = numbering || parsedNumberingSystem || null;
+    this.outputCalendar = outputCalendar || parsedOutputCalendar || null;
+    this.intl = intlConfigString(this.locale, this.numberingSystem, this.outputCalendar);
+    this.weekdaysCache = { format: {}, standalone: {} };
+    this.monthsCache = { format: {}, standalone: {} };
+    this.meridiemCache = null;
+    this.eraCache = {};
+    this.specifiedLocale = specifiedLocale;
+    this.fastNumbersCached = null;
+  }
+  get fastNumbers() {
+    if (this.fastNumbersCached == null) {
+      this.fastNumbersCached = supportsFastNumbers(this);
+    }
+    return this.fastNumbersCached;
+  }
+  listingMode() {
+    const isActuallyEn = this.isEnglish();
+    const hasNoWeirdness = (this.numberingSystem === null || this.numberingSystem === "latn") && (this.outputCalendar === null || this.outputCalendar === "gregory");
+    return isActuallyEn && hasNoWeirdness ? "en" : "intl";
+  }
+  clone(alts) {
+    if (!alts || Object.getOwnPropertyNames(alts).length === 0) {
+      return this;
+    } else {
+      return Locale.create(alts.locale || this.specifiedLocale, alts.numberingSystem || this.numberingSystem, alts.outputCalendar || this.outputCalendar, alts.defaultToEN || false);
+    }
+  }
+  redefaultToEN(alts = {}) {
+    return this.clone(__spreadProps(__spreadValues({}, alts), { defaultToEN: true }));
+  }
+  redefaultToSystem(alts = {}) {
+    return this.clone(__spreadProps(__spreadValues({}, alts), { defaultToEN: false }));
+  }
+  months(length, format = false, defaultOK = true) {
+    return listStuff(this, length, defaultOK, months, () => {
+      const intl = format ? { month: length, day: "numeric" } : { month: length }, formatStr = format ? "format" : "standalone";
+      if (!this.monthsCache[formatStr][length]) {
+        this.monthsCache[formatStr][length] = mapMonths((dt) => this.extract(dt, intl, "month"));
+      }
+      return this.monthsCache[formatStr][length];
+    });
+  }
+  weekdays(length, format = false, defaultOK = true) {
+    return listStuff(this, length, defaultOK, weekdays, () => {
+      const intl = format ? { weekday: length, year: "numeric", month: "long", day: "numeric" } : { weekday: length }, formatStr = format ? "format" : "standalone";
+      if (!this.weekdaysCache[formatStr][length]) {
+        this.weekdaysCache[formatStr][length] = mapWeekdays((dt) => this.extract(dt, intl, "weekday"));
+      }
+      return this.weekdaysCache[formatStr][length];
+    });
+  }
+  meridiems(defaultOK = true) {
+    return listStuff(this, void 0, defaultOK, () => meridiems, () => {
+      if (!this.meridiemCache) {
+        const intl = { hour: "numeric", hourCycle: "h12" };
+        this.meridiemCache = [DateTime.utc(2016, 11, 13, 9), DateTime.utc(2016, 11, 13, 19)].map((dt) => this.extract(dt, intl, "dayperiod"));
+      }
+      return this.meridiemCache;
+    });
+  }
+  eras(length, defaultOK = true) {
+    return listStuff(this, length, defaultOK, eras, () => {
+      const intl = { era: length };
+      if (!this.eraCache[length]) {
+        this.eraCache[length] = [DateTime.utc(-40, 1, 1), DateTime.utc(2017, 1, 1)].map((dt) => this.extract(dt, intl, "era"));
+      }
+      return this.eraCache[length];
+    });
+  }
+  extract(dt, intlOpts, field) {
+    const df = this.dtFormatter(dt, intlOpts), results = df.formatToParts(), matching = results.find((m) => m.type.toLowerCase() === field);
+    return matching ? matching.value : null;
+  }
+  numberFormatter(opts = {}) {
+    return new PolyNumberFormatter(this.intl, opts.forceSimple || this.fastNumbers, opts);
+  }
+  dtFormatter(dt, intlOpts = {}) {
+    return new PolyDateFormatter(dt, this.intl, intlOpts);
+  }
+  relFormatter(opts = {}) {
+    return new PolyRelFormatter(this.intl, this.isEnglish(), opts);
+  }
+  listFormatter(opts = {}) {
+    return getCachedLF(this.intl, opts);
+  }
+  isEnglish() {
+    return this.locale === "en" || this.locale.toLowerCase() === "en-us" || new Intl.DateTimeFormat(this.intl).resolvedOptions().locale.startsWith("en-us");
+  }
+  equals(other) {
+    return this.locale === other.locale && this.numberingSystem === other.numberingSystem && this.outputCalendar === other.outputCalendar;
+  }
+};
+
+// node_modules/luxon/src/zones/fixedOffsetZone.js
+var singleton2 = null;
+var FixedOffsetZone = class extends Zone {
+  static get utcInstance() {
+    if (singleton2 === null) {
+      singleton2 = new FixedOffsetZone(0);
+    }
+    return singleton2;
+  }
+  static instance(offset2) {
+    return offset2 === 0 ? FixedOffsetZone.utcInstance : new FixedOffsetZone(offset2);
+  }
+  static parseSpecifier(s2) {
+    if (s2) {
+      const r = s2.match(/^utc(?:([+-]\d{1,2})(?::(\d{2}))?)?$/i);
+      if (r) {
+        return new FixedOffsetZone(signedOffset(r[1], r[2]));
+      }
+    }
+    return null;
+  }
+  constructor(offset2) {
+    super();
+    this.fixed = offset2;
+  }
+  get type() {
+    return "fixed";
+  }
+  get name() {
+    return this.fixed === 0 ? "UTC" : `UTC${formatOffset(this.fixed, "narrow")}`;
+  }
+  get ianaName() {
+    if (this.fixed === 0) {
+      return "Etc/UTC";
+    } else {
+      return `Etc/GMT${formatOffset(-this.fixed, "narrow")}`;
+    }
+  }
+  offsetName() {
+    return this.name;
+  }
+  formatOffset(ts, format) {
+    return formatOffset(this.fixed, format);
+  }
+  get isUniversal() {
+    return true;
+  }
+  offset() {
+    return this.fixed;
+  }
+  equals(otherZone) {
+    return otherZone.type === "fixed" && otherZone.fixed === this.fixed;
+  }
+  get isValid() {
+    return true;
+  }
+};
+
+// node_modules/luxon/src/zones/invalidZone.js
+var InvalidZone = class extends Zone {
+  constructor(zoneName) {
+    super();
+    this.zoneName = zoneName;
+  }
+  get type() {
+    return "invalid";
+  }
+  get name() {
+    return this.zoneName;
+  }
+  get isUniversal() {
+    return false;
+  }
+  offsetName() {
+    return null;
+  }
+  formatOffset() {
+    return "";
+  }
+  offset() {
+    return NaN;
+  }
+  equals() {
+    return false;
+  }
+  get isValid() {
+    return false;
+  }
+};
+
+// node_modules/luxon/src/impl/zoneUtil.js
+function normalizeZone(input2, defaultZone2) {
+  let offset2;
+  if (isUndefined(input2) || input2 === null) {
+    return defaultZone2;
+  } else if (input2 instanceof Zone) {
+    return input2;
+  } else if (isString(input2)) {
+    const lowered = input2.toLowerCase();
+    if (lowered === "default")
+      return defaultZone2;
+    else if (lowered === "local" || lowered === "system")
+      return SystemZone.instance;
+    else if (lowered === "utc" || lowered === "gmt")
+      return FixedOffsetZone.utcInstance;
+    else
+      return FixedOffsetZone.parseSpecifier(lowered) || IANAZone.create(input2);
+  } else if (isNumber2(input2)) {
+    return FixedOffsetZone.instance(input2);
+  } else if (typeof input2 === "object" && input2.offset && typeof input2.offset === "number") {
+    return input2;
+  } else {
+    return new InvalidZone(input2);
+  }
+}
+
+// node_modules/luxon/src/settings.js
+var now = () => Date.now();
+var defaultZone = "system";
+var defaultLocale = null;
+var defaultNumberingSystem = null;
+var defaultOutputCalendar = null;
+var twoDigitCutoffYear = 60;
+var throwOnInvalid;
+var Settings = class {
+  static get now() {
+    return now;
+  }
+  static set now(n3) {
+    now = n3;
+  }
+  static set defaultZone(zone) {
+    defaultZone = zone;
+  }
+  static get defaultZone() {
+    return normalizeZone(defaultZone, SystemZone.instance);
+  }
+  static get defaultLocale() {
+    return defaultLocale;
+  }
+  static set defaultLocale(locale) {
+    defaultLocale = locale;
+  }
+  static get defaultNumberingSystem() {
+    return defaultNumberingSystem;
+  }
+  static set defaultNumberingSystem(numberingSystem) {
+    defaultNumberingSystem = numberingSystem;
+  }
+  static get defaultOutputCalendar() {
+    return defaultOutputCalendar;
+  }
+  static set defaultOutputCalendar(outputCalendar) {
+    defaultOutputCalendar = outputCalendar;
+  }
+  static get twoDigitCutoffYear() {
+    return twoDigitCutoffYear;
+  }
+  static set twoDigitCutoffYear(cutoffYear) {
+    twoDigitCutoffYear = cutoffYear % 100;
+  }
+  static get throwOnInvalid() {
+    return throwOnInvalid;
+  }
+  static set throwOnInvalid(t) {
+    throwOnInvalid = t;
+  }
+  static resetCaches() {
+    Locale.resetCache();
+    IANAZone.resetCache();
+  }
+};
+
 // node_modules/luxon/src/impl/util.js
 function isUndefined(o) {
   return typeof o === "undefined";
@@ -14913,7 +15620,7 @@ function objToLocalTS(obj) {
   let d = Date.UTC(obj.year, obj.month - 1, obj.day, obj.hour, obj.minute, obj.second, obj.millisecond);
   if (obj.year < 100 && obj.year >= 0) {
     d = new Date(d);
-    d.setUTCFullYear(d.getUTCFullYear() - 1900);
+    d.setUTCFullYear(obj.year, obj.month - 1, obj.day);
   }
   return +d;
 }
@@ -14925,7 +15632,7 @@ function untruncateYear(year) {
   if (year > 99) {
     return year;
   } else
-    return year > 60 ? 1900 + year : 2e3 + year;
+    return year > Settings.twoDigitCutoffYear ? 1900 + year : 2e3 + year;
 }
 function parseZoneInfo(ts, offsetFormat, locale, timeZone = null) {
   const date2 = new Date(ts), intlOpts = {
@@ -14985,7 +15692,6 @@ function formatOffset(offset2, format) {
 function timeObject(obj) {
   return pick(obj, ["hour", "minute", "second", "millisecond"]);
 }
-var ianaRegex = /[A-Za-z_+-]{1,256}(?::?\/[A-Za-z0-9_+-]{1,256}(?:\/[A-Za-z0-9_+-]{1,256})?)?/;
 
 // node_modules/luxon/src/impl/english.js
 var monthsLong = [
@@ -15159,7 +15865,7 @@ var Formatter = class {
       const c = fmt.charAt(i2);
       if (c === "'") {
         if (currentFull.length > 0) {
-          splits.push({ literal: bracketed, val: currentFull });
+          splits.push({ literal: bracketed || /^\s+$/.test(currentFull), val: currentFull });
         }
         current = null;
         currentFull = "";
@@ -15170,14 +15876,14 @@ var Formatter = class {
         currentFull += c;
       } else {
         if (currentFull.length > 0) {
-          splits.push({ literal: false, val: currentFull });
+          splits.push({ literal: /^\s+$/.test(currentFull), val: currentFull });
         }
         currentFull = c;
         current = c;
       }
     }
     if (currentFull.length > 0) {
-      splits.push({ literal: bracketed, val: currentFull });
+      splits.push({ literal: bracketed || /^\s+$/.test(currentFull), val: currentFull });
     }
     return splits;
   }
@@ -15203,6 +15909,10 @@ var Formatter = class {
   formatDateTimeParts(dt, opts = {}) {
     const df = this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
     return df.formatToParts();
+  }
+  formatInterval(interval, opts = {}) {
+    const df = this.loc.dtFormatter(interval.start, __spreadValues(__spreadValues({}, this.opts), opts));
+    return df.dtf.formatRange(interval.start.toJSDate(), interval.end.toJSDate());
   }
   resolvedOptions(dt, opts = {}) {
     const df = this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
@@ -15401,677 +16111,8 @@ var Invalid = class {
   }
 };
 
-// node_modules/luxon/src/zone.js
-var Zone = class {
-  get type() {
-    throw new ZoneIsAbstractError();
-  }
-  get name() {
-    throw new ZoneIsAbstractError();
-  }
-  get ianaName() {
-    return this.name;
-  }
-  get isUniversal() {
-    throw new ZoneIsAbstractError();
-  }
-  offsetName(ts, opts) {
-    throw new ZoneIsAbstractError();
-  }
-  formatOffset(ts, format) {
-    throw new ZoneIsAbstractError();
-  }
-  offset(ts) {
-    throw new ZoneIsAbstractError();
-  }
-  equals(otherZone) {
-    throw new ZoneIsAbstractError();
-  }
-  get isValid() {
-    throw new ZoneIsAbstractError();
-  }
-};
-
-// node_modules/luxon/src/zones/systemZone.js
-var singleton = null;
-var SystemZone = class extends Zone {
-  static get instance() {
-    if (singleton === null) {
-      singleton = new SystemZone();
-    }
-    return singleton;
-  }
-  get type() {
-    return "system";
-  }
-  get name() {
-    return new Intl.DateTimeFormat().resolvedOptions().timeZone;
-  }
-  get isUniversal() {
-    return false;
-  }
-  offsetName(ts, { format, locale }) {
-    return parseZoneInfo(ts, format, locale);
-  }
-  formatOffset(ts, format) {
-    return formatOffset(this.offset(ts), format);
-  }
-  offset(ts) {
-    return -new Date(ts).getTimezoneOffset();
-  }
-  equals(otherZone) {
-    return otherZone.type === "system";
-  }
-  get isValid() {
-    return true;
-  }
-};
-
-// node_modules/luxon/src/zones/IANAZone.js
-var dtfCache = {};
-function makeDTF(zone) {
-  if (!dtfCache[zone]) {
-    dtfCache[zone] = new Intl.DateTimeFormat("en-US", {
-      hour12: false,
-      timeZone: zone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      era: "short"
-    });
-  }
-  return dtfCache[zone];
-}
-var typeToPos = {
-  year: 0,
-  month: 1,
-  day: 2,
-  era: 3,
-  hour: 4,
-  minute: 5,
-  second: 6
-};
-function hackyOffset(dtf, date2) {
-  const formatted = dtf.format(date2).replace(/\u200E/g, ""), parsed = /(\d+)\/(\d+)\/(\d+) (AD|BC),? (\d+):(\d+):(\d+)/.exec(formatted), [, fMonth, fDay, fYear, fadOrBc, fHour, fMinute, fSecond] = parsed;
-  return [fYear, fMonth, fDay, fadOrBc, fHour, fMinute, fSecond];
-}
-function partsOffset(dtf, date2) {
-  const formatted = dtf.formatToParts(date2);
-  const filled = [];
-  for (let i2 = 0; i2 < formatted.length; i2++) {
-    const { type, value } = formatted[i2];
-    const pos = typeToPos[type];
-    if (type === "era") {
-      filled[pos] = value;
-    } else if (!isUndefined(pos)) {
-      filled[pos] = parseInt(value, 10);
-    }
-  }
-  return filled;
-}
-var ianaZoneCache = {};
-var IANAZone = class extends Zone {
-  static create(name) {
-    if (!ianaZoneCache[name]) {
-      ianaZoneCache[name] = new IANAZone(name);
-    }
-    return ianaZoneCache[name];
-  }
-  static resetCache() {
-    ianaZoneCache = {};
-    dtfCache = {};
-  }
-  static isValidSpecifier(s2) {
-    return this.isValidZone(s2);
-  }
-  static isValidZone(zone) {
-    if (!zone) {
-      return false;
-    }
-    try {
-      new Intl.DateTimeFormat("en-US", { timeZone: zone }).format();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-  constructor(name) {
-    super();
-    this.zoneName = name;
-    this.valid = IANAZone.isValidZone(name);
-  }
-  get type() {
-    return "iana";
-  }
-  get name() {
-    return this.zoneName;
-  }
-  get isUniversal() {
-    return false;
-  }
-  offsetName(ts, { format, locale }) {
-    return parseZoneInfo(ts, format, locale, this.name);
-  }
-  formatOffset(ts, format) {
-    return formatOffset(this.offset(ts), format);
-  }
-  offset(ts) {
-    const date2 = new Date(ts);
-    if (isNaN(date2))
-      return NaN;
-    const dtf = makeDTF(this.name);
-    let [year, month, day, adOrBc, hour, minute, second] = dtf.formatToParts ? partsOffset(dtf, date2) : hackyOffset(dtf, date2);
-    if (adOrBc === "BC") {
-      year = -Math.abs(year) + 1;
-    }
-    const adjustedHour = hour === 24 ? 0 : hour;
-    const asUTC = objToLocalTS({
-      year,
-      month,
-      day,
-      hour: adjustedHour,
-      minute,
-      second,
-      millisecond: 0
-    });
-    let asTS = +date2;
-    const over = asTS % 1e3;
-    asTS -= over >= 0 ? over : 1e3 + over;
-    return (asUTC - asTS) / (60 * 1e3);
-  }
-  equals(otherZone) {
-    return otherZone.type === "iana" && otherZone.name === this.name;
-  }
-  get isValid() {
-    return this.valid;
-  }
-};
-
-// node_modules/luxon/src/zones/fixedOffsetZone.js
-var singleton2 = null;
-var FixedOffsetZone = class extends Zone {
-  static get utcInstance() {
-    if (singleton2 === null) {
-      singleton2 = new FixedOffsetZone(0);
-    }
-    return singleton2;
-  }
-  static instance(offset2) {
-    return offset2 === 0 ? FixedOffsetZone.utcInstance : new FixedOffsetZone(offset2);
-  }
-  static parseSpecifier(s2) {
-    if (s2) {
-      const r = s2.match(/^utc(?:([+-]\d{1,2})(?::(\d{2}))?)?$/i);
-      if (r) {
-        return new FixedOffsetZone(signedOffset(r[1], r[2]));
-      }
-    }
-    return null;
-  }
-  constructor(offset2) {
-    super();
-    this.fixed = offset2;
-  }
-  get type() {
-    return "fixed";
-  }
-  get name() {
-    return this.fixed === 0 ? "UTC" : `UTC${formatOffset(this.fixed, "narrow")}`;
-  }
-  get ianaName() {
-    if (this.fixed === 0) {
-      return "Etc/UTC";
-    } else {
-      return `Etc/GMT${formatOffset(-this.fixed, "narrow")}`;
-    }
-  }
-  offsetName() {
-    return this.name;
-  }
-  formatOffset(ts, format) {
-    return formatOffset(this.fixed, format);
-  }
-  get isUniversal() {
-    return true;
-  }
-  offset() {
-    return this.fixed;
-  }
-  equals(otherZone) {
-    return otherZone.type === "fixed" && otherZone.fixed === this.fixed;
-  }
-  get isValid() {
-    return true;
-  }
-};
-
-// node_modules/luxon/src/zones/invalidZone.js
-var InvalidZone = class extends Zone {
-  constructor(zoneName) {
-    super();
-    this.zoneName = zoneName;
-  }
-  get type() {
-    return "invalid";
-  }
-  get name() {
-    return this.zoneName;
-  }
-  get isUniversal() {
-    return false;
-  }
-  offsetName() {
-    return null;
-  }
-  formatOffset() {
-    return "";
-  }
-  offset() {
-    return NaN;
-  }
-  equals() {
-    return false;
-  }
-  get isValid() {
-    return false;
-  }
-};
-
-// node_modules/luxon/src/impl/zoneUtil.js
-function normalizeZone(input2, defaultZone2) {
-  let offset2;
-  if (isUndefined(input2) || input2 === null) {
-    return defaultZone2;
-  } else if (input2 instanceof Zone) {
-    return input2;
-  } else if (isString(input2)) {
-    const lowered = input2.toLowerCase();
-    if (lowered === "default")
-      return defaultZone2;
-    else if (lowered === "local" || lowered === "system")
-      return SystemZone.instance;
-    else if (lowered === "utc" || lowered === "gmt")
-      return FixedOffsetZone.utcInstance;
-    else
-      return FixedOffsetZone.parseSpecifier(lowered) || IANAZone.create(input2);
-  } else if (isNumber2(input2)) {
-    return FixedOffsetZone.instance(input2);
-  } else if (typeof input2 === "object" && input2.offset && typeof input2.offset === "number") {
-    return input2;
-  } else {
-    return new InvalidZone(input2);
-  }
-}
-
-// node_modules/luxon/src/settings.js
-var now = () => Date.now();
-var defaultZone = "system";
-var defaultLocale = null;
-var defaultNumberingSystem = null;
-var defaultOutputCalendar = null;
-var throwOnInvalid;
-var Settings = class {
-  static get now() {
-    return now;
-  }
-  static set now(n3) {
-    now = n3;
-  }
-  static set defaultZone(zone) {
-    defaultZone = zone;
-  }
-  static get defaultZone() {
-    return normalizeZone(defaultZone, SystemZone.instance);
-  }
-  static get defaultLocale() {
-    return defaultLocale;
-  }
-  static set defaultLocale(locale) {
-    defaultLocale = locale;
-  }
-  static get defaultNumberingSystem() {
-    return defaultNumberingSystem;
-  }
-  static set defaultNumberingSystem(numberingSystem) {
-    defaultNumberingSystem = numberingSystem;
-  }
-  static get defaultOutputCalendar() {
-    return defaultOutputCalendar;
-  }
-  static set defaultOutputCalendar(outputCalendar) {
-    defaultOutputCalendar = outputCalendar;
-  }
-  static get throwOnInvalid() {
-    return throwOnInvalid;
-  }
-  static set throwOnInvalid(t) {
-    throwOnInvalid = t;
-  }
-  static resetCaches() {
-    Locale.resetCache();
-    IANAZone.resetCache();
-  }
-};
-
-// node_modules/luxon/src/impl/locale.js
-var intlLFCache = {};
-function getCachedLF(locString, opts = {}) {
-  const key = JSON.stringify([locString, opts]);
-  let dtf = intlLFCache[key];
-  if (!dtf) {
-    dtf = new Intl.ListFormat(locString, opts);
-    intlLFCache[key] = dtf;
-  }
-  return dtf;
-}
-var intlDTCache = {};
-function getCachedDTF(locString, opts = {}) {
-  const key = JSON.stringify([locString, opts]);
-  let dtf = intlDTCache[key];
-  if (!dtf) {
-    dtf = new Intl.DateTimeFormat(locString, opts);
-    intlDTCache[key] = dtf;
-  }
-  return dtf;
-}
-var intlNumCache = {};
-function getCachedINF(locString, opts = {}) {
-  const key = JSON.stringify([locString, opts]);
-  let inf = intlNumCache[key];
-  if (!inf) {
-    inf = new Intl.NumberFormat(locString, opts);
-    intlNumCache[key] = inf;
-  }
-  return inf;
-}
-var intlRelCache = {};
-function getCachedRTF(locString, opts = {}) {
-  const _a = opts, { base } = _a, cacheKeyOpts = __objRest(_a, ["base"]);
-  const key = JSON.stringify([locString, cacheKeyOpts]);
-  let inf = intlRelCache[key];
-  if (!inf) {
-    inf = new Intl.RelativeTimeFormat(locString, opts);
-    intlRelCache[key] = inf;
-  }
-  return inf;
-}
-var sysLocaleCache = null;
-function systemLocale() {
-  if (sysLocaleCache) {
-    return sysLocaleCache;
-  } else {
-    sysLocaleCache = new Intl.DateTimeFormat().resolvedOptions().locale;
-    return sysLocaleCache;
-  }
-}
-function parseLocaleString(localeStr) {
-  const uIndex = localeStr.indexOf("-u-");
-  if (uIndex === -1) {
-    return [localeStr];
-  } else {
-    let options;
-    const smaller = localeStr.substring(0, uIndex);
-    try {
-      options = getCachedDTF(localeStr).resolvedOptions();
-    } catch (e) {
-      options = getCachedDTF(smaller).resolvedOptions();
-    }
-    const { numberingSystem, calendar } = options;
-    return [smaller, numberingSystem, calendar];
-  }
-}
-function intlConfigString(localeStr, numberingSystem, outputCalendar) {
-  if (outputCalendar || numberingSystem) {
-    localeStr += "-u";
-    if (outputCalendar) {
-      localeStr += `-ca-${outputCalendar}`;
-    }
-    if (numberingSystem) {
-      localeStr += `-nu-${numberingSystem}`;
-    }
-    return localeStr;
-  } else {
-    return localeStr;
-  }
-}
-function mapMonths(f) {
-  const ms = [];
-  for (let i2 = 1; i2 <= 12; i2++) {
-    const dt = DateTime.utc(2016, i2, 1);
-    ms.push(f(dt));
-  }
-  return ms;
-}
-function mapWeekdays(f) {
-  const ms = [];
-  for (let i2 = 1; i2 <= 7; i2++) {
-    const dt = DateTime.utc(2016, 11, 13 + i2);
-    ms.push(f(dt));
-  }
-  return ms;
-}
-function listStuff(loc, length, defaultOK, englishFn, intlFn) {
-  const mode = loc.listingMode(defaultOK);
-  if (mode === "error") {
-    return null;
-  } else if (mode === "en") {
-    return englishFn(length);
-  } else {
-    return intlFn(length);
-  }
-}
-function supportsFastNumbers(loc) {
-  if (loc.numberingSystem && loc.numberingSystem !== "latn") {
-    return false;
-  } else {
-    return loc.numberingSystem === "latn" || !loc.locale || loc.locale.startsWith("en") || new Intl.DateTimeFormat(loc.intl).resolvedOptions().numberingSystem === "latn";
-  }
-}
-var PolyNumberFormatter = class {
-  constructor(intl, forceSimple, opts) {
-    this.padTo = opts.padTo || 0;
-    this.floor = opts.floor || false;
-    const _a = opts, { padTo, floor } = _a, otherOpts = __objRest(_a, ["padTo", "floor"]);
-    if (!forceSimple || Object.keys(otherOpts).length > 0) {
-      const intlOpts = __spreadValues({ useGrouping: false }, opts);
-      if (opts.padTo > 0)
-        intlOpts.minimumIntegerDigits = opts.padTo;
-      this.inf = getCachedINF(intl, intlOpts);
-    }
-  }
-  format(i2) {
-    if (this.inf) {
-      const fixed = this.floor ? Math.floor(i2) : i2;
-      return this.inf.format(fixed);
-    } else {
-      const fixed = this.floor ? Math.floor(i2) : roundTo(i2, 3);
-      return padStart(fixed, this.padTo);
-    }
-  }
-};
-var PolyDateFormatter = class {
-  constructor(dt, intl, opts) {
-    this.opts = opts;
-    let z;
-    if (dt.zone.isUniversal) {
-      const gmtOffset = -1 * (dt.offset / 60);
-      const offsetZ = gmtOffset >= 0 ? `Etc/GMT+${gmtOffset}` : `Etc/GMT${gmtOffset}`;
-      if (dt.offset !== 0 && IANAZone.create(offsetZ).valid) {
-        z = offsetZ;
-        this.dt = dt;
-      } else {
-        z = "UTC";
-        if (opts.timeZoneName) {
-          this.dt = dt;
-        } else {
-          this.dt = dt.offset === 0 ? dt : DateTime.fromMillis(dt.ts + dt.offset * 60 * 1e3);
-        }
-      }
-    } else if (dt.zone.type === "system") {
-      this.dt = dt;
-    } else {
-      this.dt = dt;
-      z = dt.zone.name;
-    }
-    const intlOpts = __spreadValues({}, this.opts);
-    if (z) {
-      intlOpts.timeZone = z;
-    }
-    this.dtf = getCachedDTF(intl, intlOpts);
-  }
-  format() {
-    return this.dtf.format(this.dt.toJSDate());
-  }
-  formatToParts() {
-    return this.dtf.formatToParts(this.dt.toJSDate());
-  }
-  resolvedOptions() {
-    return this.dtf.resolvedOptions();
-  }
-};
-var PolyRelFormatter = class {
-  constructor(intl, isEnglish, opts) {
-    this.opts = __spreadValues({ style: "long" }, opts);
-    if (!isEnglish && hasRelative()) {
-      this.rtf = getCachedRTF(intl, opts);
-    }
-  }
-  format(count, unit) {
-    if (this.rtf) {
-      return this.rtf.format(count, unit);
-    } else {
-      return formatRelativeTime(unit, count, this.opts.numeric, this.opts.style !== "long");
-    }
-  }
-  formatToParts(count, unit) {
-    if (this.rtf) {
-      return this.rtf.formatToParts(count, unit);
-    } else {
-      return [];
-    }
-  }
-};
-var Locale = class {
-  static fromOpts(opts) {
-    return Locale.create(opts.locale, opts.numberingSystem, opts.outputCalendar, opts.defaultToEN);
-  }
-  static create(locale, numberingSystem, outputCalendar, defaultToEN = false) {
-    const specifiedLocale = locale || Settings.defaultLocale;
-    const localeR = specifiedLocale || (defaultToEN ? "en-US" : systemLocale());
-    const numberingSystemR = numberingSystem || Settings.defaultNumberingSystem;
-    const outputCalendarR = outputCalendar || Settings.defaultOutputCalendar;
-    return new Locale(localeR, numberingSystemR, outputCalendarR, specifiedLocale);
-  }
-  static resetCache() {
-    sysLocaleCache = null;
-    intlDTCache = {};
-    intlNumCache = {};
-    intlRelCache = {};
-  }
-  static fromObject({ locale, numberingSystem, outputCalendar } = {}) {
-    return Locale.create(locale, numberingSystem, outputCalendar);
-  }
-  constructor(locale, numbering, outputCalendar, specifiedLocale) {
-    const [parsedLocale, parsedNumberingSystem, parsedOutputCalendar] = parseLocaleString(locale);
-    this.locale = parsedLocale;
-    this.numberingSystem = numbering || parsedNumberingSystem || null;
-    this.outputCalendar = outputCalendar || parsedOutputCalendar || null;
-    this.intl = intlConfigString(this.locale, this.numberingSystem, this.outputCalendar);
-    this.weekdaysCache = { format: {}, standalone: {} };
-    this.monthsCache = { format: {}, standalone: {} };
-    this.meridiemCache = null;
-    this.eraCache = {};
-    this.specifiedLocale = specifiedLocale;
-    this.fastNumbersCached = null;
-  }
-  get fastNumbers() {
-    if (this.fastNumbersCached == null) {
-      this.fastNumbersCached = supportsFastNumbers(this);
-    }
-    return this.fastNumbersCached;
-  }
-  listingMode() {
-    const isActuallyEn = this.isEnglish();
-    const hasNoWeirdness = (this.numberingSystem === null || this.numberingSystem === "latn") && (this.outputCalendar === null || this.outputCalendar === "gregory");
-    return isActuallyEn && hasNoWeirdness ? "en" : "intl";
-  }
-  clone(alts) {
-    if (!alts || Object.getOwnPropertyNames(alts).length === 0) {
-      return this;
-    } else {
-      return Locale.create(alts.locale || this.specifiedLocale, alts.numberingSystem || this.numberingSystem, alts.outputCalendar || this.outputCalendar, alts.defaultToEN || false);
-    }
-  }
-  redefaultToEN(alts = {}) {
-    return this.clone(__spreadProps(__spreadValues({}, alts), { defaultToEN: true }));
-  }
-  redefaultToSystem(alts = {}) {
-    return this.clone(__spreadProps(__spreadValues({}, alts), { defaultToEN: false }));
-  }
-  months(length, format = false, defaultOK = true) {
-    return listStuff(this, length, defaultOK, months, () => {
-      const intl = format ? { month: length, day: "numeric" } : { month: length }, formatStr = format ? "format" : "standalone";
-      if (!this.monthsCache[formatStr][length]) {
-        this.monthsCache[formatStr][length] = mapMonths((dt) => this.extract(dt, intl, "month"));
-      }
-      return this.monthsCache[formatStr][length];
-    });
-  }
-  weekdays(length, format = false, defaultOK = true) {
-    return listStuff(this, length, defaultOK, weekdays, () => {
-      const intl = format ? { weekday: length, year: "numeric", month: "long", day: "numeric" } : { weekday: length }, formatStr = format ? "format" : "standalone";
-      if (!this.weekdaysCache[formatStr][length]) {
-        this.weekdaysCache[formatStr][length] = mapWeekdays((dt) => this.extract(dt, intl, "weekday"));
-      }
-      return this.weekdaysCache[formatStr][length];
-    });
-  }
-  meridiems(defaultOK = true) {
-    return listStuff(this, void 0, defaultOK, () => meridiems, () => {
-      if (!this.meridiemCache) {
-        const intl = { hour: "numeric", hourCycle: "h12" };
-        this.meridiemCache = [DateTime.utc(2016, 11, 13, 9), DateTime.utc(2016, 11, 13, 19)].map((dt) => this.extract(dt, intl, "dayperiod"));
-      }
-      return this.meridiemCache;
-    });
-  }
-  eras(length, defaultOK = true) {
-    return listStuff(this, length, defaultOK, eras, () => {
-      const intl = { era: length };
-      if (!this.eraCache[length]) {
-        this.eraCache[length] = [DateTime.utc(-40, 1, 1), DateTime.utc(2017, 1, 1)].map((dt) => this.extract(dt, intl, "era"));
-      }
-      return this.eraCache[length];
-    });
-  }
-  extract(dt, intlOpts, field) {
-    const df = this.dtFormatter(dt, intlOpts), results = df.formatToParts(), matching = results.find((m) => m.type.toLowerCase() === field);
-    return matching ? matching.value : null;
-  }
-  numberFormatter(opts = {}) {
-    return new PolyNumberFormatter(this.intl, opts.forceSimple || this.fastNumbers, opts);
-  }
-  dtFormatter(dt, intlOpts = {}) {
-    return new PolyDateFormatter(dt, this.intl, intlOpts);
-  }
-  relFormatter(opts = {}) {
-    return new PolyRelFormatter(this.intl, this.isEnglish(), opts);
-  }
-  listFormatter(opts = {}) {
-    return getCachedLF(this.intl, opts);
-  }
-  isEnglish() {
-    return this.locale === "en" || this.locale.toLowerCase() === "en-us" || new Intl.DateTimeFormat(this.intl).resolvedOptions().locale.startsWith("en-us");
-  }
-  equals(other) {
-    return this.locale === other.locale && this.numberingSystem === other.numberingSystem && this.outputCalendar === other.outputCalendar;
-  }
-};
-
 // node_modules/luxon/src/impl/regexParser.js
+var ianaRegex = /[A-Za-z_+-]{1,256}(?::?\/[A-Za-z0-9_+-]{1,256}(?:\/[A-Za-z0-9_+-]{1,256})?)?/;
 function combineRegexes(...regexes) {
   const full = regexes.reduce((f, r) => f + r.source, "");
   return RegExp(`^${full}$`);
@@ -16219,7 +16260,7 @@ function extractRFC2822(match2) {
   return [result, new FixedOffsetZone(offset2)];
 }
 function preprocessRFC2822(s2) {
-  return s2.replace(/\([^)]*\)|[\n\t]/g, " ").replace(/(\s\s+)/g, " ").trim();
+  return s2.replace(/\([^()]*\)|[\n\t]/g, " ").replace(/(\s\s+)/g, " ").trim();
 }
 var rfc1123 = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), (\d\d) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4}) (\d\d):(\d\d):(\d\d) GMT$/;
 var rfc850 = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday), (\d\d)-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d\d) (\d\d):(\d\d):(\d\d) GMT$/;
@@ -16383,6 +16424,15 @@ function normalizeValues(matrix, vals) {
       return previous;
     }
   }, null);
+}
+function removeZeroes(vals) {
+  const newVals = {};
+  for (const [key, value] of Object.entries(vals)) {
+    if (value !== 0) {
+      newVals[key] = value;
+    }
+  }
+  return newVals;
 }
 var Duration = class {
   constructor(config) {
@@ -16617,6 +16667,12 @@ var Duration = class {
     normalizeValues(this.matrix, vals);
     return clone2(this, { values: vals }, true);
   }
+  rescale() {
+    if (!this.isValid)
+      return this;
+    const vals = removeZeroes(this.normalize().shiftToAll().toObject());
+    return clone2(this, { values: vals }, true);
+  }
   shiftTo(...units) {
     if (!this.isValid)
       return this;
@@ -16655,6 +16711,11 @@ var Duration = class {
       }
     }
     return clone2(this, { values: built }, true).normalize();
+  }
+  shiftToAll() {
+    if (!this.isValid)
+      return this;
+    return this.shiftTo("years", "months", "weeks", "days", "hours", "minutes", "seconds", "milliseconds");
   }
   negate() {
     if (!this.isValid)
@@ -16832,7 +16893,7 @@ var Interval = class {
     if (!this.isValid)
       return NaN;
     const start = this.start.startOf(unit), end = this.end.startOf(unit);
-    return Math.floor(end.diff(start, unit).get(unit)) + 1;
+    return Math.floor(end.diff(start, unit).get(unit)) + (end.valueOf() !== this.end.valueOf());
   }
   hasSame(unit) {
     return this.isValid ? this.isEmpty() || this.e.minus(1).hasSame(this.s, unit) : false;
@@ -16976,6 +17037,9 @@ var Interval = class {
       return INVALID2;
     return `[${this.s.toISO()} \u2013 ${this.e.toISO()})`;
   }
+  toLocaleString(formatOpts = DATE_SHORT, opts = {}) {
+    return this.isValid ? Formatter.create(this.s.loc.clone(opts), formatOpts).formatInterval(this) : INVALID2;
+  }
   toISO(opts) {
     if (!this.isValid)
       return INVALID2;
@@ -17062,19 +17126,19 @@ function highOrderDiffs(cursor, later, units) {
     ["days", dayDiff]
   ];
   const results = {};
+  const earlier = cursor;
   let lowestOrder, highWater;
   for (const [unit, differ] of differs) {
     if (units.indexOf(unit) >= 0) {
       lowestOrder = unit;
-      let delta = differ(cursor, later);
-      highWater = cursor.plus({ [unit]: delta });
+      results[unit] = differ(cursor, later);
+      highWater = earlier.plus(results);
       if (highWater > later) {
-        cursor = cursor.plus({ [unit]: delta - 1 });
-        delta -= 1;
+        results[unit]--;
+        cursor = earlier.plus(results);
       } else {
         cursor = highWater;
       }
-      results[unit] = delta;
     }
   }
   return [cursor, results, highWater, lowestOrder];
@@ -17306,6 +17370,8 @@ function unitForToken(token, loc) {
         return offset(new RegExp(`([+-]${oneOrTwo.source})(${two.source})?`), 2);
       case "z":
         return simple(/[a-z_+-/]{1,256}?/i);
+      case " ":
+        return simple(/[^\S\n\r]/);
       default:
         return literal(t);
     }
@@ -17354,12 +17420,13 @@ var partTypeStyleToTokenVal = {
     short: "ZZZ"
   }
 };
-function tokenForPart(part, locale, formatOpts) {
+function tokenForPart(part, formatOpts) {
   const { type, value } = part;
   if (type === "literal") {
+    const isSpace = /^\s+$/.test(value);
     return {
-      literal: true,
-      val: value
+      literal: !isSpace,
+      val: isSpace ? " " : value
     };
   }
   const style = formatOpts[type];
@@ -17511,7 +17578,7 @@ function formatOptsToTokens(formatOpts, locale) {
   }
   const formatter = Formatter.create(locale, formatOpts);
   const parts = formatter.formatDateTimeParts(getDummyDateTime());
-  return parts.map((p) => tokenForPart(p, locale, formatOpts));
+  return parts.map((p) => tokenForPart(p, formatOpts));
 }
 
 // node_modules/luxon/src/impl/conversions.js
@@ -17697,7 +17764,7 @@ function adjustTime(inst, dur) {
 }
 function parseDataToDateTime(parsed, parsedZone, opts, format, text, specificOffset) {
   const { setZone, zone } = opts;
-  if (parsed && Object.keys(parsed).length !== 0) {
+  if (parsed && Object.keys(parsed).length !== 0 || parsedZone) {
     const interpretationZone = parsedZone || zone, inst = DateTime.fromObject(parsed, __spreadProps(__spreadValues({}, opts), {
       zone: interpretationZone,
       specificOffset
