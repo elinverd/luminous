@@ -4,7 +4,7 @@ defmodule Luminous.MixProject do
   def project do
     [
       app: :luminous,
-      version: "1.3.1",
+      version: "1.3.2",
       elixir: ">= 1.12.0",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
