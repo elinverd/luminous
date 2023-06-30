@@ -13,7 +13,7 @@ defmodule Luminous.TimeRangeSelector do
 
   @type t :: %__MODULE__{current_time_range: nil | TimeRange.t()}
 
-  defstruct [:current_time_range]
+  defstruct [:id, :current_time_range]
 
   @presets [
     {"Today", &TimeRange.today/1, []},
@@ -34,7 +34,9 @@ defmodule Luminous.TimeRangeSelector do
   """
   @spec populate(t(), time_zone()) :: t()
   def populate(selector, default_time_range) do
-    Map.put(selector, :current_time_range, default_time_range)
+    selector
+    |> Map.put(:current_time_range, default_time_range)
+    |> Map.put(:id, id())
   end
 
   @doc """
