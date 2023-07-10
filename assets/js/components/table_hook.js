@@ -36,13 +36,13 @@ function TableHook() {
   }
 
   // download the table's data as CSV
-  this.downloadCSV = function () {
+  this.downloadCSV = function() {
     return (event) => {
       // determine column labels
       let fields = this.table.getColumnDefinitions().map((coldef) => coldef.field);
       let titles = this.table.getColumnDefinitions().map((coldef) => coldef.title);
       // form CSV header
-      let csvRows  = ['sep=,', titles.map((title) => '\"' + title + '\"').join(',')]
+      let csvRows = ['sep=,', titles.map((title) => '\"' + title + '\"').join(',')]
 
       // let's create all the csv rows
       let data = this.table.getData();
@@ -51,10 +51,25 @@ function TableHook() {
       };
       // create and send file
       let csv = csvRows.join('\r\n');
-      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+      // Add UTF-8 BOM character
+      csv = "\ufeff" + csv
+
+      var blob = new Blob([this.convertToUTF16(csv)], { type: 'text/csv', encoding: "UTF-16LE" });
       var url = URL.createObjectURL(blob);
       sendFileToClient(url, this.el.id + ".csv")
     }
+  }
+
+  this.convertToUTF16 = function(data) {
+
+    var byteArray = new Uint8Array(data.length * 2);
+    for (var i = 0; i < data.length; i++) {
+      byteArray[i * 2] = data.charCodeAt(i)
+      byteArray[i * 2 + 1] = data.charCodeAt(i) >> 8
+    }
+
+    return byteArray
   }
 }
 

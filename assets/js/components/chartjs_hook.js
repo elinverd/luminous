@@ -302,10 +302,24 @@ function ChartJSHook() {
       })
       csv = csvRows.join('\r\n')
 
-      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      // Add UTF-8 BOM character
+      csv = "\ufeff" + csv
+
+      var blob = new Blob([this.convertToUTF16(csv)], { type: 'text/csv', encoding: "UTF-16LE" });
       var url = URL.createObjectURL(blob);
       sendFileToClient(url, this.el.id + ".csv")
     }
+  }
+
+  this.convertToUTF16 = function (data) {
+
+    var byteArray = new Uint8Array(data.length * 2);
+    for (var i = 0; i < data.length; i++) {
+      byteArray[i * 2] = data.charCodeAt(i)
+      byteArray[i * 2 + 1] = data.charCodeAt(i) >> 8
+    }
+
+    return byteArray
   }
 
   // download the canvas as a png image
