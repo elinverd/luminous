@@ -134,7 +134,7 @@ defmodule Luminous.Components do
 
       <div class="w-full ">
         <div id={"#{Panel.dom_id(@panel)}-container"} phx-update="ignore">
-          <canvas id={Panel.dom_id(@panel)} time-range-selector-id={@time_range_selector_id} phx-hook={@panel.hook}></canvas>
+          <canvas id={Panel.dom_id(@panel)} time-range-selector-id={TimeRangeSelector.id()} phx-hook={@panel.hook}></canvas>
         </div>
         <%= if data = @panel_data[@panel.id] do %>
           <.panel_statistics stats={Enum.map(data.datasets, & &1.stats)}/>
