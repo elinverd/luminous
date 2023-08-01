@@ -19468,6 +19468,7 @@ function sendFileToClient(url2, filename) {
   link2.setAttribute("href", url2);
   link2.setAttribute("download", filename);
   link2.style.visibility = "hidden";
+  link2.setAttribute("target", "_blank");
   document.body.appendChild(link2);
   link2.click();
   document.body.removeChild(link2);
