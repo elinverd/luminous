@@ -175,6 +175,21 @@ defmodule Luminous.Live do
         {:noreply, socket}
       end
 
+      # a table can have only one dataset
+      def handle_info({_task_ref, {%Panel{type: :map} = panel, datasets}},
+            socket
+          ) do
+        socket =
+          socket
+          |> push_event("#{Panel.dom_id(panel)}::refresh-data", %{
+            Areas: datasets[:Areas],
+            Pins: datasets[:Pins]
+          })
+          |> push_panel_load_event(:end, panel.id)
+
+        {:noreply, socket}
+      end
+
       # this will be called each time a panel refresh async task terminates
       def handle_info({:DOWN, _task_ref, :process, _, _}, socket) do
         {:noreply, socket}

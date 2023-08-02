@@ -22,6 +22,7 @@ live view process:
 - [chartjs](https://www.chartjs.org/) for rendering plots
 - [tabulator](https://tabulator.info/) for rendering tabular data
 - [flatpickr](https://flatpickr.js.org/) for time range selection
+- [highcharts](https://www.highcharts.com/) for maps (licensing cost) 
 
 ## Features
 
@@ -34,6 +35,7 @@ live view process:
 - Stat panels (show single or multiple stats)
 - Table panels
 - Summary statistics in charts
+- Map with areas and pins
 
 ## Installation
 
@@ -53,12 +55,13 @@ In order to be able to use the provided components, the library's
 In `assets/js/app.js`:
 
 ```javascript
-import { ChartJSHook, TableHook, TimeRangeHook } from "luminous"
+import { ChartJSHook, TableHook, TimeRangeHook, MapHook } from "luminous"
 
 let Hooks = {
   TimeRangeHook: new TimeRangeHook(),
   ChartJSHook: new ChartJSHook(),
-  TableHook: new TableHook()
+  TableHook: new TableHook(),
+  MapHook: new MapHook()
 }
 
 ...

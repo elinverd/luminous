@@ -136,6 +136,17 @@ defmodule Luminous.LiveTest do
       assert_push_event(view, "panel:load:end", %{id: :p1})
       assert_push_event(view, "panel:load:end", %{id: :p2})
     end
+
+    test "sends the correct data to the map panel", %{conn: conn} do
+      {:ok, view, _} = live(conn, Routes.test_dashboard_path(conn, :index))
+
+      assert view |> element("#panel-p12-title") |> render() =~ "Panel 12"
+
+      expected_data =
+            %{Areas: [%{hc_key: "foo", value: 5, description: "bar"}], Pins:  [%{lat: 5, lon: 6}]}
+
+      assert_push_event(view, "panel-p12::refresh-data", ^expected_data)
+    end
   end
 
   describe "time range" do
