@@ -283,8 +283,10 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         data,
         attrs: %{
           "label" => Query.Attributes.define(title: "Label", order: 0, halign: :center),
-          "foo" => Query.Attributes.define(title: "Foo", order: 1, halign: :right),
-          "bar" => Query.Attributes.define(title: "Bar", order: 2, halign: :right)
+          "foo" =>
+            Query.Attributes.define(title: "Foo", order: 1, halign: :right, table_totals: :sum),
+          "bar" =>
+            Query.Attributes.define(title: "Bar", order: 2, halign: :right, table_totals: :avg)
         }
       )
     end

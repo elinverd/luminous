@@ -17,11 +17,12 @@ defmodule Luminous.Query do
             fill: boolean(),
             unit: binary(),
             title: binary(),
-            halign: :left | :center | :right
+            halign: :left | :center | :right,
+            table_totals: :sum | :avg | :min | :max | :count
           }
 
     @derive Jason.Encoder
-    defstruct [:type, :order, :fill, :unit, :title, :halign]
+    defstruct [:type, :order, :fill, :unit, :title, :halign, :table_totals]
 
     @spec define(Keyword.t()) :: t()
     def define(opts) do
@@ -35,7 +36,8 @@ defmodule Luminous.Query do
           ),
         unit: Keyword.get(opts, :unit),
         title: Keyword.get(opts, :title),
-        halign: Keyword.get(opts, :halign, :left)
+        halign: Keyword.get(opts, :halign, :left),
+        table_totals: Keyword.get(opts, :table_totals)
       }
     end
 

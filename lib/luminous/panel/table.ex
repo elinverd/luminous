@@ -12,7 +12,8 @@ defmodule Luminous.Panel.Table do
           field: label,
           title: attr.title || label,
           hozAlign: attr.halign,
-          headerHozAlign: attr.halign
+          headerHozAlign: attr.halign,
+          bottomCalc: attr.table_totals
         }
       end)
 
