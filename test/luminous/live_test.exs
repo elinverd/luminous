@@ -114,9 +114,27 @@ defmodule Luminous.LiveTest do
 
       expected_data = %{
         columns: [
-          %{field: "label", headerHozAlign: :center, hozAlign: :center, title: "Label"},
-          %{field: "foo", headerHozAlign: :right, hozAlign: :right, title: "Foo"},
-          %{field: "bar", headerHozAlign: :right, hozAlign: :right, title: "Bar"}
+          %{
+            field: "label",
+            headerHozAlign: :center,
+            hozAlign: :center,
+            title: "Label",
+            bottomCalc: nil
+          },
+          %{
+            field: "foo",
+            headerHozAlign: :right,
+            hozAlign: :right,
+            title: "Foo",
+            bottomCalc: :sum
+          },
+          %{
+            field: "bar",
+            headerHozAlign: :right,
+            hozAlign: :right,
+            title: "Bar",
+            bottomCalc: :avg
+          }
         ],
         rows: [
           %{"bar" => 88, "foo" => 3, "label" => "row1"},
