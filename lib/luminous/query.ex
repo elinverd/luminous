@@ -11,6 +11,9 @@ defmodule Luminous.Query do
     This struct collects all the attributes that apply to a particular Dataset.
     It is specified in the `attrs` argument of `Luminous.Query.Result.new/2`.
     """
+    @type totals_function :: :sum | :avg | :min | :max | :count
+    @type decimal_precision :: non_neg_integer()
+
     @type t :: %__MODULE__{
             type: :line | :bar,
             order: non_neg_integer() | nil,
@@ -18,7 +21,7 @@ defmodule Luminous.Query do
             unit: binary(),
             title: binary(),
             halign: :left | :center | :right,
-            table_totals: :sum | :avg | :min | :max | :count
+            table_totals: totals_function() | {totals_function(), decimal_precision()}
           }
 
     @derive Jason.Encoder
