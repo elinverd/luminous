@@ -170,7 +170,12 @@ defmodule Luminous.Dashboards.TestDashboardLive do
           "foo" =>
             Query.Attributes.define(title: "Foo", order: 1, halign: :right, table_totals: :sum),
           "bar" =>
-            Query.Attributes.define(title: "Bar", order: 2, halign: :right, table_totals: :avg)
+            Query.Attributes.define(
+              title: "Bar",
+              order: 2,
+              halign: :right,
+              table_totals: {:avg, 1}
+            )
         }
       )
     end

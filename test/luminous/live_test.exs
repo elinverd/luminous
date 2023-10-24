@@ -118,8 +118,7 @@ defmodule Luminous.LiveTest do
             field: "label",
             headerHozAlign: :center,
             hozAlign: :center,
-            title: "Label",
-            bottomCalc: nil
+            title: "Label"
           },
           %{
             field: "foo",
@@ -133,7 +132,8 @@ defmodule Luminous.LiveTest do
             headerHozAlign: :right,
             hozAlign: :right,
             title: "Bar",
-            bottomCalc: :avg
+            bottomCalc: :avg,
+            bottomCalcParams: %{precision: 1}
           }
         ],
         rows: [

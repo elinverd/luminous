@@ -8,13 +8,25 @@ defmodule Luminous.Panel.Table do
       attrs
       |> Enum.sort_by(fn {_, attr} -> attr.order end)
       |> Enum.map(fn {label, attr} ->
-        %{
+        col_params = %{
           field: label,
           title: attr.title || label,
           hozAlign: attr.halign,
-          headerHozAlign: attr.halign,
-          bottomCalc: attr.table_totals
+          headerHozAlign: attr.halign
         }
+
+        case attr.table_totals do
+          nil ->
+            col_params
+
+          {totals_function, precision} ->
+            col_params
+            |> Map.put(:bottomCalc, totals_function)
+            |> Map.put(:bottomCalcParams, %{precision: precision})
+
+          totals_function ->
+            Map.put(col_params, :bottomCalc, totals_function)
+        end
       end)
 
     rows =
