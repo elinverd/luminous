@@ -140,6 +140,8 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
     More details in `Luminous.Query`.
     """
 
+    alias Luminous.Query.Attributes.NumberFormattingOptions
+
     @behaviour Query
     @impl true
     def query(:simple_time_series, time_range, variables) do
@@ -268,14 +270,14 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         case DateTime.compare(t, DateTime.utc_now()) do
           :lt ->
             [
-              %{"label" => "row1", "foo" => 13, "bar" => 188},
-              %{"label" => "row2", "foo" => 14, "bar" => 199}
+              %{"label" => "row1", "foo" => 1301, "bar" => 88_555_666.2},
+              %{"label" => "row2", "foo" => 1400, "bar" => 22_111_444.6332}
             ]
 
           _ ->
             [
-              %{"label" => "row1", "foo" => 3, "bar" => 88},
-              %{"label" => "row2", "foo" => 4, "bar" => 99}
+              %{"label" => "row1", "foo" => 300.2, "bar" => 88999.4},
+              %{"label" => "row2", "foo" => 400.234, "bar" => 99_888_777.21}
             ]
         end
 
@@ -284,9 +286,28 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         attrs: %{
           "label" => Query.Attributes.define(title: "Label", order: 0, halign: :center),
           "foo" =>
-            Query.Attributes.define(title: "Foo", order: 1, halign: :right, table_totals: :sum),
+            Query.Attributes.define(
+              title: "Foo",
+              order: 1,
+              halign: :right,
+              table_totals: :avg,
+              number_formatting: %NumberFormattingOptions{
+                thousand_separator: ".",
+                decimal_separator: ",",
+                precision: 1
+              }
+            ),
           "bar" =>
-            Query.Attributes.define(title: "Bar", order: 2, halign: :right, table_totals: :avg)
+            Query.Attributes.define(
+              title: "Bar",
+              order: 2,
+              halign: :right,
+              table_totals: :sum,
+              number_formatting: %NumberFormattingOptions{
+                decimal_separator: ",",
+                precision: 2
+              }
+            )
         }
       )
     end

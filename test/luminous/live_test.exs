@@ -132,8 +132,11 @@ defmodule Luminous.LiveTest do
             headerHozAlign: :right,
             hozAlign: :right,
             title: "Bar",
+            formatter: "money",
+            formatterParams: %{decimal: ",", thousand: ".", precision: 2},
             bottomCalc: :avg,
-            bottomCalcParams: %{precision: 1}
+            bottomCalcFormatter: "money",
+            bottomCalcFormatterParams: %{decimal: ",", thousand: ".", precision: 2}
           }
         ],
         rows: [

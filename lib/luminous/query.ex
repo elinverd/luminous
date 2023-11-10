@@ -11,9 +11,6 @@ defmodule Luminous.Query do
     This struct collects all the attributes that apply to a particular Dataset.
     It is specified in the `attrs` argument of `Luminous.Query.Result.new/2`.
     """
-    @type totals_function :: :sum | :avg | :min | :max | :count
-    @type decimal_precision :: non_neg_integer()
-
     @type t :: %__MODULE__{
             type: :line | :bar,
             order: non_neg_integer() | nil,
@@ -21,11 +18,12 @@ defmodule Luminous.Query do
             unit: binary(),
             title: binary(),
             halign: :left | :center | :right,
-            table_totals: totals_function() | {totals_function(), decimal_precision()}
+            table_totals: :sum | :avg | :min | :max | :count,
+            number_formatting: NumberFormattingOptions.t()
           }
 
     @derive Jason.Encoder
-    defstruct [:type, :order, :fill, :unit, :title, :halign, :table_totals]
+    defstruct [:type, :order, :fill, :unit, :title, :halign, :table_totals, :number_formatting]
 
     @spec define(Keyword.t()) :: t()
     def define(opts) do
@@ -40,12 +38,24 @@ defmodule Luminous.Query do
         unit: Keyword.get(opts, :unit),
         title: Keyword.get(opts, :title),
         halign: Keyword.get(opts, :halign, :left),
-        table_totals: Keyword.get(opts, :table_totals)
+        table_totals: Keyword.get(opts, :table_totals),
+        number_formatting: Keyword.get(opts, :number_formatting)
       }
     end
 
     @spec define() :: t()
     def define(), do: define([])
+
+    defmodule NumberFormattingOptions do
+      @type t :: %__MODULE__{
+              decimal_separator: binary(),
+              thousand_separator: binary(),
+              precision: non_neg_integer()
+            }
+
+      @derive Jason.Encoder
+      defstruct [:decimal_separator, :thousand_separator, :precision]
+    end
   end
 
   defmodule Result do
