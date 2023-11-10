@@ -174,7 +174,12 @@ defmodule Luminous.Dashboards.TestDashboardLive do
               title: "Bar",
               order: 2,
               halign: :right,
-              table_totals: {:avg, 1}
+              table_totals: :avg,
+              number_formatting: %Query.Attributes.NumberFormattingOptions{
+                thousand_separator: ".",
+                decimal_separator: ",",
+                precision: 2
+              }
             )
         }
       )
