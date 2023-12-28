@@ -70,6 +70,20 @@ defmodule Luminous.Query do
     @type value :: number() | Decimal.t() | binary() | nil
     @type point :: {label(), value()}
     @type row :: [point()] | map()
+    @type pin :: %{
+            lat: number(),
+            lon: number(),
+            description: binary() | nil,
+            marker:
+              %{symbol: binary() | nil, width: number() | nil, height: number() | nil} | nil,
+            url: binary() | nil
+          }
+    @type area :: %{
+            "hc-key": binary(),
+            value: number(),
+            description: binary() | nil
+          }
+    @type map_data :: %{Areas: [area()] | nil, Pins: [pin()] | nil}
     @type t :: %__MODULE__{
             rows: row(),
             attrs: %{binary() => Attributes.t()}
@@ -85,7 +99,7 @@ defmodule Luminous.Query do
     - with a single row, i.e. a list of 2-tuples of the form {label, value} (e.g. in the case of single- or multi- stats)
     - with a single value (for use in a single-valued stat panel with no label)
     """
-    @spec new([row()] | row() | point() | value(), Keyword.t()) :: t()
+    @spec new(map_data() | [row()] | row() | point() | value(), Keyword.t()) :: t()
     def new(_, opts \\ [])
 
     def new(rows, opts) when is_list(rows) do

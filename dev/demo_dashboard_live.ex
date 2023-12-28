@@ -66,6 +66,14 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
             ylabel: "Description"
           ),
           Panel.define(
+            :europe_map,
+            "Europe Map",
+            :map,
+            [Query.define(:europe_map, Queries)],
+            description: "This is a panel with the map of Europe",
+            map: File.read!(Path.expand("../assets/topojson/europe.topo.json", __DIR__))
+          ),
+          Panel.define(
             :multiple_time_series_with_stacking,
             "Multiple Time Series with Stacking",
             :chart,
@@ -309,6 +317,56 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
               }
             )
         }
+      )
+    end
+
+    def query(:europe_map, _t, _variables) do
+      data = %{
+        Areas: [
+          %{
+            "hc-key": "gr",
+            value: 10.64,
+            description: "● Greece<br/><b>10.64 million citizens</b>"
+          },
+          %{
+            "hc-key": "de",
+            value: 83.2,
+            description: "● Germany<br/><b>83.2 million citizens</b>"
+          },
+          %{
+            "hc-key": "it",
+            value: 59.11,
+            description: "● Italy<br/><b>59.11 million citizens</b>"
+          }
+        ],
+        Pins: [
+          %{
+            lat: 37.9838,
+            lon: 23.7275,
+            description: "<b>Athens </b><br>The capital of Greece",
+            marker: %{symbol: "triangle", width: 16, height: 16},
+            url: "https://en.wikipedia.org/wiki/Athens"
+          },
+          %{
+            lat: 52.5200,
+            lon: 13.4050,
+            description: "<b>Berlin </b><br>The capital of Germany",
+            marker: %{symbol: "circle", width: 16, height: 16},
+            url: "https://en.wikipedia.org/wiki/Berlin"
+          },
+          %{
+            lat: 44.4268,
+            lon: 26.1025,
+            description: "<b>Bucharest </b><br>The capital of Romania",
+            marker: %{symbol: "url(https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Flag_of_Romania.svg/1200px-Flag_of_Romania.svg.png)", width: 28, height: 20},
+            url: "https://en.wikipedia.org/wiki/Bucharest"
+          }
+        ]
+      }
+
+      Query.Result.new(
+        data,
+        attrs: %{}
       )
     end
   end

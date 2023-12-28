@@ -5,7 +5,7 @@ defmodule Luminous.Panel do
   """
 
   alias Luminous.Query
-  alias Luminous.Panel.{Chart, Table, Stat}
+  alias Luminous.Panel.{Chart, Table, Stat, Map}
 
   @doc """
   transform a query result to view data acc. to the panel type
@@ -15,11 +15,12 @@ defmodule Luminous.Panel do
   @panel_modules %{
     chart: Chart,
     stat: Stat,
-    table: Table
+    table: Table,
+    map: Map
   }
 
-  @type panel_type :: :chart | :stat | :table
-  defguard is_panel(type) when type in [:chart, :stat, :table]
+  @type panel_type :: :chart | :stat | :table | :map
+  defguard is_panel(type) when type in [:chart, :stat, :table, :map]
 
   @type t :: %__MODULE__{
           id: atom(),
@@ -34,7 +35,8 @@ defmodule Luminous.Panel do
           stacked_y: boolean(),
           hook: binary(),
           y_min_value: number(),
-          y_max_value: number()
+          y_max_value: number(),
+          map: binary()
         }
 
   @enforce_keys [:id, :title, :type, :queries, :hook]
@@ -51,7 +53,8 @@ defmodule Luminous.Panel do
     :stacked_x,
     :stacked_y,
     :y_min_value,
-    :y_max_value
+    :y_max_value,
+    :map
   ]
 
   @doc """
@@ -59,6 +62,7 @@ defmodule Luminous.Panel do
   """
   @spec define(atom(), binary(), panel_type(), [Query.t()], Keyword.t()) :: t()
   def define(id, title, type, queries, opts \\ []) when is_panel(type) do
+    if type == :map and length(queries) > 1, do: raise "Map type only supports one query"
     %__MODULE__{
       id: id,
       title: title,
@@ -74,7 +78,8 @@ defmodule Luminous.Panel do
       stacked_y:
         if(Keyword.has_key?(opts, :stacked_y), do: Keyword.get(opts, :stacked_y), else: false),
       y_min_value: Keyword.get(opts, :y_min_value),
-      y_max_value: Keyword.get(opts, :y_max_value)
+      y_max_value: Keyword.get(opts, :y_max_value),
+      map: Keyword.get(opts, :map)
     }
   end
 
@@ -97,5 +102,6 @@ defmodule Luminous.Panel do
 
   defp default_panel_type(:chart), do: "ChartJSHook"
   defp default_panel_type(:table), do: "TableHook"
+  defp default_panel_type(:map), do: "MapHook"
   defp default_panel_type(_), do: nil
 end

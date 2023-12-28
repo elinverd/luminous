@@ -77,6 +77,13 @@ defmodule Luminous.Dashboards.TestDashboardLive do
             "Panel 11 (nil stat)",
             :stat,
             [Query.define(:q11, Queries)]
+          ),
+          Panel.define(
+            :p12,
+            "Panel 12 (map)",
+            :map,
+            [Query.define(:q12, Queries)],
+            map: "foo"
           )
         ],
         variables: [
@@ -208,6 +215,10 @@ defmodule Luminous.Dashboards.TestDashboardLive do
 
     def query(:q11, _time_range, _variables) do
       Query.Result.new([{"foo", nil}])
+    end
+
+    def query(:q12, _time_range, _variables) do
+      Query.Result.new(%{Areas: [%{hc_key: "foo", value: 5, description: "bar"}], Pins:  [%{lat: 5, lon: 6}]})
     end
   end
 
