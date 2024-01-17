@@ -5,7 +5,7 @@ defmodule Luminous.Router do
   import Phoenix.LiveView.Router
 
   pipeline :browser do
-    plug :put_root_layout, {Luminous.LayoutView, :root}
+    plug :put_root_layout, html: {Luminous.LayoutView, :root}
     plug :fetch_session
   end
 

@@ -11,6 +11,17 @@ defmodule Luminous.Query do
     This struct collects all the attributes that apply to a particular Dataset.
     It is specified in the `attrs` argument of `Luminous.Query.Result.new/2`.
     """
+    defmodule NumberFormattingOptions do
+      @type t :: %__MODULE__{
+              decimal_separator: binary(),
+              thousand_separator: binary(),
+              precision: non_neg_integer()
+            }
+
+      @derive Jason.Encoder
+      defstruct [:decimal_separator, :thousand_separator, :precision]
+    end
+
     @type t :: %__MODULE__{
             type: :line | :bar,
             order: non_neg_integer() | nil,
@@ -45,17 +56,6 @@ defmodule Luminous.Query do
 
     @spec define() :: t()
     def define(), do: define([])
-
-    defmodule NumberFormattingOptions do
-      @type t :: %__MODULE__{
-              decimal_separator: binary(),
-              thousand_separator: binary(),
-              precision: non_neg_integer()
-            }
-
-      @derive Jason.Encoder
-      defstruct [:decimal_separator, :thousand_separator, :precision]
-    end
   end
 
   defmodule Result do

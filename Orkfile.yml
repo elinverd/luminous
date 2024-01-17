@@ -13,6 +13,11 @@ tasks:
     actions:
       - mix test
 
+  - name: verify
+    description: run dialyzer
+    actions:
+      - mix dialyzer
+
   - name: dev
     description: run the dev server
     actions:
