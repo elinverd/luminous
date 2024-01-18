@@ -24,7 +24,9 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
             :simple_time_series,
             "Simple Time Series",
             :chart,
-            [Query.define(:simple_time_series, Queries)],
+            [
+              Query.define(:simple_time_series, Queries)
+            ],
             unit: "μCKR",
             ylabel: "Description",
             description: """
@@ -140,7 +142,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
     More details in `Luminous.Query`.
     """
 
-    alias Luminous.Query.Attributes.NumberFormattingOptions
+    alias Luminous.Panel
 
     @behaviour Query
     @impl true
@@ -171,6 +173,13 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         |> Variable.get_current_and_extract_value(:multiplier_var)
         |> String.to_integer()
 
+      panel_attributes =
+        Panel.Attributes.new!(Panel.Chart, %{
+          "a" => [type: :line, order: 0],
+          "b" => [type: :line, order: 1],
+          "a-b" => [type: :bar, order: 2]
+        })
+
       time_range
       |> Luminous.Generator.generate(multiplier, interval, ["a", "b"])
       |> Enum.map(fn row ->
@@ -178,13 +187,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         b = Enum.find_value(row, fn {var, val} -> if var == "b", do: val end)
         [{"a-b", Decimal.sub(a, b)} | row]
       end)
-      |> Query.Result.new(
-        attrs: %{
-          "a" => Query.Attributes.define(type: :line, order: 0),
-          "b" => Query.Attributes.define(type: :line, order: 1),
-          "a-b" => Query.Attributes.define(type: :bar, order: 2)
-        }
-      )
+      |> Query.Result.new(panel_attributes)
     end
 
     def query(:multiple_time_series_with_stacking, time_range, variables) do
@@ -198,6 +201,13 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         |> Variable.get_current_and_extract_value(:multiplier_var)
         |> String.to_integer()
 
+      panel_attributes =
+        Panel.Attributes.new!(Panel.Chart, %{
+          "a" => [type: :bar, order: 0],
+          "b" => [type: :bar, order: 1],
+          "total" => [fill: false]
+        })
+
       time_range
       |> Luminous.Generator.generate(multiplier, interval, ["a", "b"])
       |> Enum.map(fn row ->
@@ -205,13 +215,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         b = Enum.find_value(row, fn {var, val} -> if var == "b", do: val end)
         [{"total", Decimal.add(a, b)} | row]
       end)
-      |> Query.Result.new(
-        attrs: %{
-          "a" => Query.Attributes.define(type: :bar, order: 0),
-          "b" => Query.Attributes.define(type: :bar, order: 1),
-          "total" => Query.Attributes.define(fill: false)
-        }
-      )
+      |> Query.Result.new(panel_attributes)
     end
 
     def query(:single_stat, _time_range, variables) do
@@ -226,18 +230,18 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         |> Decimal.mult(multiplier)
         |> Decimal.round(2)
 
-      Query.Result.new(%{"foo" => value},
-        attrs: %{"foo" => Query.Attributes.define(title: "A Title")}
+      Query.Result.new(
+        %{"foo" => value},
+        Panel.Attributes.new!(Panel.Stat, %{"foo" => [title: "A Title"]})
       )
     end
 
     def query(:string_stat, %{from: from}, _variables) do
       s = Calendar.strftime(from, "%b %Y")
 
-      Query.Result.new(%{:string_stat => s},
-        attrs: %{
-          string_stat: Query.Attributes.define(title: "Just a date")
-        }
+      Query.Result.new(
+        %{:string_stat => s},
+        Panel.Attributes.new!(Panel.Stat, %{"foo" => [title: "Just a date"]})
       )
     end
 
@@ -258,10 +262,10 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
       end)
       |> Map.new()
       |> Query.Result.new(
-        attrs: %{
-          "var_1" => Query.Attributes.define(title: "Var A", order: 0),
-          "var_2" => Query.Attributes.define(title: "Var B", order: 1)
-        }
+        Panel.Attributes.new!(Panel.Stat, %{
+          "var_1" => [title: "Var A", order: 0],
+          "var_2" => [title: "Var B", order: 1]
+        })
       )
     end
 
@@ -283,32 +287,30 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
 
       Query.Result.new(
         data,
-        attrs: %{
-          "label" => Query.Attributes.define(title: "Label", order: 0, halign: :center),
-          "foo" =>
-            Query.Attributes.define(
-              title: "Foo",
-              order: 1,
-              halign: :right,
-              table_totals: :avg,
-              number_formatting: %NumberFormattingOptions{
-                thousand_separator: ".",
-                decimal_separator: ",",
-                precision: 1
-              }
-            ),
-          "bar" =>
-            Query.Attributes.define(
-              title: "Bar",
-              order: 2,
-              halign: :right,
-              table_totals: :sum,
-              number_formatting: %NumberFormattingOptions{
-                decimal_separator: ",",
-                precision: 2
-              }
-            )
-        }
+        Panel.Attributes.new!(Panel.Table, %{
+          "label" => [title: "Label", order: 0, halign: :center],
+          "foo" => [
+            title: "Foo",
+            order: 1,
+            halign: :right,
+            table_totals: :avg,
+            number_formatting: %Panel.Attributes.NumberFormatting{
+              thousand_separator: ".",
+              decimal_separator: ",",
+              precision: 1
+            }
+          ],
+          "bar" => [
+            title: "Bar",
+            order: 2,
+            halign: :right,
+            table_totals: :sum,
+            number_formatting: %Panel.Attributes.NumberFormatting{
+              decimal_separator: ",",
+              precision: 2
+            }
+          ]
+        })
       )
     end
   end

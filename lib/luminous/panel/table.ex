@@ -1,8 +1,11 @@
 defmodule Luminous.Panel.Table do
+  alias Luminous.Query
+  alias Luminous.Panel.Attributes.NumberFormatting
+
   @behaviour Luminous.Panel
 
-  alias Luminous.Query
-  alias Luminous.Query.Attributes.NumberFormattingOptions
+  @impl true
+  def supported_attributes(), do: [:halign, :table_totals, :number_formatting]
 
   @impl true
   def transform(%Query.Result{rows: rows, attrs: attrs}) do
@@ -40,7 +43,7 @@ defmodule Luminous.Panel.Table do
 
   defp parse_number_formatting_option(col_params, attr) do
     case attr.number_formatting do
-      %NumberFormattingOptions{} = options ->
+      %NumberFormatting{} = options ->
         formatterParams = %{
           decimal: options.decimal_separator || false,
           thousand: options.thousand_separator || false,

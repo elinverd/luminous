@@ -2,10 +2,12 @@ defmodule Luminous.PanelTest do
   use ExUnit.Case
 
   alias Luminous.Panel
+  alias Luminous.Panel.Attributes
   alias Luminous.Query
-  alias Luminous.Query.Attributes
 
   defmodule ChartQueries do
+    alias Luminous.Panel
+
     @behaviour Query
     @impl true
     def query(:normal, _time_range, _variables) do
@@ -22,11 +24,11 @@ defmodule Luminous.PanelTest do
         %{:time => ~U[2022-08-04T00:00:00Z], :l2 => 12, "l3" => 112}
       ]
       |> Query.Result.new(
-        attrs: %{
-          "l1" => Attributes.define(type: :bar, order: 0),
-          "l2" => Attributes.define(order: 1),
-          "l3" => Attributes.define(type: :bar, order: 2)
-        }
+        Panel.Attributes.new!(Panel.Chart, %{
+          "l1" => [type: :bar, order: 0],
+          "l2" => [order: 1],
+          "l3" => [type: :bar, order: 2]
+        })
       )
     end
 
@@ -43,8 +45,11 @@ defmodule Luminous.PanelTest do
     def query(:single_stat, _time_range, _variables), do: Query.Result.new(%{"foo" => 666})
 
     def query(:multiple_stats, _time_range, _variables) do
-      Query.Result.new(%{"foo" => 11, "bar" => 13},
-        attrs: %{"foo" => Attributes.define(title: "Foo", unit: "mckk")}
+      Query.Result.new(
+        %{"foo" => 11, "bar" => 13},
+        Panel.Attributes.new!(Panel.Stat, %{
+          "foo" => [title: "Foo", unit: "mckk"]
+        })
       )
     end
   end
@@ -64,7 +69,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(1)}, %{x: t2, y: Decimal.new(2)}],
           label: "l1",
-          attrs: Attributes.define(),
+          attrs: Panel.Attributes.new!(Panel.Chart),
           stats: %{
             avg: Decimal.new(2),
             label: "l1",
@@ -77,7 +82,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(11)}, %{x: t2, y: Decimal.new(12)}],
           label: "l2",
-          attrs: Attributes.define(),
+          attrs: Panel.Attributes.new!(Panel.Chart),
           stats: %{
             avg: Decimal.new(12),
             label: "l2",
@@ -90,7 +95,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}],
           label: "l3",
-          attrs: Attributes.define(),
+          attrs: Panel.Attributes.new!(Panel.Chart),
           stats: %{
             avg: Decimal.new(112),
             label: "l3",
@@ -119,9 +124,9 @@ defmodule Luminous.PanelTest do
       expected_d2 = [%{x: t2, y: Decimal.new(12)}]
       expected_d3 = [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}]
 
-      expected_attrs_1 = Attributes.define(type: :bar, order: 0)
-      expected_attrs_2 = Attributes.define(order: 1)
-      expected_attrs_3 = Attributes.define(type: :bar, order: 2)
+      expected_attrs_1 = Attributes.expand(Panel.Chart, type: :bar, order: 0)
+      expected_attrs_2 = Attributes.expand(Panel.Chart, order: 1)
+      expected_attrs_3 = Attributes.expand(Panel.Chart, type: :bar, order: 2)
 
       assert [
                %{

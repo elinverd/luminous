@@ -6,65 +6,12 @@ defmodule Luminous.Query do
 
   alias Luminous.{TimeRange, Variable}
 
-  defmodule Attributes do
-    @moduledoc """
-    This struct collects all the attributes that apply to a particular Dataset.
-    It is specified in the `attrs` argument of `Luminous.Query.Result.new/2`.
-    """
-    defmodule NumberFormattingOptions do
-      @type t :: %__MODULE__{
-              decimal_separator: binary(),
-              thousand_separator: binary(),
-              precision: non_neg_integer()
-            }
-
-      @derive Jason.Encoder
-      defstruct [:decimal_separator, :thousand_separator, :precision]
-    end
-
-    @type t :: %__MODULE__{
-            type: :line | :bar,
-            order: non_neg_integer() | nil,
-            fill: boolean(),
-            unit: binary(),
-            title: binary(),
-            halign: :left | :center | :right,
-            table_totals: :sum | :avg | :min | :max | :count,
-            number_formatting: NumberFormattingOptions.t()
-          }
-
-    @derive Jason.Encoder
-    defstruct [:type, :order, :fill, :unit, :title, :halign, :table_totals, :number_formatting]
-
-    @spec define(Keyword.t()) :: t()
-    def define(opts) do
-      %__MODULE__{
-        type: Keyword.get(opts, :type, :line),
-        order: Keyword.get(opts, :order),
-        fill:
-          if(Keyword.has_key?(opts, :fill),
-            do: Keyword.get(opts, :fill),
-            else: true
-          ),
-        unit: Keyword.get(opts, :unit),
-        title: Keyword.get(opts, :title),
-        halign: Keyword.get(opts, :halign, :left),
-        table_totals: Keyword.get(opts, :table_totals),
-        number_formatting: Keyword.get(opts, :number_formatting)
-      }
-    end
-
-    @spec define() :: t()
-    def define(), do: define([])
-  end
-
   defmodule Result do
     @moduledoc """
     A query Result wraps a columnar data frame with multiple variables.
     `attrs` is a map where keys are variable labels (as specified
     in the query's select statement) and values are keyword lists with
-    visualization properties for the corresponding `DataSet`. See
-    `Luminous.Query.DataSet.new/3` for details.
+    visualization properties.
     """
     @type label :: atom() | binary()
     @type value :: number() | Decimal.t() | binary() | nil
@@ -72,7 +19,7 @@ defmodule Luminous.Query do
     @type row :: [point()] | map()
     @type t :: %__MODULE__{
             rows: row(),
-            attrs: %{binary() => Attributes.t()}
+            attrs: map()
           }
 
     @enforce_keys [:rows, :attrs]
@@ -85,22 +32,22 @@ defmodule Luminous.Query do
     - with a single row, i.e. a list of 2-tuples of the form {label, value} (e.g. in the case of single- or multi- stats)
     - with a single value (for use in a single-valued stat panel with no label)
     """
-    @spec new([row()] | row() | point() | value(), Keyword.t()) :: t()
-    def new(_, opts \\ [])
+    @spec new([row()] | row() | point() | value(), map()) :: t()
+    def new(_, attrs \\ %{})
 
-    def new(rows, opts) when is_list(rows) do
+    def new(rows, attrs) when is_list(rows) do
       %__MODULE__{
         rows: rows,
-        attrs: Keyword.get(opts, :attrs, %{})
+        attrs: attrs
       }
     end
 
-    def new({_, _} = row, opts), do: new([row], opts)
+    def new({_, _} = row, attrs), do: new([row], attrs)
 
-    def new(value, opts) do
+    def new(value, attrs) do
       %__MODULE__{
         rows: value,
-        attrs: Keyword.get(opts, :attrs, %{})
+        attrs: attrs
       }
     end
   end

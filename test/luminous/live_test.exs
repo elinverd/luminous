@@ -1,7 +1,7 @@
 defmodule Luminous.LiveTest do
   use Luminous.ConnCase, async: true
 
-  alias Luminous.Query.Attributes
+  alias Luminous.Panel
 
   describe "panels" do
     test "sends the correct data to the chart panel", %{conn: conn} do
@@ -12,14 +12,14 @@ defmodule Luminous.LiveTest do
       expected_data = %{
         datasets: [
           %{
-            attrs: %Attributes{
-              fill: true,
-              halign: :left,
-              order: nil,
-              title: nil,
-              type: :line,
-              unit: "μCKR"
-            },
+            attrs:
+              Panel.Attributes.expand(Panel.Chart,
+                fill: true,
+                order: nil,
+                title: nil,
+                type: :line,
+                unit: "μCKR"
+              ),
             label: "foo",
             rows: [
               %{x: 1_660_903_200_000, y: Decimal.new(10)},
@@ -35,14 +35,14 @@ defmodule Luminous.LiveTest do
             }
           },
           %{
-            attrs: %Attributes{
-              fill: true,
-              halign: :left,
-              order: nil,
-              title: nil,
-              type: :bar,
-              unit: "μCKR"
-            },
+            attrs:
+              Panel.Attributes.expand(Panel.Chart,
+                fill: nil,
+                order: nil,
+                title: nil,
+                type: :bar,
+                unit: "μCKR"
+              ),
             label: "bar",
             rows: [
               %{x: 1_660_903_200_000, y: Decimal.new(100)},

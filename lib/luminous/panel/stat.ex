@@ -3,6 +3,10 @@ defmodule Luminous.Panel.Stat do
   require Decimal
 
   @behaviour Luminous.Panel
+
+  @impl true
+  def supported_attributes(), do: []
+
   @impl true
   # do we have a single number?
   def transform(%Query.Result{rows: n}) when is_number(n) or Decimal.is_decimal(n) do

@@ -2,7 +2,7 @@ defmodule Luminous.Dashboards.TestDashboardLive do
   @moduledoc false
 
   alias Luminous.Router.Helpers, as: Routes
-  alias Luminous.{Variable, Query, Dashboard, TimeRange, Components}
+  alias Luminous.{Variable, Query, Dashboard, TimeRange, Components, Panel}
   alias Luminous.Dashboards.TestDashboardLive.{Queries, Variables}
 
   use Luminous.Live,
@@ -116,16 +116,19 @@ defmodule Luminous.Dashboards.TestDashboardLive do
         [{:time, ~U[2022-08-19T11:00:00Z]}, {"foo", 11}, {"bar", 101}]
       ]
       |> Query.Result.new(
-        attrs: %{
-          "foo" => Query.Attributes.define(type: :line, unit: "μCKR"),
-          "bar" => Query.Attributes.define(type: :bar, unit: "μCKR")
-        }
+        Panel.Attributes.new!(Panel.Chart, %{
+          "foo" => [type: :line, unit: "μCKR", fill: true],
+          "bar" => [type: :bar, unit: "μCKR"]
+        })
       )
     end
 
     def query(:q2, _time_range, _variables) do
-      Query.Result.new(%{"foo" => 666},
-        attrs: %{"foo" => Query.Attributes.define(unit: "$", title: "Bar ($)")}
+      Query.Result.new(
+        %{"foo" => 666},
+        Panel.Attributes.new!(Panel.Stat, %{
+          "foo" => [unit: "$", title: "Bar ($)"]
+        })
       )
     end
 
@@ -137,21 +140,28 @@ defmodule Luminous.Dashboards.TestDashboardLive do
           Decimal.new(0)
         end
 
-      Query.Result.new(%{foo: val},
-        attrs: %{foo: Query.Attributes.define(unit: "$", title: "Bar ($)")}
+      Query.Result.new(
+        %{foo: val},
+        Panel.Attributes.new!(Panel.Stat, %{
+          foo: [unit: "$", title: "Bar ($)"]
+        })
       )
     end
 
     def query(:q4, _time_range, _variables) do
-      Query.Result.new(%{"foo" => 666}, attrs: %{"foo" => Query.Attributes.define(unit: "$")})
+      Query.Result.new(
+        %{"foo" => 666},
+        Panel.Attributes.new!(Panel.Stat, %{"foo" => [unit: "$"]})
+      )
     end
 
     def query(:q5, _time_range, _variables) do
-      Query.Result.new(%{"foo" => 66, "bar" => 88},
-        attrs: %{
-          "foo" => Query.Attributes.define(unit: "$"),
-          "bar" => Query.Attributes.define(unit: "€")
-        }
+      Query.Result.new(
+        %{"foo" => 66, "bar" => 88},
+        Panel.Attributes.new!(Panel.Stat, %{
+          "foo" => [unit: "$"],
+          "bar" => [unit: "€"]
+        })
       )
     end
 
@@ -165,23 +175,21 @@ defmodule Luminous.Dashboards.TestDashboardLive do
           %{"label" => "row1", "foo" => 3, "bar" => 88},
           %{"label" => "row2", "foo" => 4, "bar" => 99}
         ],
-        attrs: %{
-          "label" => Query.Attributes.define(title: "Label", order: 0, halign: :center),
-          "foo" =>
-            Query.Attributes.define(title: "Foo", order: 1, halign: :right, table_totals: :sum),
-          "bar" =>
-            Query.Attributes.define(
-              title: "Bar",
-              order: 2,
-              halign: :right,
-              table_totals: :avg,
-              number_formatting: %Query.Attributes.NumberFormattingOptions{
-                thousand_separator: ".",
-                decimal_separator: ",",
-                precision: 2
-              }
-            )
-        }
+        Panel.Attributes.new!(Panel.Table, %{
+          "label" => [title: "Label", order: 0, halign: :center],
+          "foo" => [title: "Foo", order: 1, halign: :right, table_totals: :sum],
+          "bar" => [
+            title: "Bar",
+            order: 2,
+            halign: :right,
+            table_totals: :avg,
+            number_formatting: %Panel.Attributes.NumberFormatting{
+              thousand_separator: ".",
+              decimal_separator: ",",
+              precision: 2
+            }
+          ]
+        })
       )
     end
 
@@ -199,10 +207,10 @@ defmodule Luminous.Dashboards.TestDashboardLive do
           {"foo", "452,64"},
           {"bar", "260.238,4"}
         ],
-        attrs: %{
-          "foo" => Query.Attributes.define(unit: "$"),
-          "bar" => Query.Attributes.define(unit: "€")
-        }
+        Panel.Attributes.new!(Panel.Stat, %{
+          "foo" => [unit: "$"],
+          "bar" => [unit: "€"]
+        })
       )
     end
 

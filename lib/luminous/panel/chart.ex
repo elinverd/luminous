@@ -1,7 +1,11 @@
 defmodule Luminous.Panel.Chart do
-  alias Luminous.Query
+  alias Luminous.{Query, Panel}
 
-  @behaviour Luminous.Panel
+  @behaviour Panel
+
+  @impl true
+  def supported_attributes(), do: [:type, :fill, :order]
+
   @impl true
   def transform(%Query.Result{rows: rows, attrs: attrs}) when is_list(rows) do
     # first, let's see if there's a specified ordering in var attrs
@@ -61,7 +65,7 @@ defmodule Luminous.Panel.Chart do
       attrs =
         Map.get(attrs, label) ||
           Map.get(attrs, to_string(label)) ||
-          Query.Attributes.define()
+          Panel.Attributes.new!(__MODULE__)
 
       %{
         rows: data,
