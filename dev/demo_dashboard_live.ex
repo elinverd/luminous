@@ -20,67 +20,107 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         "Demo Dashboard",
         {&Routes.demo_dashboard_path/3, :index},
         panels: [
-          Panel.define(
-            :simple_time_series,
-            "Simple Time Series",
-            :chart,
-            [
+          Panel.define!(
+            type: Panel.Chart,
+            id: :simple_time_series,
+            title: "Simple Time Series",
+            queries: [
               Query.define(:simple_time_series, Queries)
             ],
-            unit: "μCKR",
-            ylabel: "Description",
             description: """
             All calculations are based on the line items of weekly
             billing notes whose start date is in the selected billing
             period, All calculations are based on the line items of
             weekly billing notes whose start date is in the selected
             billing period
-            """
+            """,
+            ylabel: "Description",
+            data_attributes: %{
+              "a" => [type: :line, order: 0],
+              "b" => [type: :line, order: 1],
+              "a-b" => [type: :bar, order: 2]
+            }
           ),
-          Panel.define(
-            :tabular_data,
-            "Tabular Data",
-            :table,
-            [Query.define(:tabular_data, Queries)],
-            description: "This is a panel with tabular data"
+          Panel.define!(
+            type: Panel.Table,
+            id: :tabular_data,
+            title: "Tabular Data",
+            queries: [Query.define(:tabular_data, Queries)],
+            description: "This is a panel with tabular data",
+            data_attributes: %{
+              "label" => [title: "Label", order: 0, halign: :center],
+              "foo" => [
+                title: "Foo",
+                order: 1,
+                halign: :right,
+                table_totals: :avg,
+                number_formatting: [
+                  thousand_separator: ".",
+                  decimal_separator: ",",
+                  precision: 1
+                ]
+              ],
+              "bar" => [
+                title: "Bar",
+                order: 2,
+                halign: :right,
+                table_totals: :sum,
+                number_formatting: [
+                  thousand_separator: "_",
+                  decimal_separator: ".",
+                  precision: 4
+                ]
+              ]
+            }
           ),
-          Panel.define(
-            :single_stat,
-            "Single-stat panel",
-            :stat,
-            [Query.define(:single_stat, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :single_stat,
+            title: "Single-stat panel",
+            queries: [Query.define(:single_stat, Queries)],
+            data_attributes: %{
+              "foo" => [title: "Just a date", order: 0]
+            }
           ),
-          Panel.define(
-            :multi_stat,
-            "This is a multi-stat panel",
-            :stat,
-            [
+          Panel.define!(
+            type: Panel.Stat,
+            id: :multi_stat,
+            title: "This is a multi-stat panel",
+            queries: [
               Query.define(:string_stat, Queries),
               Query.define(:more_stats, Queries)
-            ]
-          ),
-          Panel.define(
-            :multiple_time_series,
-            "Multiple Time Series with Ordering",
-            :chart,
-            [Query.define(:multiple_time_series, Queries)],
-            unit: "μCKR",
-            ylabel: "Description"
-          ),
-          Panel.define(
-            :multiple_time_series_with_stacking,
-            "Multiple Time Series with Stacking",
-            :chart,
-            [
-              Query.define(
-                :multiple_time_series_with_stacking,
-                Queries
-              )
             ],
-            unit: "μCKR",
+            data_attributes: %{
+              "foo" => [title: "Just a date", order: 0],
+              "var_1" => [title: "Var A", order: 1],
+              "var_2" => [title: "Var B", order: 2]
+            }
+          ),
+          Panel.define!(
+            type: Panel.Chart,
+            id: :multiple_time_series_with_diff,
+            title: "Multiple Time Series with Ordering",
+            queries: [Query.define(:multiple_time_series_with_diff, Queries)],
+            ylabel: "Description",
+            data_attributes: %{
+              "a" => [type: :line, unit: "μCKR", order: 0],
+              "b" => [type: :line, unit: "μFOO", order: 1],
+              "a-b" => [type: :bar, order: 2]
+            }
+          ),
+          Panel.define!(
+            type: Panel.Chart,
+            id: :multiple_time_series_with_stacking,
+            title: "Multiple Time Series with Stacking",
+            queries: [Query.define(:multiple_time_series_with_total, Queries)],
             ylabel: "Description",
             stacked_x: true,
-            stacked_y: true
+            stacked_y: true,
+            data_attributes: %{
+              "a" => [type: :bar, order: 0],
+              "b" => [type: :bar, order: 1],
+              "total" => [fill: false]
+            }
           )
         ],
         variables: [
@@ -142,8 +182,6 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
     More details in `Luminous.Query`.
     """
 
-    alias Luminous.Panel
-
     @behaviour Query
     @impl true
     def query(:simple_time_series, time_range, variables) do
@@ -162,60 +200,26 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
       |> Query.Result.new()
     end
 
-    def query(:multiple_time_series, time_range, variables) do
-      interval =
-        variables
-        |> Variable.get_current_and_extract_value(:interval_var)
-        |> String.to_existing_atom()
-
-      multiplier =
-        variables
-        |> Variable.get_current_and_extract_value(:multiplier_var)
-        |> String.to_integer()
-
-      panel_attributes =
-        Panel.Attributes.new!(Panel.Chart, %{
-          "a" => [type: :line, order: 0],
-          "b" => [type: :line, order: 1],
-          "a-b" => [type: :bar, order: 2]
-        })
-
+    def query(:multiple_time_series_with_diff, time_range, variables) do
       time_range
-      |> Luminous.Generator.generate(multiplier, interval, ["a", "b"])
+      |> multiple_time_series(variables)
       |> Enum.map(fn row ->
         a = Enum.find_value(row, fn {var, val} -> if var == "a", do: val end)
         b = Enum.find_value(row, fn {var, val} -> if var == "b", do: val end)
         [{"a-b", Decimal.sub(a, b)} | row]
       end)
-      |> Query.Result.new(panel_attributes)
+      |> Query.Result.new()
     end
 
-    def query(:multiple_time_series_with_stacking, time_range, variables) do
-      interval =
-        variables
-        |> Variable.get_current_and_extract_value(:interval_var)
-        |> String.to_existing_atom()
-
-      multiplier =
-        variables
-        |> Variable.get_current_and_extract_value(:multiplier_var)
-        |> String.to_integer()
-
-      panel_attributes =
-        Panel.Attributes.new!(Panel.Chart, %{
-          "a" => [type: :bar, order: 0],
-          "b" => [type: :bar, order: 1],
-          "total" => [fill: false]
-        })
-
+    def query(:multiple_time_series_with_total, time_range, variables) do
       time_range
-      |> Luminous.Generator.generate(multiplier, interval, ["a", "b"])
+      |> multiple_time_series(variables)
       |> Enum.map(fn row ->
         a = Enum.find_value(row, fn {var, val} -> if var == "a", do: val end)
         b = Enum.find_value(row, fn {var, val} -> if var == "b", do: val end)
         [{"total", Decimal.add(a, b)} | row]
       end)
-      |> Query.Result.new(panel_attributes)
+      |> Query.Result.new()
     end
 
     def query(:single_stat, _time_range, variables) do
@@ -230,19 +234,13 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         |> Decimal.mult(multiplier)
         |> Decimal.round(2)
 
-      Query.Result.new(
-        %{"foo" => value},
-        Panel.Attributes.new!(Panel.Stat, %{"foo" => [title: "A Title"]})
-      )
+      Query.Result.new(%{"foo" => value})
     end
 
     def query(:string_stat, %{from: from}, _variables) do
       s = Calendar.strftime(from, "%b %Y")
 
-      Query.Result.new(
-        %{:string_stat => s},
-        Panel.Attributes.new!(Panel.Stat, %{"foo" => [title: "Just a date"]})
-      )
+      Query.Result.new(%{:string_stat => s})
     end
 
     def query(:more_stats, _time_range, variables) do
@@ -261,12 +259,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         {"var_#{i}", v}
       end)
       |> Map.new()
-      |> Query.Result.new(
-        Panel.Attributes.new!(Panel.Stat, %{
-          "var_1" => [title: "Var A", order: 0],
-          "var_2" => [title: "Var B", order: 1]
-        })
-      )
+      |> Query.Result.new()
     end
 
     def query(:tabular_data, %{from: t}, _variables) do
@@ -285,33 +278,21 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
             ]
         end
 
-      Query.Result.new(
-        data,
-        Panel.Attributes.new!(Panel.Table, %{
-          "label" => [title: "Label", order: 0, halign: :center],
-          "foo" => [
-            title: "Foo",
-            order: 1,
-            halign: :right,
-            table_totals: :avg,
-            number_formatting: %Panel.Attributes.NumberFormatting{
-              thousand_separator: ".",
-              decimal_separator: ",",
-              precision: 1
-            }
-          ],
-          "bar" => [
-            title: "Bar",
-            order: 2,
-            halign: :right,
-            table_totals: :sum,
-            number_formatting: %Panel.Attributes.NumberFormatting{
-              decimal_separator: ",",
-              precision: 2
-            }
-          ]
-        })
-      )
+      Query.Result.new(data)
+    end
+
+    defp multiple_time_series(time_range, variables) do
+      interval =
+        variables
+        |> Variable.get_current_and_extract_value(:interval_var)
+        |> String.to_existing_atom()
+
+      multiplier =
+        variables
+        |> Variable.get_current_and_extract_value(:multiplier_var)
+        |> String.to_integer()
+
+      Luminous.Generator.generate(time_range, multiplier, interval, ["a", "b"])
     end
   end
 

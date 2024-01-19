@@ -11,72 +11,106 @@ defmodule Luminous.Dashboards.TestDashboardLive do
         "Test Dashboard",
         {&Routes.test_dashboard_path/3, :index},
         panels: [
-          Panel.define(
-            :p1,
-            "Panel 1",
-            :chart,
-            [Query.define(:q1, Queries)],
-            ylabel: "Foo (μCKR)"
+          Panel.define!(
+            type: Panel.Chart,
+            id: :p1,
+            title: "Panel 1",
+            queries: [Query.define(:q1, Queries)],
+            ylabel: "Foo (μCKR)",
+            data_attributes: %{
+              "foo" => [type: :line, unit: "μCKR", fill: true],
+              "bar" => [type: :bar, unit: "μCKR"]
+            }
           ),
-          Panel.define(
-            :p2,
-            "Panel 2",
-            :stat,
-            [Query.define(:q2, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p2,
+            title: "Panel 2",
+            queries: [Query.define(:q2, Queries)],
+            data_attributes: %{
+              "foo" => [unit: "$", title: "Bar ($)"]
+            }
           ),
-          Panel.define(
-            :p3,
-            "Panel 3",
-            :stat,
-            [Query.define(:q3, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p3,
+            title: "Panel 3",
+            queries: [Query.define(:q3, Queries)],
+            data_attributes: %{
+              foo: [unit: "$", title: "Bar ($)"]
+            }
           ),
-          Panel.define(
-            :p4,
-            "Panel 4",
-            :stat,
-            [Query.define(:q4, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p4,
+            title: "Panel 4",
+            queries: [Query.define(:q4, Queries)],
+            data_attributes: %{"foo" => [unit: "$"]}
           ),
-          Panel.define(
-            :p5,
-            "Panel 5",
-            :stat,
-            [Query.define(:q5, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p5,
+            title: "Panel 5",
+            queries: [Query.define(:q5, Queries)],
+            data_attributes: %{
+              "foo" => [unit: "$"],
+              "bar" => [unit: "€"]
+            }
           ),
-          Panel.define(
-            :p6,
-            "Panel 6",
-            :stat,
-            [Query.define(:q6, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p6,
+            title: "Panel 6",
+            queries: [Query.define(:q6, Queries)]
           ),
-          Panel.define(
-            :p7,
-            "Panel 7 (table)",
-            :table,
-            [Query.define(:q7, Queries)]
+          Panel.define!(
+            type: Panel.Table,
+            id: :p7,
+            title: "Panel 7 (table)",
+            queries: [Query.define(:q7, Queries)],
+            data_attributes: %{
+              "label" => [title: "Label", order: 0, halign: :center],
+              "foo" => [title: "Foo", order: 1, halign: :right, table_totals: :sum],
+              "bar" => [
+                title: "Bar",
+                order: 2,
+                halign: :right,
+                table_totals: :avg,
+                number_formatting: [
+                  thousand_separator: ".",
+                  decimal_separator: ",",
+                  precision: 2
+                ]
+              ]
+            }
           ),
-          Panel.define(
-            :p8,
-            "Panel 8 (stat with simple value)",
-            :stat,
-            [Query.define(:q8, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p8,
+            title: "Panel 8 (stat with simple value)",
+            queries: [Query.define(:q8, Queries)]
           ),
-          Panel.define(
-            :p9,
-            "Panel 9 (empty stat)",
-            :stat,
-            [Query.define(:q9, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p9,
+            title: "Panel 9 (empty stat)",
+            queries: [Query.define(:q9, Queries)]
           ),
-          Panel.define(
-            :p10,
-            "Panel 10 (stats as list of 2-tuples)",
-            :stat,
-            [Query.define(:q10, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p10,
+            title: "Panel 10 (stats as list of 2-tuples)",
+            queries: [Query.define(:q10, Queries)],
+            data_attributes: %{
+              "foo" => [unit: "$"],
+              "bar" => [unit: "€"]
+            }
           ),
-          Panel.define(
-            :p11,
-            "Panel 11 (nil stat)",
-            :stat,
-            [Query.define(:q11, Queries)]
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p11,
+            title: "Panel 11 (nil stat)",
+            queries: [Query.define(:q11, Queries)]
           )
         ],
         variables: [
@@ -111,25 +145,14 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     @behaviour Query
     @impl true
     def query(:q1, _time_range, _variables) do
-      [
+      Query.Result.new([
         [{:time, ~U[2022-08-19T10:00:00Z]}, {"foo", 10}, {"bar", 100}],
         [{:time, ~U[2022-08-19T11:00:00Z]}, {"foo", 11}, {"bar", 101}]
-      ]
-      |> Query.Result.new(
-        Panel.Attributes.new!(Panel.Chart, %{
-          "foo" => [type: :line, unit: "μCKR", fill: true],
-          "bar" => [type: :bar, unit: "μCKR"]
-        })
-      )
+      ])
     end
 
     def query(:q2, _time_range, _variables) do
-      Query.Result.new(
-        %{"foo" => 666},
-        Panel.Attributes.new!(Panel.Stat, %{
-          "foo" => [unit: "$", title: "Bar ($)"]
-        })
-      )
+      Query.Result.new(%{"foo" => 666})
     end
 
     def query(:q3, time_range, _variables) do
@@ -140,29 +163,15 @@ defmodule Luminous.Dashboards.TestDashboardLive do
           Decimal.new(0)
         end
 
-      Query.Result.new(
-        %{foo: val},
-        Panel.Attributes.new!(Panel.Stat, %{
-          foo: [unit: "$", title: "Bar ($)"]
-        })
-      )
+      Query.Result.new(%{foo: val})
     end
 
     def query(:q4, _time_range, _variables) do
-      Query.Result.new(
-        %{"foo" => 666},
-        Panel.Attributes.new!(Panel.Stat, %{"foo" => [unit: "$"]})
-      )
+      Query.Result.new(%{"foo" => 666})
     end
 
     def query(:q5, _time_range, _variables) do
-      Query.Result.new(
-        %{"foo" => 66, "bar" => 88},
-        Panel.Attributes.new!(Panel.Stat, %{
-          "foo" => [unit: "$"],
-          "bar" => [unit: "€"]
-        })
-      )
+      Query.Result.new(%{"foo" => 66, "bar" => 88})
     end
 
     def query(:q6, _time_range, _variables) do
@@ -170,27 +179,10 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     end
 
     def query(:q7, _time_range, _variables) do
-      Query.Result.new(
-        [
-          %{"label" => "row1", "foo" => 3, "bar" => 88},
-          %{"label" => "row2", "foo" => 4, "bar" => 99}
-        ],
-        Panel.Attributes.new!(Panel.Table, %{
-          "label" => [title: "Label", order: 0, halign: :center],
-          "foo" => [title: "Foo", order: 1, halign: :right, table_totals: :sum],
-          "bar" => [
-            title: "Bar",
-            order: 2,
-            halign: :right,
-            table_totals: :avg,
-            number_formatting: %Panel.Attributes.NumberFormatting{
-              thousand_separator: ".",
-              decimal_separator: ",",
-              precision: 2
-            }
-          ]
-        })
-      )
+      Query.Result.new([
+        %{"label" => "row1", "foo" => 3, "bar" => 88},
+        %{"label" => "row2", "foo" => 4, "bar" => 99}
+      ])
     end
 
     def query(:q8, _time_range, _variables) do
@@ -202,16 +194,10 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     end
 
     def query(:q10, _time_range, _variables) do
-      Query.Result.new(
-        [
-          {"foo", "452,64"},
-          {"bar", "260.238,4"}
-        ],
-        Panel.Attributes.new!(Panel.Stat, %{
-          "foo" => [unit: "$"],
-          "bar" => [unit: "€"]
-        })
-      )
+      Query.Result.new([
+        {"foo", "452,64"},
+        {"bar", "260.238,4"}
+      ])
     end
 
     def query(:q11, _time_range, _variables) do

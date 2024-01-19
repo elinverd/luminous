@@ -1,16 +1,34 @@
 defmodule Luminous.Panel.Table do
   alias Luminous.Query
-  alias Luminous.Panel.Attributes.NumberFormatting
 
   @behaviour Luminous.Panel
 
   @impl true
-  def supported_attributes(), do: [:halign, :table_totals, :number_formatting]
+  def data_attributes(),
+    do: [
+      title: [type: :string, default: ""],
+      halign: [type: {:in, [:left, :right, :center]}, default: :left],
+      table_totals: [type: {:in, [:avg, :sum, nil]}, default: nil],
+      number_formatting: [
+        type: :keyword_list,
+        keys: [
+          thousand_separator: [type: {:or, [:string, :boolean]}, default: false],
+          decimal_separator: [type: {:or, [:string, :boolean]}, default: false],
+          precision: [type: {:or, [:non_neg_integer, :boolean]}, default: false]
+        ]
+      ]
+    ]
 
   @impl true
-  def transform(%Query.Result{rows: rows, attrs: attrs}) do
+  def panel_attributes(),
+    do: [
+      hook: [type: :string, default: "TableHook"]
+    ]
+
+  @impl true
+  def transform(%Query.Result{data: data}, panel) do
     col_defs =
-      attrs
+      panel.data_attributes
       |> Enum.sort_by(fn {_, attr} -> attr.order end)
       |> Enum.map(fn {label, attr} ->
         %{
@@ -19,45 +37,37 @@ defmodule Luminous.Panel.Table do
           hozAlign: attr.halign,
           headerHozAlign: attr.halign
         }
-        |> parse_table_totals_option(attr)
-        |> parse_number_formatting_option(attr)
+        |> add_table_totals_option(attr)
+        |> add_number_formatting_option(attr)
       end)
 
     rows =
-      Enum.map(rows, fn row ->
+      Enum.map(data, fn row ->
         Enum.reduce(row, %{}, fn {label, value}, acc -> Map.put(acc, label, value) end)
       end)
 
     [%{rows: rows, columns: col_defs}]
   end
 
-  defp parse_table_totals_option(col_params, attr) do
-    case attr.table_totals do
-      nil ->
-        col_params
-
-      totals_function ->
-        Map.put(col_params, :bottomCalc, totals_function)
-    end
+  defp add_table_totals_option(col_params, attr) do
+    if is_nil(attr.table_totals),
+      do: col_params,
+      else: Map.put(col_params, :bottomCalc, attr.table_totals)
   end
 
-  defp parse_number_formatting_option(col_params, attr) do
-    case attr.number_formatting do
-      %NumberFormatting{} = options ->
-        formatterParams = %{
-          decimal: options.decimal_separator || false,
-          thousand: options.thousand_separator || false,
-          precision: options.precision || false
-        }
+  defp add_number_formatting_option(col_params, %{number_formatting: nf}) do
+    formatterParams = %{
+      thousand: Keyword.get(nf, :thousand_separator),
+      decimal: Keyword.get(nf, :decimal_separator),
+      precision: Keyword.get(nf, :precision)
+    }
 
-        col_params
-        |> Map.put(:formatter, "money")
-        |> Map.put(:formatterParams, formatterParams)
-        |> Map.put(:bottomCalcFormatter, "money")
-        |> Map.put(:bottomCalcFormatterParams, formatterParams)
-
-      _ ->
-        col_params
-    end
+    col_params
+    |> Map.put(:formatter, "money")
+    |> Map.put(:formatterParams, formatterParams)
+    |> Map.put(:bottomCalcFormatter, "money")
+    |> Map.put(:bottomCalcFormatterParams, formatterParams)
   end
+
+  defp add_number_formatting_option(col_params, _), do: col_params
 end

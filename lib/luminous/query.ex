@@ -16,40 +16,23 @@ defmodule Luminous.Query do
     @type label :: atom() | binary()
     @type value :: number() | Decimal.t() | binary() | nil
     @type point :: {label(), value()}
-    @type row :: [point()] | map()
-    @type t :: %__MODULE__{
-            rows: row(),
-            attrs: map()
-          }
+    @type row :: [point()]
+    @type data :: [row()] | row() | map()
+    @type t :: %__MODULE__{data: data()}
 
-    @enforce_keys [:rows, :attrs]
+    @enforce_keys [:data]
     @derive Jason.Encoder
-    defstruct [:rows, :attrs]
+    defstruct [:data]
 
     @doc """
     This function can be called in the following ways:
-    - with a list of rows, i.e. a list of lists containing 2-tuples {label, value}
+    - with a list of points, i.e. a list of lists containing 2-tuples {label, value}
     - with a single row, i.e. a list of 2-tuples of the form {label, value} (e.g. in the case of single- or multi- stats)
+    - with a
     - with a single value (for use in a single-valued stat panel with no label)
     """
-    @spec new([row()] | row() | point() | value(), map()) :: t()
-    def new(_, attrs \\ %{})
-
-    def new(rows, attrs) when is_list(rows) do
-      %__MODULE__{
-        rows: rows,
-        attrs: attrs
-      }
-    end
-
-    def new({_, _} = row, attrs), do: new([row], attrs)
-
-    def new(value, attrs) do
-      %__MODULE__{
-        rows: value,
-        attrs: attrs
-      }
-    end
+    @spec new([data()] | data() | point() | value()) :: t()
+    def new(data), do: %__MODULE__{data: data}
   end
 
   @doc """

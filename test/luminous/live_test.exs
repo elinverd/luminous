@@ -9,16 +9,19 @@ defmodule Luminous.LiveTest do
 
       assert view |> element("#panel-p1-title") |> render() =~ "Panel 1"
 
+      schema = Panel.Attributes.Data.common() ++ Panel.Chart.data_attributes()
+
       expected_data = %{
         datasets: [
           %{
             attrs:
-              Panel.Attributes.expand(Panel.Chart,
-                fill: true,
-                order: nil,
-                title: nil,
-                type: :line,
-                unit: "μCKR"
+              Panel.Attributes.parse!(
+                [
+                  fill: true,
+                  type: :line,
+                  unit: "μCKR"
+                ],
+                schema
               ),
             label: "foo",
             rows: [
@@ -36,12 +39,12 @@ defmodule Luminous.LiveTest do
           },
           %{
             attrs:
-              Panel.Attributes.expand(Panel.Chart,
-                fill: nil,
-                order: nil,
-                title: nil,
-                type: :bar,
-                unit: "μCKR"
+              Panel.Attributes.parse!(
+                [
+                  type: :bar,
+                  unit: "μCKR"
+                ],
+                schema
               ),
             label: "bar",
             rows: [
@@ -61,7 +64,7 @@ defmodule Luminous.LiveTest do
         stacked_x: false,
         stacked_y: false,
         time_zone: "Europe/Athens",
-        xlabel: nil,
+        xlabel: "",
         ylabel: "Foo (μCKR)",
         y_min_value: nil,
         y_max_value: nil

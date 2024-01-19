@@ -2,7 +2,6 @@ defmodule Luminous.PanelTest do
   use ExUnit.Case
 
   alias Luminous.Panel
-  alias Luminous.Panel.Attributes
   alias Luminous.Query
 
   defmodule ChartQueries do
@@ -19,17 +18,10 @@ defmodule Luminous.PanelTest do
     end
 
     def query(:sparse, _time_range, _variables) do
-      [
+      Query.Result.new([
         %{:time => ~U[2022-08-03T00:00:00Z], :l1 => 1, "l3" => 111},
         %{:time => ~U[2022-08-04T00:00:00Z], :l2 => 12, "l3" => 112}
-      ]
-      |> Query.Result.new(
-        Panel.Attributes.new!(Panel.Chart, %{
-          "l1" => [type: :bar, order: 0],
-          "l2" => [order: 1],
-          "l3" => [type: :bar, order: 2]
-        })
-      )
+      ])
     end
 
     def query(:null, _time_range, _variables) do
@@ -45,22 +37,19 @@ defmodule Luminous.PanelTest do
     def query(:single_stat, _time_range, _variables), do: Query.Result.new(%{"foo" => 666})
 
     def query(:multiple_stats, _time_range, _variables) do
-      Query.Result.new(
-        %{"foo" => 11, "bar" => 13},
-        Panel.Attributes.new!(Panel.Stat, %{
-          "foo" => [title: "Foo", unit: "mckk"]
-        })
-      )
+      Query.Result.new(%{"foo" => 11, "bar" => 13})
     end
   end
 
   describe "Chart Panel" do
     test "fetches and transforms the data from the actual query" do
+      panel = Panel.define!(type: Panel.Chart, id: :foo)
+
       results =
         :normal
         |> Query.define(ChartQueries)
         |> Query.execute(nil, [])
-        |> Panel.Chart.transform()
+        |> Panel.Chart.transform(panel)
 
       t1 = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
       t2 = DateTime.to_unix(~U[2022-08-04T00:00:00Z], :millisecond)
@@ -69,7 +58,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(1)}, %{x: t2, y: Decimal.new(2)}],
           label: "l1",
-          attrs: Panel.Attributes.new!(Panel.Chart),
+          attrs: %{},
           stats: %{
             avg: Decimal.new(2),
             label: "l1",
@@ -82,7 +71,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(11)}, %{x: t2, y: Decimal.new(12)}],
           label: "l2",
-          attrs: Panel.Attributes.new!(Panel.Chart),
+          attrs: %{},
           stats: %{
             avg: Decimal.new(12),
             label: "l2",
@@ -95,7 +84,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}],
           label: "l3",
-          attrs: Panel.Attributes.new!(Panel.Chart),
+          attrs: %{},
           stats: %{
             avg: Decimal.new(112),
             label: "l3",
@@ -111,11 +100,22 @@ defmodule Luminous.PanelTest do
     end
 
     test "can fetch and transform sparse data from the query" do
+      panel =
+        Panel.define!(
+          type: Panel.Chart,
+          id: :foo,
+          data_attributes: %{
+            "l1" => [type: :bar, order: 0],
+            "l2" => [order: 1],
+            "l3" => [type: :bar, order: 2]
+          }
+        )
+
       results =
         :sparse
         |> Query.define(ChartQueries)
         |> Query.execute(nil, [])
-        |> Panel.Chart.transform()
+        |> Panel.Chart.transform(panel)
 
       t1 = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
       t2 = DateTime.to_unix(~U[2022-08-04T00:00:00Z], :millisecond)
@@ -124,9 +124,11 @@ defmodule Luminous.PanelTest do
       expected_d2 = [%{x: t2, y: Decimal.new(12)}]
       expected_d3 = [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}]
 
-      expected_attrs_1 = Attributes.expand(Panel.Chart, type: :bar, order: 0)
-      expected_attrs_2 = Attributes.expand(Panel.Chart, order: 1)
-      expected_attrs_3 = Attributes.expand(Panel.Chart, type: :bar, order: 2)
+      schema = Panel.Attributes.Data.common() ++ Panel.Chart.data_attributes()
+
+      expected_attrs_1 = Panel.Attributes.parse!([type: :bar, order: 0], schema)
+      expected_attrs_2 = Panel.Attributes.parse!([order: 1], schema)
+      expected_attrs_3 = Panel.Attributes.parse!([type: :bar, order: 2], schema)
 
       assert [
                %{
@@ -148,11 +150,13 @@ defmodule Luminous.PanelTest do
     end
 
     test "can fetch and transform query results that contain nil" do
+      panel = Panel.define!(type: Panel.Chart, id: :foo)
+
       results =
         :null
         |> Query.define(ChartQueries)
         |> Query.execute(nil, [])
-        |> Panel.Chart.transform()
+        |> Panel.Chart.transform(panel)
 
       t = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
 
@@ -221,26 +225,38 @@ defmodule Luminous.PanelTest do
 
   describe "Stat Panel" do
     test "single stat" do
+      panel = Panel.define!(type: Panel.Stat, id: :foo)
+
       assert [result | []] =
                :single_stat
                |> Query.define(StatQueries)
                |> Query.execute(nil, [])
-               |> Panel.Stat.transform()
+               |> Panel.Stat.transform(panel)
 
       assert %{title: nil, unit: nil, value: 666} = result
     end
 
     test "multiple stats" do
+      panel =
+        Panel.define!(
+          type: Panel.Stat,
+          id: :foo,
+          data_attributes: %{
+            "bar" => [order: 0],
+            "foo" => [title: "Foo", unit: "mckk", order: 1]
+          }
+        )
+
       results =
         :multiple_stats
         |> Query.define(StatQueries)
         |> Query.execute(nil, [])
-        |> Panel.Stat.transform()
+        |> Panel.Stat.transform(panel)
 
       assert [
                %{
-                 title: nil,
-                 unit: nil,
+                 title: "",
+                 unit: "",
                  value: 13
                },
                %{

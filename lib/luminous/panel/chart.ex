@@ -4,21 +4,38 @@ defmodule Luminous.Panel.Chart do
   @behaviour Panel
 
   @impl true
-  def supported_attributes(), do: [:type, :fill, :order]
+  def data_attributes(),
+    do: [
+      type: [type: :atom, default: :line],
+      fill: [type: :boolean, default: true],
+      order: [type: :non_neg_integer, default: 0]
+    ]
 
   @impl true
-  def transform(%Query.Result{rows: rows, attrs: attrs}) when is_list(rows) do
+  def panel_attributes(),
+    do: [
+      xlabel: [type: :string, default: ""],
+      ylabel: [type: :string, default: ""],
+      stacked_x: [type: :boolean, default: false],
+      stacked_y: [type: :boolean, default: false],
+      y_min_value: [type: {:or, [:integer, :float, nil]}, default: nil],
+      y_max_value: [type: {:or, [:integer, :float, nil]}, default: nil],
+      hook: [type: :string, default: "ChartJSHook"]
+    ]
+
+  @impl true
+  def transform(%Query.Result{data: data}, panel) when is_list(data) do
     # first, let's see if there's a specified ordering in var attrs
     order =
-      Enum.reduce(attrs, %{}, fn {label, attrs}, acc ->
+      Enum.reduce(panel.data_attributes, %{}, fn {label, attrs}, acc ->
         Map.put(acc, label, attrs.order)
       end)
 
-    rows
+    data
     |> extract_labels()
     |> Enum.map(fn label ->
       data =
-        Enum.map(rows, fn row ->
+        Enum.map(data, fn row ->
           {x, y} =
             case row do
               # row is a list of {label, value} tuples
@@ -63,9 +80,9 @@ defmodule Luminous.Panel.Chart do
         |> Enum.reject(&is_nil(&1.y))
 
       attrs =
-        Map.get(attrs, label) ||
-          Map.get(attrs, to_string(label)) ||
-          Panel.Attributes.new!(__MODULE__)
+        Map.get(panel.data_attributes, label) ||
+          Map.get(panel.data_attributes, to_string(label)) ||
+          %{}
 
       %{
         rows: data,

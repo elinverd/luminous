@@ -77,7 +77,7 @@ defmodule Luminous.Components do
   This component is responsible for rendering the panel's data.
   Depending on the panel's type, there will be a different visualization.
   """
-  attr :panel, Panel, required: true
+  attr :panel, :map, required: true
   attr :variables, :list, required: true
   attr :panel_data, :map, required: false, doc: "not used in table panel"
 
@@ -85,7 +85,7 @@ defmodule Luminous.Components do
     required: false,
     doc: "only for the chart panel"
 
-  def panel(%{panel: %{type: :chart}} = assigns) do
+  def panel(%{panel: %{type: Panel.Chart}} = assigns) do
     time_range_selector_id =
       assigns
       |> Map.get(:time_range_selector, %{})
@@ -104,21 +104,21 @@ defmodule Luminous.Components do
           <span class="sr-only">Loading...</span>
         </div>
 
-        <div id={"#{Panel.dom_id(@panel)}-actions"} class="absolute inline-block top-0 right-0" phx-click-away={hide_dropdown("#{Panel.dom_id(@panel)}-actions-dropdown")}>
-          <div tabindex="0" class="w-6 h-6 cursor-pointer focus:outline-none" phx-click={show_dropdown("#{Panel.dom_id(@panel)}-actions-dropdown")}>
+        <div id={"#{dom_id(@panel)}-actions"} class="absolute inline-block top-0 right-0" phx-click-away={hide_dropdown("#{dom_id(@panel)}-actions-dropdown")}>
+          <div tabindex="0" class="w-6 h-6 cursor-pointer focus:outline-none" phx-click={show_dropdown("#{dom_id(@panel)}-actions-dropdown")}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/>
             </svg>
           </div>
-          <div id={"#{Panel.dom_id(@panel)}-actions-dropdown"} class="absolute hidden right-0">
+          <div id={"#{dom_id(@panel)}-actions-dropdown"} class="absolute hidden right-0">
             <ul class="lmn-panel-actions-dropdown">
               <li class="lmn-panel-actions-dropdown-item-container">
-                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{Panel.dom_id(@panel)}-actions-dropdown") |> JS.dispatch("panel:#{Panel.dom_id(@panel)}:download:csv", to: "##{Panel.dom_id(@panel)}")}>
+                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{dom_id(@panel)}-actions-dropdown") |> JS.dispatch("panel:#{dom_id(@panel)}:download:csv", to: "##{dom_id(@panel)}")}>
                   Download CSV
                 </div>
               </li>
               <li class="lmn-panel-actions-dropdown-item-container">
-                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{Panel.dom_id(@panel)}-actions-dropdown") |> JS.dispatch("panel:#{Panel.dom_id(@panel)}:download:png", to: "##{Panel.dom_id(@panel)}")}>
+                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{dom_id(@panel)}-actions-dropdown") |> JS.dispatch("panel:#{dom_id(@panel)}:download:png", to: "##{dom_id(@panel)}")}>
                   Download image
                 </div>
               </li>
@@ -127,14 +127,14 @@ defmodule Luminous.Components do
         </div>
 
         <div class="flex flex-row space-x-4">
-          <div id={"#{Panel.dom_id(@panel)}-title"} class="text-xl font-medium"><%= interpolate(@panel.title, @variables) %></div>
+          <div id={"#{dom_id(@panel)}-title"} class="text-xl font-medium"><%= interpolate(@panel.title, @variables) %></div>
           <.description panel={@panel}/>
         </div>
       </div>
 
       <div class="w-full ">
-        <div id={"#{Panel.dom_id(@panel)}-container"} phx-update="ignore">
-          <canvas id={Panel.dom_id(@panel)} time-range-selector-id={@time_range_selector_id} phx-hook={@panel.hook}></canvas>
+        <div id={"#{dom_id(@panel)}-container"} phx-update="ignore">
+          <canvas id={dom_id(@panel)} time-range-selector-id={@time_range_selector_id} phx-hook={@panel.hook}></canvas>
         </div>
         <%= if data = @panel_data[@panel.id] do %>
           <.panel_statistics stats={Enum.map(data.datasets, & &1.stats)}/>
@@ -144,7 +144,7 @@ defmodule Luminous.Components do
     """
   end
 
-  def panel(%{panel: %{type: :stat}} = assigns) do
+  def panel(%{panel: %{type: Panel.Stat}} = assigns) do
     ~H"""
     <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6 bg-white">
       <div class="flex relative w-full justify-center">
@@ -156,21 +156,19 @@ defmodule Luminous.Components do
           <span class="sr-only">Loading...</span>
         </div>
 
-        <%= if @panel.title != "" or @panel.description != "" do %>
           <div class="flex flex-row space-x-4">
-            <div id={"#{Panel.dom_id(@panel)}-title"} class="text-xl font-medium"><%= interpolate(@panel.title, @variables) %></div>
+            <div id={"#{dom_id(@panel)}-title"} class="text-xl font-medium"><%= interpolate(@panel.title, @variables) %></div>
             <.description panel={@panel}/>
           </div>
-        <% end %>
       </div>
 
       <% dataset = @panel_data[@panel.id] %>
 
       <%= if dataset && length(dataset) > 0 do %>
-        <div id={"#{Panel.dom_id(@panel)}-stat-values"} class={stats_grid_structure(length(dataset))}>
+        <div id={"#{dom_id(@panel)}-stat-values"} class={stats_grid_structure(length(dataset))}>
           <%= for column <- dataset do %>
           <div class="flex flex-col items-center">
-            <div class="text-lg"><%= column.title %></div>
+            <div class="text-lg"><span><%= column.title %></span></div>
             <div><span class="text-4xl font-bold"><%= print_number(column.value) %></span> <span class="text-2xl font-semibold"><%= column.unit %></span></div>
 
           </div>
@@ -178,14 +176,14 @@ defmodule Luminous.Components do
         </div>
       <% else %>
         <div class="flex flex-row items-center justify-center">
-          <div id={"#{Panel.dom_id(@panel)}-stat-values"} class="text-4xl font-bold">-</div>
+          <div id={"#{dom_id(@panel)}-stat-values"} class="text-4xl font-bold">-</div>
         </div>
       <% end %>
     </div>
     """
   end
 
-  def panel(%{panel: %{type: :table}} = assigns) do
+  def panel(%{panel: %{type: Panel.Table}} = assigns) do
     ~H"""
     <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6 bg-white">
       <div class="flex relative w-full justify-center">
@@ -197,16 +195,16 @@ defmodule Luminous.Components do
           <span class="sr-only">Loading...</span>
         </div>
 
-        <div id={"#{Panel.dom_id(@panel)}-actions"} class="absolute inline-block top-0 right-0 z-10" phx-click-away={hide_dropdown("#{Panel.dom_id(@panel)}-actions-dropdown")}>
-          <div tabindex="0" class="w-6 h-6 cursor-pointer focus:outline-none" phx-click={show_dropdown("#{Panel.dom_id(@panel)}-actions-dropdown")}>
+        <div id={"#{dom_id(@panel)}-actions"} class="absolute inline-block top-0 right-0 z-10" phx-click-away={hide_dropdown("#{dom_id(@panel)}-actions-dropdown")}>
+          <div tabindex="0" class="w-6 h-6 cursor-pointer focus:outline-none" phx-click={show_dropdown("#{dom_id(@panel)}-actions-dropdown")}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/>
             </svg>
           </div>
-          <div id={"#{Panel.dom_id(@panel)}-actions-dropdown"} class="absolute hidden right-0">
+          <div id={"#{dom_id(@panel)}-actions-dropdown"} class="absolute hidden right-0">
             <ul class="lmn-panel-actions-dropdown">
               <li class="lmn-panel-actions-dropdown-item-container">
-                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{Panel.dom_id(@panel)}-actions-dropdown") |> JS.dispatch("panel:#{Panel.dom_id(@panel)}:download:csv", to: "##{Panel.dom_id(@panel)}")}>
+                <div class="lmn-panel-actions-dropdown-item-content" phx-click={hide_dropdown("#{dom_id(@panel)}-actions-dropdown") |> JS.dispatch("panel:#{dom_id(@panel)}:download:csv", to: "##{dom_id(@panel)}")}>
                   Download CSV
                 </div>
               </li>
@@ -215,13 +213,13 @@ defmodule Luminous.Components do
         </div>
 
         <div class="flex flex-row space-x-4">
-          <div id={"#{Panel.dom_id(@panel)}-title"} class="text-xl font-medium"><%= interpolate(@panel.title, @variables) %></div>
+          <div id={"#{dom_id(@panel)}-title"} class="text-xl font-medium"><%= interpolate(@panel.title, @variables) %></div>
           <.description panel={@panel}/>
         </div>
       </div>
 
       <div class="w-full z-0">
-        <div id={"#{Panel.dom_id(@panel)}"} phx-hook={@panel.hook} phx-update="ignore" />
+        <div id={"#{dom_id(@panel)}"} phx-hook={@panel.hook} phx-update="ignore" />
       </div>
     </div>
     """
@@ -309,6 +307,8 @@ defmodule Luminous.Components do
   # with the variable's descriptive value label. For example, the string: "Energy for asset $asset_var"
   # will be replaced by the label of the variable with id `:asset_var` in variables.
   @spec interpolate(binary(), [Variable.t()]) :: binary()
+  defp interpolate(nil, _), do: ""
+
   defp interpolate(string, variables) do
     variables
     |> Enum.reduce(string, fn var, title ->
@@ -349,11 +349,11 @@ defmodule Luminous.Components do
     """
   end
 
-  attr :panel, Panel, required: true
-  def description(%{panel: %{description: nil}} = assigns), do: ~H""
+  attr :panel, :map, required: true
 
   def description(assigns) do
     ~H"""
+    <%= unless is_nil(@panel.description) do %>
     <div class="flex flex-col items-center lmn-has-tooltip">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -362,8 +362,11 @@ defmodule Luminous.Components do
         <%= @panel.description %>
       </div>
     </div>
+    <% end %>
     """
   end
+
+  def dom_id(%{id: id}), do: "panel-#{id}"
 
   defp print_number(n) do
     case n do

@@ -5,23 +5,26 @@ defmodule Luminous.Panel.Stat do
   @behaviour Luminous.Panel
 
   @impl true
-  def supported_attributes(), do: []
+  def data_attributes(), do: []
+
+  @impl true
+  def panel_attributes(), do: []
 
   @impl true
   # do we have a single number?
-  def transform(%Query.Result{rows: n}) when is_number(n) or Decimal.is_decimal(n) do
+  def transform(%Query.Result{data: n}, _panel) when is_number(n) or Decimal.is_decimal(n) do
     [%{title: nil, value: n, unit: nil}]
   end
 
   # we have a map of values and the relevant attributes potentially
-  def transform(%Query.Result{rows: rows, attrs: attrs}) when is_map(rows) or is_list(rows) do
-    rows
-    |> Enum.sort_by(fn {label, _} -> if(attr = attrs[label], do: attr.order) end)
+  def transform(%Query.Result{data: data}, panel) when is_map(data) or is_list(data) do
+    data
+    |> Enum.sort_by(fn {label, _} -> if(attr = panel.data_attributes[label], do: attr.order) end)
     |> Enum.map(fn {label, value} ->
       %{
-        title: if(attr = attrs[label], do: attr.title),
+        title: if(attr = panel.data_attributes[label], do: attr.title),
         value: value,
-        unit: if(attr = attrs[label], do: attr.unit)
+        unit: if(attr = panel.data_attributes[label], do: attr.unit)
       }
     end)
   end

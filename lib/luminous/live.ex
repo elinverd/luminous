@@ -3,6 +3,7 @@ defmodule Luminous.Live do
   This module contains a macro that contains the functionality of a dashboard LiveView.
   For more information see `Luminous.Dashboards.DemoDashboardLive`.
   """
+  alias Luminous.Panel
 
   defmacro __using__(dashboard: dashboard) do
     quote do
@@ -132,7 +133,7 @@ defmodule Luminous.Live do
       end
 
       @impl true
-      def handle_info({_task_ref, {%Panel{type: :chart} = panel, datasets}}, socket) do
+      def handle_info({_task_ref, {%{type: Panel.Chart} = panel, datasets}}, socket) do
         panel_data = %{
           datasets: datasets,
           ylabel: panel.ylabel,
@@ -147,13 +148,13 @@ defmodule Luminous.Live do
         socket =
           socket
           |> assign(panel_data: Map.put(socket.assigns.panel_data, panel.id, panel_data))
-          |> push_event("#{Panel.dom_id(panel)}::refresh-data", panel_data)
+          |> push_event("#{Components.dom_id(panel)}::refresh-data", panel_data)
           |> push_panel_load_event(:end, panel.id)
 
         {:noreply, socket}
       end
 
-      def handle_info({_task_ref, {%Panel{type: :stat} = panel, dataset}}, socket) do
+      def handle_info({_task_ref, {%{type: Panel.Stat} = panel, dataset}}, socket) do
         socket =
           socket
           |> assign(panel_data: Map.put(socket.assigns.panel_data, panel.id, dataset))
@@ -164,12 +165,12 @@ defmodule Luminous.Live do
 
       # a table can have only one dataset
       def handle_info(
-            {_task_ref, {%Panel{type: :table} = panel, datasets}},
+            {_task_ref, {%{type: Panel.Table} = panel, datasets}},
             socket
           ) do
         socket =
           socket
-          |> push_event("#{Panel.dom_id(panel)}::refresh-data", hd(datasets))
+          |> push_event("#{Components.dom_id(panel)}::refresh-data", hd(datasets))
           |> push_panel_load_event(:end, panel.id)
 
         {:noreply, socket}
