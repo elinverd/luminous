@@ -1,7 +1,7 @@
 defmodule Luminous.LiveTest do
   use Luminous.ConnCase, async: true
 
-  alias Luminous.Panel
+  alias Luminous.{Attributes, Panel}
 
   describe "panels" do
     test "sends the correct data to the chart panel", %{conn: conn} do
@@ -9,13 +9,13 @@ defmodule Luminous.LiveTest do
 
       assert view |> element("#panel-p1-title") |> render() =~ "Panel 1"
 
-      schema = Panel.Attributes.Data.common() ++ Panel.Chart.data_attributes()
+      schema = Attributes.Data.common() ++ Panel.Chart.data_attributes()
 
       expected_data = %{
         datasets: [
           %{
             attrs:
-              Panel.Attributes.parse!(
+              Attributes.parse!(
                 [
                   fill: true,
                   type: :line,
@@ -39,7 +39,7 @@ defmodule Luminous.LiveTest do
           },
           %{
             attrs:
-              Panel.Attributes.parse!(
+              Attributes.parse!(
                 [
                   type: :bar,
                   unit: "μCKR"

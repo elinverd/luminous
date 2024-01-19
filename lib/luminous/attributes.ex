@@ -1,10 +1,6 @@
-defmodule Luminous.Panel.Attributes do
+defmodule Luminous.Attributes do
   @moduledoc """
     Attributes map variable values (user-defined) to attribute keyword lists.
-
-    Each panel type can define its own supported keyword arguments (through the @callback supported_attributes)
-
-    There are also attributes that are common to all panels, defined in this module
   """
 
   defmodule Data do
@@ -17,6 +13,9 @@ defmodule Luminous.Panel.Attributes do
     def common(), do: @attributes
   end
 
+  @doc """
+  parse the supplied keyword list using the specified schema (performs validations as well)
+  """
   @spec parse(keyword(), NimbleOptions.schema()) :: {:ok, map()} | {:error, binary()}
   def parse(opts, schema) do
     case NimbleOptions.validate(opts, schema) do
@@ -25,6 +24,10 @@ defmodule Luminous.Panel.Attributes do
     end
   end
 
+  @doc """
+  parse the supplied keyword list using the specified schema (performs validations as well)
+  raise on error
+  """
   @spec parse!(keyword(), NimbleOptions.schema()) :: map()
   def parse!(opts, schema) do
     case parse(opts, schema) do

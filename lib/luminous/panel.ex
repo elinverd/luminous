@@ -3,10 +3,9 @@ defmodule Luminous.Panel do
   A panel represents a single visual element (chart) in a dashboard that can contain many queries.
   """
 
-  alias Luminous.TimeRange
-  alias Luminous.Variable
+  alias Luminous.{Attributes, Query, TimeRange, Variable}
   alias Luminous.Query
-  alias Luminous.Panel.{Attributes, Chart, Table, Stat}
+  alias Luminous.Panel.{Chart, Table, Stat}
 
   @type t :: map()
 

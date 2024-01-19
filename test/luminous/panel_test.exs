@@ -1,8 +1,7 @@
 defmodule Luminous.PanelTest do
   use ExUnit.Case
 
-  alias Luminous.Panel
-  alias Luminous.Query
+  alias Luminous.{Attributes, Query, Panel}
 
   defmodule ChartQueries do
     alias Luminous.Panel
@@ -124,11 +123,11 @@ defmodule Luminous.PanelTest do
       expected_d2 = [%{x: t2, y: Decimal.new(12)}]
       expected_d3 = [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}]
 
-      schema = Panel.Attributes.Data.common() ++ Panel.Chart.data_attributes()
+      schema = Attributes.Data.common() ++ Panel.Chart.data_attributes()
 
-      expected_attrs_1 = Panel.Attributes.parse!([type: :bar, order: 0], schema)
-      expected_attrs_2 = Panel.Attributes.parse!([order: 1], schema)
-      expected_attrs_3 = Panel.Attributes.parse!([type: :bar, order: 2], schema)
+      expected_attrs_1 = Attributes.parse!([type: :bar, order: 0], schema)
+      expected_attrs_2 = Attributes.parse!([order: 1], schema)
+      expected_attrs_3 = Attributes.parse!([type: :bar, order: 2], schema)
 
       assert [
                %{
