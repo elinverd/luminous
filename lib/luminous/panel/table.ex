@@ -1,6 +1,4 @@
 defmodule Luminous.Panel.Table do
-  alias Luminous.Query
-
   @behaviour Luminous.Panel
 
   @impl true
@@ -26,7 +24,7 @@ defmodule Luminous.Panel.Table do
     ]
 
   @impl true
-  def transform(%Query.Result{data: data}, panel) do
+  def transform(data, panel) do
     col_defs =
       panel.data_attributes
       |> Enum.sort_by(fn {_, attr} -> attr.order end)

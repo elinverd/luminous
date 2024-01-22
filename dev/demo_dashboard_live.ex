@@ -175,10 +175,6 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
     All queries have access to the current dashboard variable values
     and the selected time range.
 
-    All queries must return a `Luminous.Query.Result` with optional attributes
-    that specify the visual characteristics of the particular data set
-    (see `Luminous.Query.Attributes`).
-
     More details in `Luminous.Query`.
     """
 
@@ -195,9 +191,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         |> Variable.get_current_and_extract_value(:multiplier_var)
         |> String.to_integer()
 
-      time_range
-      |> Luminous.Generator.generate(multiplier, interval, "simple variable")
-      |> Query.Result.new()
+      Luminous.Generator.generate(time_range, multiplier, interval, "simple variable")
     end
 
     def query(:multiple_time_series_with_diff, time_range, variables) do
@@ -208,7 +202,6 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         b = Enum.find_value(row, fn {var, val} -> if var == "b", do: val end)
         [{"a-b", Decimal.sub(a, b)} | row]
       end)
-      |> Query.Result.new()
     end
 
     def query(:multiple_time_series_with_total, time_range, variables) do
@@ -219,7 +212,6 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         b = Enum.find_value(row, fn {var, val} -> if var == "b", do: val end)
         [{"total", Decimal.add(a, b)} | row]
       end)
-      |> Query.Result.new()
     end
 
     def query(:single_stat, _time_range, variables) do
@@ -234,13 +226,13 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         |> Decimal.mult(multiplier)
         |> Decimal.round(2)
 
-      Query.Result.new(%{"foo" => value})
+      %{"foo" => value}
     end
 
     def query(:string_stat, %{from: from}, _variables) do
       s = Calendar.strftime(from, "%b %Y")
 
-      Query.Result.new(%{:string_stat => s})
+      %{:string_stat => s}
     end
 
     def query(:more_stats, _time_range, variables) do
@@ -259,26 +251,22 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         {"var_#{i}", v}
       end)
       |> Map.new()
-      |> Query.Result.new()
     end
 
     def query(:tabular_data, %{from: t}, _variables) do
-      data =
-        case DateTime.compare(t, DateTime.utc_now()) do
-          :lt ->
-            [
-              %{"label" => "row1", "foo" => 1301, "bar" => 88_555_666.2},
-              %{"label" => "row2", "foo" => 1400, "bar" => 22_111_444.6332}
-            ]
+      case DateTime.compare(t, DateTime.utc_now()) do
+        :lt ->
+          [
+            %{"label" => "row1", "foo" => 1301, "bar" => 88_555_666.2},
+            %{"label" => "row2", "foo" => 1400, "bar" => 22_111_444.6332}
+          ]
 
-          _ ->
-            [
-              %{"label" => "row1", "foo" => 300.2, "bar" => 88999.4},
-              %{"label" => "row2", "foo" => 400.234, "bar" => 99_888_777.21}
-            ]
-        end
-
-      Query.Result.new(data)
+        _ ->
+          [
+            %{"label" => "row1", "foo" => 300.2, "bar" => 88999.4},
+            %{"label" => "row2", "foo" => 400.234, "bar" => 99_888_777.21}
+          ]
+      end
     end
 
     defp multiple_time_series(time_range, variables) do

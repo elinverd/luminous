@@ -12,7 +12,7 @@ defmodule Luminous.Panel do
   @doc """
   transform a query result to view data acc. to the panel type
   """
-  @callback transform(Query.Result.t(), t()) :: any()
+  @callback transform(Query.result(), t()) :: any()
 
   @doc """
   Define custom attributes according to the panel type

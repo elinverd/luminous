@@ -145,14 +145,14 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     @behaviour Query
     @impl true
     def query(:q1, _time_range, _variables) do
-      Query.Result.new([
+      [
         [{:time, ~U[2022-08-19T10:00:00Z]}, {"foo", 10}, {"bar", 100}],
         [{:time, ~U[2022-08-19T11:00:00Z]}, {"foo", 11}, {"bar", 101}]
-      ])
+      ]
     end
 
     def query(:q2, _time_range, _variables) do
-      Query.Result.new(%{"foo" => 666})
+      %{"foo" => 666}
     end
 
     def query(:q3, time_range, _variables) do
@@ -163,45 +163,45 @@ defmodule Luminous.Dashboards.TestDashboardLive do
           Decimal.new(0)
         end
 
-      Query.Result.new(%{foo: val})
+      %{foo: val}
     end
 
     def query(:q4, _time_range, _variables) do
-      Query.Result.new(%{"foo" => 666})
+      %{"foo" => 666}
     end
 
     def query(:q5, _time_range, _variables) do
-      Query.Result.new(%{"foo" => 66, "bar" => 88})
+      %{"foo" => 66, "bar" => 88}
     end
 
     def query(:q6, _time_range, _variables) do
-      Query.Result.new(%{"str" => "Just show this"})
+      %{"str" => "Just show this"}
     end
 
     def query(:q7, _time_range, _variables) do
-      Query.Result.new([
+      [
         %{"label" => "row1", "foo" => 3, "bar" => 88},
         %{"label" => "row2", "foo" => 4, "bar" => 99}
-      ])
+      ]
     end
 
     def query(:q8, _time_range, _variables) do
-      Query.Result.new(11)
+      11
     end
 
     def query(:q9, _time_range, _variables) do
-      Query.Result.new([])
+      []
     end
 
     def query(:q10, _time_range, _variables) do
-      Query.Result.new([
+      [
         {"foo", "452,64"},
         {"bar", "260.238,4"}
-      ])
+      ]
     end
 
     def query(:q11, _time_range, _variables) do
-      Query.Result.new([{"foo", nil}])
+      [{"foo", nil}]
     end
   end
 

@@ -1,5 +1,5 @@
 defmodule Luminous.Panel.Chart do
-  alias Luminous.{Query, Panel}
+  alias Luminous.Panel
 
   @behaviour Panel
 
@@ -24,7 +24,7 @@ defmodule Luminous.Panel.Chart do
     ]
 
   @impl true
-  def transform(%Query.Result{data: data}, panel) when is_list(data) do
+  def transform(data, panel) when is_list(data) do
     # first, let's see if there's a specified ordering in var attrs
     order =
       Enum.reduce(panel.data_attributes, %{}, fn {label, attrs}, acc ->

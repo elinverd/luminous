@@ -2,9 +2,7 @@ defmodule Luminous.Generator do
   @moduledoc false
 
   @spec generate(Luminous.TimeRange.t(), non_neg_integer(), :hour | :day, binary() | [binary()]) ::
-          [
-            Luminous.Query.Result.row()
-          ]
+          any()
   def generate(time_range, multiplier, interval, variables) when is_list(variables) do
     time_range
     |> generate_time_points(interval)

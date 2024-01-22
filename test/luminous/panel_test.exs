@@ -13,30 +13,29 @@ defmodule Luminous.PanelTest do
         %{:time => ~U[2022-08-03T00:00:00Z], :l1 => 1, :l2 => 11, "l3" => 111},
         %{:time => ~U[2022-08-04T00:00:00Z], :l1 => 2, :l2 => 12, "l3" => 112}
       ]
-      |> Query.Result.new()
     end
 
     def query(:sparse, _time_range, _variables) do
-      Query.Result.new([
+      [
         %{:time => ~U[2022-08-03T00:00:00Z], :l1 => 1, "l3" => 111},
         %{:time => ~U[2022-08-04T00:00:00Z], :l2 => 12, "l3" => 112}
-      ])
+      ]
     end
 
     def query(:null, _time_range, _variables) do
-      Query.Result.new([
+      [
         [{:time, ~U[2022-08-03T00:00:00Z]}, {:l1, 1}, {:l2, nil}]
-      ])
+      ]
     end
   end
 
   defmodule StatQueries do
     @behaviour Query
     @impl true
-    def query(:single_stat, _time_range, _variables), do: Query.Result.new(%{"foo" => 666})
+    def query(:single_stat, _time_range, _variables), do: %{"foo" => 666}
 
     def query(:multiple_stats, _time_range, _variables) do
-      Query.Result.new(%{"foo" => 11, "bar" => 13})
+      %{"foo" => 11, "bar" => 13}
     end
   end
 
