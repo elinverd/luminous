@@ -4,30 +4,28 @@
 # Luminous
 
 Luminous is a framework for creating dashboards within [Phoenix Live
-View](https://www.phoenixframework.org/). It is somewhat inspired by
-grafana both conceptually and functionally in that:
+View](https://www.phoenixframework.org/).
 
-- it focuses on time series data (albeit not exclusively)
-- it is organized around panels
-- it is parameterized by a time range
-- it can be parameterized by user-defined variables
+Dashboards are defined using elixir code and consist of Panels which
+are responsible for visualizing the results of client-side
+Queries. Three different types of Panels are currently supported:
 
-Dashboards are defined at compile time using elixir code (see
-`Luminous.Dashboard.define/3`). At runtime, Luminous uses the
-following javascript libraries (as [live view
-hooks](https://hexdocs.pm/phoenix_live_view/js-interop.html#client-hooks-via-phx-hook))
-for supporting client-side visualizations and interactions with the
-live view process:
+- `Panel.Chart` for visualizing 2-d data (including time series) using
+  the [chartjs](https://www.chartjs.org/) library (embedded in a JS hook)
+- `Panel.Stat` for displaying single or multiple numerical or other values
+- `Panel.Table` for displaying tabular data using the
+  [tabulator](https://tabulator.info/) JS library (embedded in a JS
+  hook)
 
-- [chartjs](https://www.chartjs.org/) for rendering plots
-- [tabulator](https://tabulator.info/) for rendering tabular data
-- [flatpickr](https://flatpickr.js.org/) for time range selection
+Dashboards can be parameterized by a time range (using the
+[flatpickr](https://flatpickr.js.org/)) and by user-defined variables
+in the form of dropdown menus.
 
 ## Features
 
-- Time range selection and refresh of all dashboard panel queries
+- Time range selection and automatic refresh of all dashboard panel queries
 - Asynchronous queries and page updates
-- User-facing variable dropdowns that are available to panel queries
+- User-facing variable dropdowns whose selected values are available to panel queries
 - Client-side zoom in charts
 - Multiple supported chart types (currently `:line` and `:bar`)
 - Download panel data (CSV, PNG)
@@ -88,7 +86,7 @@ Luminous is a framework in the sense that the luminous client is
 responsible for specifying queries, variables etc. and `Luminous.Live`
 will call the client's code by setting up all the required plumbing.
 
-In general, a custom dashboard needs to:
+In general, a custom client-side dashboard needs to:
 
 - implement the `Luminous.Variable` behaviour for the
   dashboard-specific variables
@@ -98,8 +96,7 @@ In general, a custom dashboard needs to:
   the default time range for the dashboard and optionally injecting
   parameters to `Luminous.Variable.variable/2` callbacks
   (see `Luminous.Dashboard.parameters/1`)
-- `use` the `Luminous.Live` module for leveraging the live dashboard
-  functionality and capabilities
+- `use` the `Luminous.Live` module to configure the `Luminous.Dashboard`
 - render the dashboard in the view template (only
   `Luminous.Components.dashboard` is necessary but the layout can be
   customized by using directly the various components in

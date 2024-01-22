@@ -1,8 +1,7 @@
 defmodule Luminous.TimeRangeSelector do
   @moduledoc """
   A selector represents the widget in the dashboard that allows
-  for selecting a time range/period. It is defined at compile time
-  and populated at compile time (current value).
+  for selecting a time range/period.
   It can also be updated with a new value.
   """
   alias Luminous.TimeRange

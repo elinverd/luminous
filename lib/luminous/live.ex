@@ -1,7 +1,7 @@
 defmodule Luminous.Live do
   @moduledoc """
-  This module contains a macro that contains the functionality of a dashboard LiveView.
-  For more information see `Luminous.Dashboards.DemoDashboardLive`.
+  This module defines a macro that contains the functionality of a dashboard LiveView.
+  For more information and usage examples see `Luminous.Dashboards.DemoDashboardLive`.
   """
   alias Luminous.Dashboard
   alias Luminous.Panel

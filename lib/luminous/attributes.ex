@@ -4,6 +4,9 @@ defmodule Luminous.Attributes do
   """
 
   defmodule Data do
+    @moduledoc """
+    These are the data attributes that are common to all panel types
+    """
     @attributes [
       title: [type: :string, default: ""],
       unit: [type: :string, default: ""],
@@ -14,7 +17,8 @@ defmodule Luminous.Attributes do
   end
 
   @doc """
-  parse the supplied keyword list using the specified schema (performs validations as well)
+  Parse the supplied keyword list using the specified schema (performs validations as well)
+  Return a map
   """
   @spec parse(keyword(), NimbleOptions.schema()) :: {:ok, map()} | {:error, binary()}
   def parse(opts, schema) do
@@ -26,7 +30,7 @@ defmodule Luminous.Attributes do
 
   @doc """
   parse the supplied keyword list using the specified schema (performs validations as well)
-  raise on error
+  return a map or raise on error
   """
   @spec parse!(keyword(), NimbleOptions.schema()) :: map()
   def parse!(opts, schema) do

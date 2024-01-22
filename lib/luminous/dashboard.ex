@@ -1,26 +1,27 @@
 defmodule Luminous.Dashboard do
   @moduledoc """
-  A dashboard is a high-level component initialized by the dashboard
-  live view. It contains all the necessary dashboard attributes such as the
-  panels, variables and the time range selector. It is initialized at
-  compile time using `define/3` and populated at runtime using `populate/1`.
+  A dashboard is the highest-level Luminous component initialized by
+  the dashboard live view. It contains all the necessary dashboard
+  attributes such as the panels, variables and the time range
+  selector. It is initialized by `use Luminous.Live` and populated at
+  runtime using `populate/1`.
   """
+
+  alias Luminous.{Attributes, TimeRange, TimeRangeSelector, Variable}
 
   @doc """
   The dashboard uses a TimeRangeSelector and a default time range must be defined.
   """
-  @callback default_time_range(binary()) :: Luminous.TimeRange.t()
+  @callback default_time_range(binary()) :: TimeRange.t()
 
   @doc """
   The consumer can optionally implement this callback, in case they want to
-  inject custom parameters in other callbacks (e.g. `Luminous.Variable.variable/2`).
+  inject custom parameters in other callbacks (e.g. `Luminous.Variable` behaviour).
   Those parameters can be used to scope the callback results.
   """
   @callback parameters(Phoenix.LiveView.Socket.t()) :: map()
 
   @optional_callbacks parameters: 1
-
-  alias Luminous.{Attributes, TimeRange, TimeRangeSelector, Variable}
 
   @default_time_zone "Europe/Athens"
 
