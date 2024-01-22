@@ -5,7 +5,6 @@ defmodule Luminous.Components do
 
   use Phoenix.Component
   alias Luminous.TimeRangeSelector
-  alias Luminous.Dashboard
   alias Phoenix.LiveView.JS
 
   alias Luminous.{Panel, Variable}
@@ -19,7 +18,7 @@ defmodule Luminous.Components do
 
   Additinally, it registers callbacks for reacting to panel loading states.
   """
-  attr :dashboard, Dashboard, required: true
+  attr :dashboard, :map, required: true
   attr :panel_data, :map, required: true
 
   def dashboard(assigns) do
@@ -229,7 +228,7 @@ defmodule Luminous.Components do
   This component is responsible for rendering the time range component.
   It consists of a date range picker and a presets dropdown.
   """
-  attr :dashboard, Dashboard, required: true
+  attr :dashboard, :map, required: true
 
   def time_range(assigns) do
     ~H"""

@@ -20,50 +20,28 @@ defmodule Luminous.Dashboard do
 
   @optional_callbacks parameters: 1
 
-  alias Luminous.TimeRange
-  alias Luminous.{Panel, TimeRange, TimeRangeSelector, Variable}
+  alias Luminous.{Attributes, TimeRange, TimeRangeSelector, Variable}
 
   @default_time_zone "Europe/Athens"
 
-  @type t :: %__MODULE__{
-          title: binary(),
-          path: (... -> binary()),
-          action: atom(),
-          panels: [Panel.t()],
-          variables: [Variable.t()],
-          time_range_selector: TimeRangeSelector.t(),
-          time_zone: binary()
-        }
+  @type t :: map()
 
-  @enforce_keys [:title, :path, :action, :panels, :variables, :time_range_selector]
-
-  defstruct [
-    :title,
-    :path,
-    :action,
-    :panels,
-    :variables,
-    :time_range_selector,
-    :time_zone
+  @attributes [
+    title: [type: :string, required: true],
+    path: [type: {:fun, 3}, required: true],
+    action: [type: :atom, required: true],
+    panels: [type: {:list, :map}, default: []],
+    variables: [type: {:list, {:struct, Variable}}, default: []],
+    time_range_selector: [type: {:struct, TimeRangeSelector}, default: %TimeRangeSelector{}],
+    time_zone: [type: :string, default: @default_time_zone]
   ]
 
   @doc """
-  Initialize and return a dashboard at compile time.
+  Parse the supplied parameters according to the @attributes schema
+  and return the dashboard map structure
   """
-  @spec define(binary(), {(... -> binary()), atom()}, Keyword.t()) :: t()
-  def define(title, {path, action}, opts \\ []) do
-    time_zone = Keyword.get(opts, :time_zone, @default_time_zone)
-
-    %__MODULE__{
-      title: title,
-      path: path,
-      action: action,
-      time_range_selector: %TimeRangeSelector{},
-      panels: Keyword.get(opts, :panels, []),
-      variables: Keyword.get(opts, :variables, []),
-      time_zone: time_zone
-    }
-  end
+  @spec define!(keyword()) :: t()
+  def define!(opts), do: Attributes.parse!(opts, @attributes)
 
   @doc """
   Populate the dashboard's dynamic properties (e.g. variable values, time range etc.) at runtime.

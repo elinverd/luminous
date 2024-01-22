@@ -4,7 +4,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
   """
 
   alias Luminous.Router.Helpers, as: Routes
-  alias Luminous.{Variable, Query, Dashboard, TimeRange, Components}
+  alias Luminous.{Variable, Query, TimeRange, Components}
   alias Luminous.Dashboards.DemoDashboardLive.{Queries, Variables}
 
   # This is where the actual dashboard is defined (compile-time) by
@@ -15,120 +15,118 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
   # and a time range component from which the user can select
   # arbitrary time windows.
   use Luminous.Live,
-    dashboard:
-      Dashboard.define(
-        "Demo Dashboard",
-        {&Routes.demo_dashboard_path/3, :index},
-        panels: [
-          Panel.define!(
-            type: Panel.Chart,
-            id: :simple_time_series,
-            title: "Simple Time Series",
-            queries: [
-              Query.define(:simple_time_series, Queries)
-            ],
-            description: """
-            All calculations are based on the line items of weekly
-            billing notes whose start date is in the selected billing
-            period, All calculations are based on the line items of
-            weekly billing notes whose start date is in the selected
-            billing period
-            """,
-            ylabel: "Description",
-            data_attributes: %{
-              "a" => [type: :line, order: 0],
-              "b" => [type: :line, order: 1],
-              "a-b" => [type: :bar, order: 2]
-            }
-          ),
-          Panel.define!(
-            type: Panel.Table,
-            id: :tabular_data,
-            title: "Tabular Data",
-            queries: [Query.define(:tabular_data, Queries)],
-            description: "This is a panel with tabular data",
-            data_attributes: %{
-              "label" => [title: "Label", order: 0, halign: :center],
-              "foo" => [
-                title: "Foo",
-                order: 1,
-                halign: :right,
-                table_totals: :avg,
-                number_formatting: [
-                  thousand_separator: ".",
-                  decimal_separator: ",",
-                  precision: 1
-                ]
-              ],
-              "bar" => [
-                title: "Bar",
-                order: 2,
-                halign: :right,
-                table_totals: :sum,
-                number_formatting: [
-                  thousand_separator: "_",
-                  decimal_separator: ".",
-                  precision: 4
-                ]
-              ]
-            }
-          ),
-          Panel.define!(
-            type: Panel.Stat,
-            id: :single_stat,
-            title: "Single-stat panel",
-            queries: [Query.define(:single_stat, Queries)],
-            data_attributes: %{
-              "foo" => [title: "Just a date", order: 0]
-            }
-          ),
-          Panel.define!(
-            type: Panel.Stat,
-            id: :multi_stat,
-            title: "This is a multi-stat panel",
-            queries: [
-              Query.define(:string_stat, Queries),
-              Query.define(:more_stats, Queries)
-            ],
-            data_attributes: %{
-              "foo" => [title: "Just a date", order: 0],
-              "var_1" => [title: "Var A", order: 1],
-              "var_2" => [title: "Var B", order: 2]
-            }
-          ),
-          Panel.define!(
-            type: Panel.Chart,
-            id: :multiple_time_series_with_diff,
-            title: "Multiple Time Series with Ordering",
-            queries: [Query.define(:multiple_time_series_with_diff, Queries)],
-            ylabel: "Description",
-            data_attributes: %{
-              "a" => [type: :line, unit: "μCKR", order: 0],
-              "b" => [type: :line, unit: "μFOO", order: 1],
-              "a-b" => [type: :bar, order: 2]
-            }
-          ),
-          Panel.define!(
-            type: Panel.Chart,
-            id: :multiple_time_series_with_stacking,
-            title: "Multiple Time Series with Stacking",
-            queries: [Query.define(:multiple_time_series_with_total, Queries)],
-            ylabel: "Description",
-            stacked_x: true,
-            stacked_y: true,
-            data_attributes: %{
-              "a" => [type: :bar, order: 0],
-              "b" => [type: :bar, order: 1],
-              "total" => [fill: false]
-            }
-          )
+    title: "Demo Dashboard",
+    path: &Routes.demo_dashboard_path/3,
+    action: :index,
+    time_zone: "UTC",
+    panels: [
+      Panel.define!(
+        type: Panel.Chart,
+        id: :simple_time_series,
+        title: "Simple Time Series",
+        queries: [
+          Query.define(:simple_time_series, Queries)
         ],
-        variables: [
-          Variable.define(:multiplier_var, "Multiplier", Variables),
-          Variable.define(:interval_var, "Interval", Variables)
+        description: """
+        All calculations are based on the line items of weekly
+        billing notes whose start date is in the selected billing
+        period, All calculations are based on the line items of
+        weekly billing notes whose start date is in the selected
+        billing period
+        """,
+        ylabel: "Description",
+        data_attributes: %{
+          "a" => [type: :line, order: 0],
+          "b" => [type: :line, order: 1],
+          "a-b" => [type: :bar, order: 2]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Table,
+        id: :tabular_data,
+        title: "Tabular Data",
+        queries: [Query.define(:tabular_data, Queries)],
+        description: "This is a panel with tabular data",
+        data_attributes: %{
+          "label" => [title: "Label", order: 0, halign: :center],
+          "foo" => [
+            title: "Foo",
+            order: 1,
+            halign: :right,
+            table_totals: :avg,
+            number_formatting: [
+              thousand_separator: ".",
+              decimal_separator: ",",
+              precision: 1
+            ]
+          ],
+          "bar" => [
+            title: "Bar",
+            order: 2,
+            halign: :right,
+            table_totals: :sum,
+            number_formatting: [
+              thousand_separator: "_",
+              decimal_separator: ".",
+              precision: 4
+            ]
+          ]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Stat,
+        id: :single_stat,
+        title: "Single-stat panel",
+        queries: [Query.define(:single_stat, Queries)],
+        data_attributes: %{
+          "foo" => [title: "Just a date", order: 0]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Stat,
+        id: :multi_stat,
+        title: "This is a multi-stat panel",
+        queries: [
+          Query.define(:string_stat, Queries),
+          Query.define(:more_stats, Queries)
         ],
-        time_zone: "UTC"
+        data_attributes: %{
+          "foo" => [title: "Just a date", order: 0],
+          "var_1" => [title: "Var A", order: 1],
+          "var_2" => [title: "Var B", order: 2]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Chart,
+        id: :multiple_time_series_with_diff,
+        title: "Multiple Time Series with Ordering",
+        queries: [Query.define(:multiple_time_series_with_diff, Queries)],
+        ylabel: "Description",
+        data_attributes: %{
+          "a" => [type: :line, unit: "μCKR", order: 0],
+          "b" => [type: :line, unit: "μFOO", order: 1],
+          "a-b" => [type: :bar, order: 2]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Chart,
+        id: :multiple_time_series_with_stacking,
+        title: "Multiple Time Series with Stacking",
+        queries: [Query.define(:multiple_time_series_with_total, Queries)],
+        ylabel: "Description",
+        stacked_x: true,
+        stacked_y: true,
+        data_attributes: %{
+          "a" => [type: :bar, order: 0],
+          "b" => [type: :bar, order: 1],
+          "total" => [fill: false]
+        }
       )
+    ],
+    variables: [
+      Variable.define(:multiplier_var, "Multiplier", Variables),
+      Variable.define(:interval_var, "Interval", Variables)
+    ]
 
   @impl true
   def parameters(_socket) do

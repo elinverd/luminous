@@ -3,9 +3,10 @@ defmodule Luminous.Live do
   This module contains a macro that contains the functionality of a dashboard LiveView.
   For more information see `Luminous.Dashboards.DemoDashboardLive`.
   """
+  alias Luminous.Dashboard
   alias Luminous.Panel
 
-  defmacro __using__(dashboard: dashboard) do
+  defmacro __using__(opts) do
     quote do
       use Phoenix.LiveView
 
@@ -23,7 +24,7 @@ defmodule Luminous.Live do
 
       require Logger
 
-      defp dashboard(), do: unquote(dashboard)
+      defp dashboard(), do: Dashboard.define!(unquote(opts))
 
       @impl true
       def mount(_, _, socket) do
