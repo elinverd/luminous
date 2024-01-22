@@ -28,11 +28,9 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
           Query.define(:simple_time_series, Queries)
         ],
         description: """
-        All calculations are based on the line items of weekly
-        billing notes whose start date is in the selected billing
-        period, All calculations are based on the line items of
-        weekly billing notes whose start date is in the selected
-        billing period
+        This is a (possibly) long description of the particular
+        dashboard. It is meant to explain in more depth with the user
+        is seeing, the underlying assumptions etc.
         """,
         ylabel: "Description",
         data_attributes: %{
