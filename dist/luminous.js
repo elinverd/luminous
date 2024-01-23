@@ -38644,9 +38644,9 @@ function TableHook() {
         layout: "fitColumns"
       });
     } else {
+      this.table.setColumns(columns);
       this.table.replaceData(rows3);
     }
-    ;
   };
   this.downloadCSV = function() {
     return (event) => {
