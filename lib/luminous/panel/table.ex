@@ -1,4 +1,6 @@
 defmodule Luminous.Panel.Table do
+  alias Luminous.Attributes
+
   @behaviour Luminous.Panel
 
   @impl true
@@ -24,27 +26,36 @@ defmodule Luminous.Panel.Table do
     ]
 
   @impl true
-  def transform(data, panel) do
+  def transform(rows, panel) do
     col_defs =
-      panel.data_attributes
-      |> Enum.sort_by(fn {_, attr} -> attr.order end)
-      |> Enum.map(fn {label, attr} ->
+      rows
+      |> extract_labels()
+      |> Enum.map(fn label ->
+        attrs =
+          Map.get(panel.data_attributes, label) ||
+            Attributes.parse!([], data_attributes() ++ Attributes.Data.common())
+
+        {label, attrs}
+      end)
+      |> Enum.sort_by(fn {_, attrs} -> attrs.order end)
+      |> Enum.map(fn {label, attrs} ->
         %{
           field: label,
-          title: attr.title || label,
-          hozAlign: attr.halign,
-          headerHozAlign: attr.halign
+          title: attrs.title,
+          hozAlign: attrs.halign,
+          headerHozAlign: attrs.halign
         }
-        |> add_table_totals_option(attr)
-        |> add_number_formatting_option(attr)
-      end)
-
-    rows =
-      Enum.map(data, fn row ->
-        Enum.reduce(row, %{}, fn {label, value}, acc -> Map.put(acc, label, value) end)
+        |> add_table_totals_option(attrs)
+        |> add_number_formatting_option(attrs)
       end)
 
     [%{rows: rows, columns: col_defs}]
+  end
+
+  defp extract_labels(rows) when is_list(rows) do
+    rows
+    |> Enum.flat_map(&Map.keys/1)
+    |> Enum.uniq()
   end
 
   defp add_table_totals_option(col_params, attr) do

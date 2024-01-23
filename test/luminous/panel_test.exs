@@ -39,6 +39,14 @@ defmodule Luminous.PanelTest do
     end
   end
 
+  defmodule TableQueries do
+    @behaviour Query
+    @impl true
+    def query(:table, _time_range, _variables) do
+      [%{"foo" => 666, "bar" => "hello"}]
+    end
+  end
+
   describe "Chart Panel" do
     test "fetches and transforms the data from the actual query" do
       panel = Panel.define!(type: Panel.Chart, id: :foo)
@@ -265,6 +273,22 @@ defmodule Luminous.PanelTest do
                  value: 11
                }
              ] = results
+    end
+  end
+
+  describe "Table panel" do
+    test "table should show all columns when no data_attributes are defined" do
+      panel =
+        Panel.define!(type: Panel.Table, id: :ttt, data_attributes: %{"foo" => [halign: :right]})
+
+      assert [%{rows: rows, columns: columns} | []] =
+               :table
+               |> Query.define(TableQueries)
+               |> Query.execute(nil, [])
+               |> Panel.Table.transform(panel)
+
+      assert Enum.any?(columns, fn %{field: label} -> label in ["bar", "foo"] end)
+      assert [%{"foo" => 666, "bar" => "hello"} | []] = rows
     end
   end
 end
