@@ -95,6 +95,20 @@ defmodule Luminous.Panel.Chart do
     |> Enum.sort_by(fn dataset -> order[dataset.label] end)
   end
 
+  @impl true
+  def reduce(datasets, panel, dashboard) do
+    %{
+      datasets: datasets,
+      ylabel: panel.ylabel,
+      xlabel: panel.xlabel,
+      stacked_x: panel.stacked_x,
+      stacked_y: panel.stacked_y,
+      y_min_value: panel.y_min_value,
+      y_max_value: panel.y_max_value,
+      time_zone: dashboard.time_zone
+    }
+  end
+
   def statistics(rows, label) do
     init_stats = %{n: 0, sum: nil, min: nil, max: nil, max_decimal_digits: 0}
 

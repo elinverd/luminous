@@ -3,7 +3,7 @@ defmodule Luminous.Panel do
   A panel represents a single visual element (chart) in a dashboard that can contain many queries.
   """
 
-  alias Luminous.{Attributes, Query, TimeRange, Variable}
+  alias Luminous.{Attributes, Dashboard, Query, TimeRange, Variable}
   alias Luminous.Query
   alias Luminous.Panel.{Chart, Table, Stat}
 
@@ -13,6 +13,12 @@ defmodule Luminous.Panel do
   transform a query result to view data acc. to the panel type
   """
   @callback transform(Query.result(), t()) :: any()
+
+  @doc """
+  aggregate all transformed results to a single structure
+  that will be sent to the concrete panel
+  """
+  @callback reduce(list(), t(), Dashboard.t()) :: any()
 
   @doc """
   Define custom attributes according to the panel type

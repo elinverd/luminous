@@ -38,7 +38,10 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         type: Panel.Table,
         id: :tabular_data,
         title: "Tabular Data",
-        queries: [Query.define(:tabular_data, Queries)],
+        queries: [
+          Query.define(:tabular_data_1, Queries),
+          Query.define(:tabular_data_2, Queries)
+        ],
         description: "This is a panel with tabular data",
         data_attributes: %{
           "label" => [title: "Label", order: 0, halign: :center],
@@ -244,18 +247,34 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
       |> Map.new()
     end
 
-    def query(:tabular_data, %{from: t}, _variables) do
+    def query(:tabular_data_1, %{from: t}, _variables) do
       case DateTime.compare(t, DateTime.utc_now()) do
         :lt ->
           [
-            %{"label" => "row1", "foo" => 1301, "bar" => 88_555_666.2},
-            %{"label" => "row2", "foo" => 1400, "bar" => 22_111_444.6332}
+            %{"foo" => 1301, "bar" => 88_555_666.2},
+            %{"foo" => 1400, "bar" => 22_111_444.6332}
           ]
 
         _ ->
           [
-            %{"label" => "row1", "foo" => 300.2, "bar" => 88999.4},
-            %{"label" => "row2", "foo" => 400.234, "bar" => 99_888_777.21}
+            %{"foo" => 300.2, "bar" => 88999.4},
+            %{"foo" => 400.234, "bar" => 99_888_777.21}
+          ]
+      end
+    end
+
+    def query(:tabular_data_2, %{from: t}, _variables) do
+      case DateTime.compare(t, DateTime.utc_now()) do
+        :lt ->
+          [
+            %{"label" => "row1"},
+            %{"label" => "row2"}
+          ]
+
+        _ ->
+          [
+            %{"label" => "row1"},
+            %{"label" => "row2"}
           ]
       end
     end

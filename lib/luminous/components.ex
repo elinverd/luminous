@@ -163,19 +163,19 @@ defmodule Luminous.Components do
 
       <% dataset = @panel_data[@panel.id] %>
 
-      <%= if dataset && length(dataset) > 0 do %>
-        <div id={"#{dom_id(@panel)}-stat-values"} class={stats_grid_structure(length(dataset))}>
-          <%= for column <- dataset do %>
+      <%= if is_nil(dataset) || length(dataset.stats) == 0 do %>
+        <div class="flex flex-row items-center justify-center">
+          <div id={"#{dom_id(@panel)}-stat-values"} class="text-4xl font-bold">-</div>
+        </div>
+      <% else %>
+        <div id={"#{dom_id(@panel)}-stat-values"} class={stats_grid_structure(length(dataset.stats))}>
+          <%= for column <- dataset.stats do %>
           <div class="flex flex-col items-center">
             <div class="text-lg"><span><%= column.title %></span></div>
             <div><span class="text-4xl font-bold"><%= print_number(column.value) %></span> <span class="text-2xl font-semibold"><%= column.unit %></span></div>
 
           </div>
           <% end %>
-        </div>
-      <% else %>
-        <div class="flex flex-row items-center justify-center">
-          <div id={"#{dom_id(@panel)}-stat-values"} class="text-4xl font-bold">-</div>
         </div>
       <% end %>
     </div>

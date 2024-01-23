@@ -52,6 +52,22 @@ defmodule Luminous.Panel.Table do
     %{rows: rows, columns: col_defs}
   end
 
+  @impl true
+  def reduce(datasets, _panel, _dashboard) do
+    columns = Enum.flat_map(datasets, &Map.get(&1, :columns))
+
+    datasets =
+      datasets
+      |> Enum.map(&Map.get(&1, :rows))
+      |> Enum.zip()
+      |> Enum.map(&Tuple.to_list/1)
+      |> Enum.map(fn maps ->
+        Enum.reduce(maps, %{}, &Map.merge(&2, &1))
+      end)
+
+    %{rows: datasets, columns: columns}
+  end
+
   defp extract_labels(rows) when is_list(rows) do
     rows
     |> Enum.flat_map(&Map.keys/1)

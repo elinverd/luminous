@@ -134,45 +134,14 @@ defmodule Luminous.Live do
       end
 
       @impl true
-      def handle_info({_task_ref, {%{type: Panel.Chart} = panel, datasets}}, socket) do
-        panel_data = %{
-          datasets: datasets,
-          ylabel: panel.ylabel,
-          xlabel: panel.xlabel,
-          stacked_x: panel.stacked_x,
-          stacked_y: panel.stacked_y,
-          y_min_value: panel.y_min_value,
-          y_max_value: panel.y_max_value,
-          time_zone: socket.assigns.dashboard.time_zone
-        }
+      def handle_info({_task_ref, {%{type: type, id: id} = panel, datasets}}, socket) do
+        panel_data = apply(type, :reduce, [datasets, panel, socket.assigns.dashboard])
 
         socket =
           socket
-          |> assign(panel_data: Map.put(socket.assigns.panel_data, panel.id, panel_data))
+          |> assign(panel_data: Map.put(socket.assigns.panel_data, id, panel_data))
           |> push_event("#{Components.dom_id(panel)}::refresh-data", panel_data)
-          |> push_panel_load_event(:end, panel.id)
-
-        {:noreply, socket}
-      end
-
-      def handle_info({_task_ref, {%{type: Panel.Stat} = panel, dataset}}, socket) do
-        socket =
-          socket
-          |> assign(panel_data: Map.put(socket.assigns.panel_data, panel.id, dataset))
-          |> push_panel_load_event(:end, panel.id)
-
-        {:noreply, socket}
-      end
-
-      # a table can have only one dataset
-      def handle_info(
-            {_task_ref, {%{type: Panel.Table} = panel, datasets}},
-            socket
-          ) do
-        socket =
-          socket
-          |> push_event("#{Components.dom_id(panel)}::refresh-data", hd(datasets))
-          |> push_panel_load_event(:end, panel.id)
+          |> push_panel_load_event(:end, id)
 
         {:noreply, socket}
       end

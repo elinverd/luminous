@@ -28,6 +28,9 @@ defmodule Luminous.Panel.Stat do
     end)
   end
 
+  @impl true
+  def reduce(datasets, _panel, _dashboard), do: %{stats: datasets}
+
   # fallback
   def transform(_), do: []
 end
