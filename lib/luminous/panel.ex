@@ -61,10 +61,14 @@ defmodule Luminous.Panel do
   """
   @spec refresh(t(), [Variable.t()], TimeRange.t()) :: [any()]
   def refresh(panel, variables, time_range) do
-    Enum.flat_map(panel.queries, fn query ->
+    Enum.reduce(panel.queries, [], fn query, results ->
+      # perform query
       result = Query.execute(query, time_range, variables)
-
-      apply(panel.type, :transform, [result, panel])
+      # transform result and add to results
+      case apply(panel.type, :transform, [result, panel]) do
+        data when is_list(data) -> results ++ data
+        data -> [data | results]
+      end
     end)
   end
 

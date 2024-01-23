@@ -281,7 +281,7 @@ defmodule Luminous.PanelTest do
       panel =
         Panel.define!(type: Panel.Table, id: :ttt, data_attributes: %{"foo" => [halign: :right]})
 
-      assert [%{rows: rows, columns: columns} | []] =
+      assert %{rows: rows, columns: columns} =
                :table
                |> Query.define(TableQueries)
                |> Query.execute(nil, [])

@@ -49,7 +49,7 @@ defmodule Luminous.Panel.Table do
         |> add_number_formatting_option(attrs)
       end)
 
-    [%{rows: rows, columns: col_defs}]
+    %{rows: rows, columns: col_defs}
   end
 
   defp extract_labels(rows) when is_list(rows) do
