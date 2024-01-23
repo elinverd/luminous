@@ -31,8 +31,9 @@ function TableHook() {
         layout: "fitColumns"
       });
     } else {
+      this.table.setColumns(columns);
       this.table.replaceData(rows);
-    };
+    }
   }
 
   // download the table's data as CSV
