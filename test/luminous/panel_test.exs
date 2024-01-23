@@ -52,11 +52,13 @@ defmodule Luminous.PanelTest do
       t1 = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
       t2 = DateTime.to_unix(~U[2022-08-04T00:00:00Z], :millisecond)
 
+      attrs = Attributes.parse!([], Panel.Chart.data_attributes() ++ Attributes.Data.common())
+
       expected_results = [
         %{
           rows: [%{x: t1, y: Decimal.new(1)}, %{x: t2, y: Decimal.new(2)}],
           label: "l1",
-          attrs: %{},
+          attrs: attrs,
           stats: %{
             avg: Decimal.new(2),
             label: "l1",
@@ -69,7 +71,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(11)}, %{x: t2, y: Decimal.new(12)}],
           label: "l2",
-          attrs: %{},
+          attrs: attrs,
           stats: %{
             avg: Decimal.new(12),
             label: "l2",
@@ -82,7 +84,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}],
           label: "l3",
-          attrs: %{},
+          attrs: attrs,
           stats: %{
             avg: Decimal.new(112),
             label: "l3",

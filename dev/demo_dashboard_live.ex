@@ -32,12 +32,7 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         dashboard. It is meant to explain in more depth with the user
         is seeing, the underlying assumptions etc.
         """,
-        ylabel: "Description",
-        data_attributes: %{
-          "a" => [type: :line, order: 0],
-          "b" => [type: :line, order: 1],
-          "a-b" => [type: :bar, order: 2]
-        }
+        ylabel: "Description"
       ),
       Panel.define!(
         type: Panel.Table,

@@ -1,4 +1,5 @@
 defmodule Luminous.Panel.Chart do
+  alias Luminous.Attributes
   alias Luminous.Panel
 
   @behaviour Panel
@@ -82,7 +83,7 @@ defmodule Luminous.Panel.Chart do
       attrs =
         Map.get(panel.data_attributes, label) ||
           Map.get(panel.data_attributes, to_string(label)) ||
-          %{}
+          Attributes.parse!([], data_attributes() ++ Attributes.Data.common())
 
       %{
         rows: data,
