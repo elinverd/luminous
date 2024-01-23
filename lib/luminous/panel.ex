@@ -59,7 +59,7 @@ defmodule Luminous.Panel do
   @doc """
   Refresh all panel queries.
   """
-  @spec refresh(t(), [Variable.t()], TimeRange.t()) :: any()
+  @spec refresh(t(), [Variable.t()], TimeRange.t()) :: [any()]
   def refresh(panel, variables, time_range) do
     Enum.flat_map(panel.queries, fn query ->
       result = Query.execute(query, time_range, variables)
