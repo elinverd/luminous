@@ -32,7 +32,7 @@ defmodule Luminous.Dashboard do
     path: [type: {:fun, 3}, required: true],
     action: [type: :atom, required: true],
     panels: [type: {:list, :map}, default: []],
-    variables: [type: {:list, {:struct, Variable}}, default: []],
+    variables: [type: {:list, :map}, default: []],
     time_range_selector: [type: {:struct, TimeRangeSelector}, default: %TimeRangeSelector{}],
     time_zone: [type: :string, default: @default_time_zone]
   ]

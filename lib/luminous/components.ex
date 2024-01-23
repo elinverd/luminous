@@ -271,9 +271,9 @@ defmodule Luminous.Components do
   @doc """
   This component is responsible for rendering the dropdown of the assigned variable.
   """
-  attr :variable, Variable, required: true
+  attr :variable, :map, required: true
 
-  def variable(assigns) do
+  def variable(%{variable: %{type: :single}} = assigns) do
     ~H"""
     <div id={"#{@variable.id}-dropdown"} class="relative" phx-click-away={hide_dropdown("#{@variable.id}-dropdown-content")}>
       <button class="lmn-variable-button" phx-click={show_dropdown("#{@variable.id}-dropdown-content")}>
