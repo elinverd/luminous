@@ -4,24 +4,38 @@ defmodule Luminous.Variable do
   It also stores a current value that can be updated. A variable value is
   descriptive in that it contains a label (for display purposes) and the actual value.
   """
+  alias Luminous.Attributes
 
   @doc """
   A module must implement this behaviour to be passed as an argument to `define/3`.
   """
   @callback variable(atom(), map()) :: [simple_value() | descriptive_value()]
 
+  @type t :: map()
+
   @type simple_value :: binary()
   @type descriptive_value :: %{label: binary(), value: binary()}
 
-  @type t :: %__MODULE__{
-          id: atom(),
-          label: binary(),
-          mod: module(),
-          values: [descriptive_value()],
-          current: descriptive_value() | nil
-        }
-  @enforce_keys [:id, :label, :mod]
-  defstruct [:id, :label, :mod, :values, :current]
+  @attributes [
+    id: [type: :atom, required: true],
+    label: [type: :string, required: true],
+    module: [type: :atom, required: true],
+    type: [type: {:in, [:single, :multi]}, default: :single]
+  ]
+
+  @doc """
+  Defines a new variable and returns a map
+  """
+  @spec define!(keyword()) :: t()
+  def define!(opts \\ []) do
+    variable = Attributes.parse!(opts, @attributes)
+
+    if variable.id in [:from, :to] do
+      raise ":from and :to are reserved atoms in luminous and can not be used as variable IDs"
+    end
+
+    variable
+  end
 
   @doc """
   Find and return the variable with the specified id in the supplied variables.
@@ -30,42 +44,22 @@ defmodule Luminous.Variable do
   def find(variables, id), do: Enum.find(variables, fn v -> v.id == id end)
 
   @doc """
-  Defines a new variable and returns the struct does not
-  calculate the values yet (see `populate/1`).
-  The module must implement the `Luminous.Variable` behaviour.
-  """
-  @spec define(atom(), binary(), module()) :: t()
-  def define(id, label, mod) do
-    if id in [:from, :to] do
-      raise ArgumentError,
-        message:
-          ":from and :to are reserved atoms in luminous and can not be used as variable IDs"
-    end
-
-    %__MODULE__{
-      id: id,
-      label: label,
-      mod: mod,
-      values: [],
-      current: nil
-    }
-  end
-
-  @doc """
   Uses the query to populate the variables's values and returns the new struct.
   Additionally, it sets the current value to be the first of the calculated values.
   """
   @spec populate(t(), map()) :: t()
   def populate(var, params) do
     values =
-      var.mod
+      var.module
       |> apply(:variable, [var.id, params])
       |> Enum.map(fn
         m when is_map(m) -> m
         s when is_binary(s) -> %{label: s, value: s}
       end)
 
-    %{var | values: values, current: List.first(values)}
+    var
+    |> Map.put(:values, values)
+    |> Map.put(:current, List.first(values))
   end
 
   @doc """

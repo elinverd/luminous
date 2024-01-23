@@ -120,8 +120,8 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
       )
     ],
     variables: [
-      Variable.define(:multiplier_var, "Multiplier", Variables),
-      Variable.define(:interval_var, "Interval", Variables)
+      Variable.define!(id: :multiplier_var, label: "Multiplier", module: Variables),
+      Variable.define!(id: :interval_var, label: "Interval", module: Variables)
     ]
 
   @impl true

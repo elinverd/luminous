@@ -114,9 +114,9 @@ defmodule Luminous.Dashboards.TestDashboardLive do
       )
     ],
     variables: [
-      Variable.define(:var1, "Var 1", Variables),
-      Variable.define(:var2, "Var 2", Variables),
-      Variable.define(:var3, "Var 3", Variables)
+      Variable.define!(id: :var1, label: "Var 1", module: Variables),
+      Variable.define!(id: :var2, label: "Var 2", module: Variables),
+      Variable.define!(id: :var3, label: "Var 3", module: Variables)
     ]
 
   @impl true
