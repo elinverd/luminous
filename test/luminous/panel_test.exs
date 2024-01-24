@@ -29,44 +29,27 @@ defmodule Luminous.PanelTest do
     end
   end
 
-  defmodule StatQueries do
-    @behaviour Query
-    @impl true
-    def query(:single_stat, _time_range, _variables), do: %{"foo" => 666}
-
-    def query(:multiple_stats, _time_range, _variables) do
-      %{"foo" => 11, "bar" => 13}
-    end
-  end
-
-  defmodule TableQueries do
-    @behaviour Query
-    @impl true
-    def query(:table, _time_range, _variables) do
-      [%{"foo" => 666, "bar" => "hello"}]
-    end
-  end
-
   describe "Chart Panel" do
     test "fetches and transforms the data from the actual query" do
-      panel = Panel.define!(type: Panel.Chart, id: :foo)
+      panel =
+        Panel.define!(type: Panel.Chart, id: :foo, queries: [Query.define(:normal, ChartQueries)])
 
       results =
-        :normal
-        |> Query.define(ChartQueries)
-        |> Query.execute(nil, [])
-        |> Panel.Chart.transform(panel)
+        panel
+        |> Panel.refresh([], nil)
+        |> Panel.Chart.reduce(panel, %{time_zone: "Etc/UTC"})
 
       t1 = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
       t2 = DateTime.to_unix(~U[2022-08-04T00:00:00Z], :millisecond)
 
-      attrs = Attributes.parse!([], Panel.Chart.data_attributes() ++ Attributes.Data.common())
+      default_attrs =
+        Attributes.parse!([], Panel.Chart.data_attributes() ++ Attributes.Data.common())
 
-      expected_results = [
+      expected_datasets = [
         %{
           rows: [%{x: t1, y: Decimal.new(1)}, %{x: t2, y: Decimal.new(2)}],
           label: "l1",
-          attrs: attrs,
+          attrs: default_attrs,
           stats: %{
             avg: Decimal.new(2),
             label: "l1",
@@ -79,7 +62,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(11)}, %{x: t2, y: Decimal.new(12)}],
           label: "l2",
-          attrs: attrs,
+          attrs: default_attrs,
           stats: %{
             avg: Decimal.new(12),
             label: "l2",
@@ -92,7 +75,7 @@ defmodule Luminous.PanelTest do
         %{
           rows: [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}],
           label: "l3",
-          attrs: attrs,
+          attrs: default_attrs,
           stats: %{
             avg: Decimal.new(112),
             label: "l3",
@@ -104,6 +87,17 @@ defmodule Luminous.PanelTest do
         }
       ]
 
+      expected_results = %{
+        datasets: expected_datasets,
+        ylabel: panel.ylabel,
+        xlabel: panel.xlabel,
+        stacked_x: panel.stacked_x,
+        stacked_y: panel.stacked_y,
+        y_min_value: panel.y_min_value,
+        y_max_value: panel.y_max_value,
+        time_zone: "Etc/UTC"
+      }
+
       assert ^expected_results = results
     end
 
@@ -112,6 +106,7 @@ defmodule Luminous.PanelTest do
         Panel.define!(
           type: Panel.Chart,
           id: :foo,
+          queries: [Query.define(:sparse, ChartQueries)],
           data_attributes: %{
             "l1" => [type: :bar, order: 0],
             "l2" => [order: 1],
@@ -120,67 +115,119 @@ defmodule Luminous.PanelTest do
         )
 
       results =
-        :sparse
-        |> Query.define(ChartQueries)
-        |> Query.execute(nil, [])
-        |> Panel.Chart.transform(panel)
+        panel
+        |> Panel.refresh([], nil)
+        |> Panel.Chart.reduce(panel, %{time_zone: "Etc/UTC"})
 
       t1 = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
       t2 = DateTime.to_unix(~U[2022-08-04T00:00:00Z], :millisecond)
 
-      expected_d1 = [%{x: t1, y: Decimal.new(1)}]
-      expected_d2 = [%{x: t2, y: Decimal.new(12)}]
-      expected_d3 = [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}]
+      default_schema = Attributes.Data.common() ++ Panel.Chart.data_attributes()
 
-      schema = Attributes.Data.common() ++ Panel.Chart.data_attributes()
+      expected_results = %{
+        datasets: [
+          %{
+            rows: [%{x: t1, y: Decimal.new(1)}],
+            label: "l1",
+            attrs: Attributes.parse!([type: :bar, order: 0], default_schema),
+            stats: %{
+              avg: Decimal.new(1),
+              label: "l1",
+              max: Decimal.new(1),
+              min: Decimal.new(1),
+              n: 1,
+              sum: Decimal.new(1)
+            }
+          },
+          %{
+            rows: [%{x: t2, y: Decimal.new(12)}],
+            label: "l2",
+            attrs: Attributes.parse!([order: 1], default_schema),
+            stats: %{
+              avg: Decimal.new(12),
+              label: "l2",
+              max: Decimal.new(12),
+              min: Decimal.new(12),
+              n: 1,
+              sum: Decimal.new(12)
+            }
+          },
+          %{
+            rows: [%{x: t1, y: Decimal.new(111)}, %{x: t2, y: Decimal.new(112)}],
+            label: "l3",
+            attrs: Attributes.parse!([type: :bar, order: 2], default_schema),
+            stats: %{
+              avg: Decimal.new(112),
+              label: "l3",
+              max: Decimal.new(112),
+              min: Decimal.new(111),
+              n: 2,
+              sum: Decimal.new(223)
+            }
+          }
+        ],
+        ylabel: panel.ylabel,
+        xlabel: panel.xlabel,
+        stacked_x: panel.stacked_x,
+        stacked_y: panel.stacked_y,
+        y_min_value: panel.y_min_value,
+        y_max_value: panel.y_max_value,
+        time_zone: "Etc/UTC"
+      }
 
-      expected_attrs_1 = Attributes.parse!([type: :bar, order: 0], schema)
-      expected_attrs_2 = Attributes.parse!([order: 1], schema)
-      expected_attrs_3 = Attributes.parse!([type: :bar, order: 2], schema)
-
-      assert [
-               %{
-                 rows: ^expected_d1,
-                 label: "l1",
-                 attrs: ^expected_attrs_1
-               },
-               %{
-                 rows: ^expected_d2,
-                 label: "l2",
-                 attrs: ^expected_attrs_2
-               },
-               %{
-                 rows: ^expected_d3,
-                 label: "l3",
-                 attrs: ^expected_attrs_3
-               }
-             ] = results
+      assert ^expected_results = results
     end
 
     test "can fetch and transform query results that contain nil" do
-      panel = Panel.define!(type: Panel.Chart, id: :foo)
+      panel =
+        Panel.define!(
+          type: Panel.Chart,
+          id: :foo,
+          queries: [Query.define(:null, ChartQueries)]
+        )
 
       results =
-        :null
-        |> Query.define(ChartQueries)
-        |> Query.execute(nil, [])
-        |> Panel.Chart.transform(panel)
+        panel
+        |> Panel.refresh([], nil)
+        |> Panel.Chart.reduce(panel, %{time_zone: "Etc/UTC"})
+
+      default_attrs =
+        Attributes.parse!([], Panel.Chart.data_attributes() ++ Attributes.Data.common())
 
       t = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
 
-      expected_d1 = [%{x: t, y: Decimal.new(1)}]
-      expected_d2 = []
+      expected_results = %{
+        datasets: [
+          %{
+            rows: [%{x: t, y: Decimal.new(1)}],
+            label: "l1",
+            attrs: default_attrs,
+            stats: %{
+              avg: Decimal.new(1),
+              label: "l1",
+              max: Decimal.new(1),
+              min: Decimal.new(1),
+              n: 1,
+              sum: Decimal.new(1)
+            }
+          },
+          %{
+            rows: [],
+            label: "l2",
+            attrs: default_attrs,
+            stats: %{avg: nil, label: "l2", max: nil, min: nil, n: 0, sum: nil}
+          }
+        ],
+        ylabel: panel.ylabel,
+        xlabel: panel.xlabel,
+        stacked_x: panel.stacked_x,
+        stacked_y: panel.stacked_y,
+        y_min_value: panel.y_min_value,
+        y_max_value: panel.y_max_value,
+        time_zone: "Etc/UTC"
+      }
 
-      assert [
-               %{
-                 rows: ^expected_d1,
-                 label: "l1"
-               },
-               %{
-                 rows: ^expected_d2,
-                 label: "l2"
-               }
-             ] = results
+      assert ^expected_results = results
     end
   end
 
@@ -231,17 +278,31 @@ defmodule Luminous.PanelTest do
     end
   end
 
+  defmodule StatQueries do
+    @behaviour Query
+    @impl true
+    def query(:single_stat, _time_range, _variables), do: %{"foo" => 666}
+
+    def query(:multiple_stats, _time_range, _variables) do
+      %{"foo" => 11, "bar" => 13}
+    end
+  end
+
   describe "Stat Panel" do
     test "single stat" do
-      panel = Panel.define!(type: Panel.Stat, id: :foo)
+      panel =
+        Panel.define!(
+          type: Panel.Stat,
+          id: :foo,
+          queries: [Query.define(:single_stat, StatQueries)]
+        )
 
-      assert [result | []] =
-               :single_stat
-               |> Query.define(StatQueries)
-               |> Query.execute(nil, [])
-               |> Panel.Stat.transform(panel)
+      results =
+        panel
+        |> Panel.refresh([], nil)
+        |> Panel.Stat.reduce(panel, "")
 
-      assert %{title: nil, unit: nil, value: 666} = result
+      assert %{stats: [%{title: nil, unit: nil, value: 666}]} = results
     end
 
     test "multiple stats" do
@@ -249,6 +310,7 @@ defmodule Luminous.PanelTest do
         Panel.define!(
           type: Panel.Stat,
           id: :foo,
+          queries: [Query.define(:multiple_stats, StatQueries)],
           data_attributes: %{
             "bar" => [order: 0],
             "foo" => [title: "Foo", unit: "mckk", order: 1]
@@ -256,39 +318,92 @@ defmodule Luminous.PanelTest do
         )
 
       results =
-        :multiple_stats
-        |> Query.define(StatQueries)
-        |> Query.execute(nil, [])
-        |> Panel.Stat.transform(panel)
+        panel
+        |> Panel.refresh([], nil)
+        |> Panel.Stat.reduce(panel, "")
 
-      assert [
-               %{
-                 title: "",
-                 unit: "",
-                 value: 13
-               },
-               %{
-                 title: "Foo",
-                 unit: "mckk",
-                 value: 11
-               }
-             ] = results
+      assert %{
+               stats: [
+                 %{
+                   title: "",
+                   unit: "",
+                   value: 13
+                 },
+                 %{
+                   title: "Foo",
+                   unit: "mckk",
+                   value: 11
+                 }
+               ]
+             } = results
+    end
+  end
+
+  defmodule TableQueries do
+    @behaviour Query
+    @impl true
+    def query(:table_1, _time_range, _variables) do
+      [%{"foo" => 666, "bar" => "hello"}, %{"foo" => 667, "bar" => "goodbye"}]
+    end
+
+    def query(:table_2, _time_range, _variables) do
+      [%{"baz" => 1}, %{"baz" => 2}]
     end
   end
 
   describe "Table panel" do
-    test "table should show all columns when no data_attributes are defined" do
+    test "table should show all query columns even those with no data_attributes" do
       panel =
-        Panel.define!(type: Panel.Table, id: :ttt, data_attributes: %{"foo" => [halign: :right]})
+        Panel.define!(
+          type: Panel.Table,
+          id: :ttt,
+          queries: [Query.define(:table_1, TableQueries)],
+          # no data attribute for "bar"
+          data_attributes: %{"foo" => [halign: :right]}
+        )
 
-      assert %{rows: rows, columns: columns} =
-               :table
-               |> Query.define(TableQueries)
-               |> Query.execute(nil, [])
-               |> Panel.Table.transform(panel)
+      assert %{rows: [row | _], columns: columns} =
+               panel
+               |> Panel.refresh([], nil)
+               |> Panel.Table.reduce(panel, nil)
 
-      assert Enum.any?(columns, fn %{field: label} -> label in ["bar", "foo"] end)
-      assert [%{"foo" => 666, "bar" => "hello"} | []] = rows
+      # both labels are included in the results
+      col = Enum.find(columns, &(&1.field == "foo"))
+      refute is_nil(col)
+      assert :right = col.hozAlign
+
+      assert row["foo"] == 666
+
+      col = Enum.find(columns, &(&1.field == "bar"))
+      refute is_nil(col)
+      assert :left = col.hozAlign
+
+      assert row["bar"] == "hello"
+    end
+
+    test "table should include the results from multiple queries" do
+      panel =
+        Panel.define!(
+          type: Panel.Table,
+          id: :ttt,
+          queries: [
+            Query.define(:table_1, TableQueries),
+            Query.define(:table_2, TableQueries)
+          ],
+          # no data attribute for "bar"
+          data_attributes: %{"foo" => [halign: :right]}
+        )
+
+      assert %{rows: [row | _], columns: columns} =
+               panel
+               |> Panel.refresh([], nil)
+               |> Panel.Table.reduce(panel, nil)
+
+      assert Enum.find(columns, &(&1.field == "foo"))
+      assert row["foo"] == 666
+
+      assert Enum.find(columns, &(&1.field == "baz"))
+      assert row["baz"] == 1
     end
   end
 end
