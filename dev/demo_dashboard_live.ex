@@ -70,6 +70,18 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         }
       ),
       Panel.define!(
+        type: Panel.Table,
+        id: :selected_regions,
+        title: "Selected Regions",
+        queries: [Query.define(:regions, Queries)],
+        description:
+          "This is a table that displays the selected regions and is dynamically updated every time the variable selection changes",
+        data_attributes: %{
+          "label" => [title: "Label", order: 0],
+          "value" => [title: "Value", order: 1]
+        }
+      ),
+      Panel.define!(
         type: Panel.Stat,
         id: :single_stat,
         title: "Single-stat panel",
@@ -249,6 +261,12 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
         {"var_#{i}", v}
       end)
       |> Map.new()
+    end
+
+    def query(:regions, _, variables) do
+      variables
+      |> Variable.find(:region_var)
+      |> Variable.get_current()
     end
 
     def query(:tabular_data_1, %{from: t}, _variables) do

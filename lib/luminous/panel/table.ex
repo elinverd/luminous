@@ -33,6 +33,7 @@ defmodule Luminous.Panel.Table do
       |> Enum.map(fn label ->
         attrs =
           Map.get(panel.data_attributes, label) ||
+            Map.get(panel.data_attributes, to_string(label)) ||
             Attributes.parse!([], data_attributes() ++ Attributes.Data.common())
 
         {label, attrs}
