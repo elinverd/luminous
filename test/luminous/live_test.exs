@@ -209,6 +209,7 @@ defmodule Luminous.LiveTest do
           var1: "a",
           var2: 1,
           var3: "test_param_val_1",
+          multi_var: ["north", "south", "east", "west"],
           from: from,
           to: to
         )
@@ -238,6 +239,7 @@ defmodule Luminous.LiveTest do
           var1: "b",
           var2: 1,
           var3: "test_param_val_1",
+          multi_var: ["north", "south", "east", "west"],
           from: DateTime.to_unix(tr.from),
           to: DateTime.to_unix(tr.to)
         )
@@ -251,6 +253,7 @@ defmodule Luminous.LiveTest do
           var1: "b",
           var2: 3,
           var3: "test_param_val_1",
+          multi_var: ["north", "south", "east", "west"],
           from: DateTime.to_unix(tr.from),
           to: DateTime.to_unix(tr.to)
         )
@@ -262,6 +265,87 @@ defmodule Luminous.LiveTest do
 
       assert has_element?(view, "#var3-dropdown li", "test_param_val_1")
       assert has_element?(view, "#var3-dropdown li", "test_param_val_2")
+    end
+  end
+
+  describe "multi-select variables" do
+    setup do
+      # we use "Europe/Athens" because this is the time zone defined in TestDashboardLive module
+      tr = Luminous.TimeRange.yesterday("Europe/Athens")
+
+      %{from: DateTime.to_unix(tr.from), to: DateTime.to_unix(tr.to)}
+    end
+
+    test "when a single value is selected", %{conn: conn, from: from, to: to} do
+      {:ok, view, _} = live(conn, Routes.test_dashboard_path(conn, :index))
+
+      assert has_element?(view, "#multi_var-dropdown", "Multi: All")
+
+      view
+      |> element("#multi_var-dropdown")
+      |> render_hook("variable_updated", %{variable: "multi_var", value: ["north"]})
+
+      assert_patched(
+        view,
+        Routes.test_dashboard_path(conn, :index,
+          var1: "a",
+          var2: 1,
+          var3: "test_param_val_1",
+          multi_var: ["north"],
+          from: from,
+          to: to
+        )
+      )
+
+      assert has_element?(view, "#multi_var-dropdown", "Multi: north")
+    end
+
+    test "when two values are selected", %{conn: conn, from: from, to: to} do
+      {:ok, view, _} = live(conn, Routes.test_dashboard_path(conn, :index))
+
+      assert has_element?(view, "#multi_var-dropdown", "Multi: All")
+
+      view
+      |> element("#multi_var-dropdown")
+      |> render_hook("variable_updated", %{variable: "multi_var", value: ["north", "south"]})
+
+      assert_patched(
+        view,
+        Routes.test_dashboard_path(conn, :index,
+          var1: "a",
+          var2: 1,
+          var3: "test_param_val_1",
+          multi_var: ["north", "south"],
+          from: from,
+          to: to
+        )
+      )
+
+      assert has_element?(view, "#multi_var-dropdown", "Multi: 2 selected")
+    end
+
+    test "when no value is selected", %{conn: conn, from: from, to: to} do
+      {:ok, view, _} = live(conn, Routes.test_dashboard_path(conn, :index))
+
+      assert has_element?(view, "#multi_var-dropdown", "Multi: All")
+
+      view
+      |> element("#multi_var-dropdown")
+      |> render_hook("variable_updated", %{variable: "multi_var", value: []})
+
+      assert_patched(
+        view,
+        Routes.test_dashboard_path(conn, :index,
+          var1: "a",
+          var2: 1,
+          var3: "test_param_val_1",
+          multi_var: "none",
+          from: from,
+          to: to
+        )
+      )
+
+      assert has_element?(view, "#multi_var-dropdown", "Multi: None")
     end
   end
 end

@@ -302,6 +302,48 @@ defmodule Luminous.Components do
     """
   end
 
+  def variable(%{variable: %{type: :multi}} = assigns) do
+    ~H"""
+    <div id={"#{@variable.id}-dropdown"} class="relative"
+         phx-hook="MultiSelectVariableHook"
+         phx-click-away={hide_dropdown("#{@variable.id}-dropdown-content") |> JS.dispatch("clickAway", detail: %{"var_id" => @variable.id})}>
+      <button class="lmn-variable-button"
+              phx-click={show_dropdown("#{@variable.id}-dropdown-content") |> JS.dispatch("dropdownOpen", detail: %{"values" => Variable.extract_value(@variable.current)})}>
+        <div class="lmn-variable-button-label">
+          <span class="lmn-variable-button-label-prefix"><%= "#{@variable.label}: " %></span><%= Variable.get_current_label(@variable) %>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="lmn-variable-button-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+      <!-- Dropdown content -->
+      <div id={"#{@variable.id}-dropdown-content"} class="absolute hidden">
+        <ul class="lmn-variable-dropdown">
+          <%= for %{label: label, value: value} <- @variable.values do %>
+            <li id={"#{@variable.id}-#{value}"} class="">
+              <label for={"#{@variable.id}-#{value}-checkbox"} class="lmn-multi-variable-dropdown-item-container">
+                <%= if value in Variable.extract_value(@variable.current) do %>
+                  <input type="checkbox"
+                         id={"#{@variable.id}-#{value}-checkbox"}
+                         phx-click={JS.dispatch("valueClicked", detail: %{"value" => value})}
+                         class="lmn-multi-variable-dropdown-checkbox"
+                         checked>
+                <% else %>
+                  <input type="checkbox"
+                         id={"#{@variable.id}-#{value}-checkbox"}
+                         phx-click={JS.dispatch("valueClicked", detail: %{"value" => value})}
+                         class="lmn-multi-variable-dropdown-checkbox">
+                <% end %>
+                <span class="select-none"><%= label %></span>
+              </label>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+    """
+  end
+
   # Interpolate all occurences of variable IDs in the format `$variable.id` in the string
   # with the variable's descriptive value label. For example, the string: "Energy for asset $asset_var"
   # will be replaced by the label of the variable with id `:asset_var` in variables.
@@ -309,14 +351,8 @@ defmodule Luminous.Components do
   defp interpolate(nil, _), do: ""
 
   defp interpolate(string, variables) do
-    variables
-    |> Enum.reduce(string, fn var, title ->
-      val =
-        var
-        |> Variable.get_current()
-        |> Variable.extract_label()
-
-      String.replace(title, "$#{var.id}", "#{val}")
+    Enum.reduce(variables, string, fn var, title ->
+      String.replace(title, "$#{var.id}", "#{Variable.get_current_label(var)}")
     end)
   end
 

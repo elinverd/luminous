@@ -64,7 +64,7 @@ defmodule Luminous.Dashboard do
   def path(dashboard, socket, params) do
     var_params =
       Enum.map(dashboard.variables, fn var ->
-        {var.id, Keyword.get(params, var.id, var.current.value)}
+        {var.id, Keyword.get(params, var.id, Variable.extract_value(var.current))}
       end)
 
     time_range_params = [

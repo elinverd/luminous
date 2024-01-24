@@ -116,7 +116,8 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     variables: [
       Variable.define!(id: :var1, label: "Var 1", module: Variables),
       Variable.define!(id: :var2, label: "Var 2", module: Variables),
-      Variable.define!(id: :var3, label: "Var 3", module: Variables)
+      Variable.define!(id: :var3, label: "Var 3", module: Variables),
+      Variable.define!(id: :multi_var, label: "Multi", module: Variables, type: :multi)
     ]
 
   @impl true
@@ -135,6 +136,7 @@ defmodule Luminous.Dashboards.TestDashboardLive do
     def variable(:var1, _), do: ["a", "b", "c"]
     def variable(:var2, _), do: ["1", "2", "3"]
     def variable(:var3, %{test_param: values}), do: values
+    def variable(:multi_var, _), do: ["north", "south", "east", "west"]
   end
 
   defmodule Queries do
