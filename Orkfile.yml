@@ -8,8 +8,15 @@ tasks:
       - mix deps.get
       - npm install --prefix ./assets
 
+  - name: check.format
+    description: check the formatting
+    actions:
+      - mix format --check-formatted
+
   - name: test
     description: run all the tests
+    depends_on:
+      - check.format
     actions:
       - mix test
 

@@ -111,14 +111,19 @@ defmodule Luminous.Panel.Chart do
   @impl true
   def render(assigns) do
     ~H"""
-      <div class="w-full ">
-        <div id={"#{Utils.dom_id(@panel)}-container"} phx-update="ignore">
-          <canvas id={Utils.dom_id(@panel)} time-range-selector-id={@time_range_selector.id} phx-hook={@panel.hook}></canvas>
-        </div>
-        <%= unless is_nil(@data) do %>
-          <.panel_statistics stats={Enum.map(@data.datasets, & &1.stats)}/>
-        <% end %>
+    <div class="w-full ">
+      <div id={"#{Utils.dom_id(@panel)}-container"} phx-update="ignore">
+        <canvas
+          id={Utils.dom_id(@panel)}
+          time-range-selector-id={@time_range_selector.id}
+          phx-hook={@panel.hook}
+        >
+        </canvas>
       </div>
+      <%= unless is_nil(@data) do %>
+        <.panel_statistics stats={Enum.map(@data.datasets, & &1.stats)} />
+      <% end %>
+    </div>
     """
   end
 

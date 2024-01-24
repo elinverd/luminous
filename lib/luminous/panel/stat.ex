@@ -39,21 +39,26 @@ defmodule Luminous.Panel.Stat do
   @impl true
   def render(assigns) do
     ~H"""
-      <%= if is_nil(@data) || length(@data.stats) == 0 do %>
-        <div class="flex flex-row items-center justify-center">
-          <div id={"#{Utils.dom_id(@panel)}-stat-values"} class="text-4xl font-bold">-</div>
-        </div>
-      <% else %>
-        <div id={"#{Utils.dom_id(@panel)}-stat-values"} class={stats_grid_structure(length(@data.stats))}>
-          <%= for column <- @data.stats do %>
+    <%= if is_nil(@data) || length(@data.stats) == 0 do %>
+      <div class="flex flex-row items-center justify-center">
+        <div id={"#{Utils.dom_id(@panel)}-stat-values"} class="text-4xl font-bold">-</div>
+      </div>
+    <% else %>
+      <div
+        id={"#{Utils.dom_id(@panel)}-stat-values"}
+        class={stats_grid_structure(length(@data.stats))}
+      >
+        <%= for column <- @data.stats do %>
           <div class="flex flex-col items-center">
             <div class="text-lg"><span><%= column.title %></span></div>
-            <div><span class="text-4xl font-bold"><%= Utils.print_number(column.value) %></span> <span class="text-2xl font-semibold"><%= column.unit %></span></div>
-
+            <div>
+              <span class="text-4xl font-bold"><%= Utils.print_number(column.value) %></span>
+              <span class="text-2xl font-semibold"><%= column.unit %></span>
+            </div>
           </div>
-          <% end %>
-        </div>
-      <% end %>
+        <% end %>
+      </div>
+    <% end %>
     """
   end
 
