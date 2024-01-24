@@ -1,8 +1,7 @@
 defmodule Luminous.Panel.Chart do
-  alias Luminous.Attributes
-  alias Luminous.Panel
+  alias Luminous.{Attributes, Panel, Utils}
 
-  @behaviour Panel
+  use Panel
 
   @impl true
   def data_attributes(),
@@ -109,6 +108,28 @@ defmodule Luminous.Panel.Chart do
     }
   end
 
+  @impl true
+  def render(assigns) do
+    ~H"""
+      <div class="w-full ">
+        <div id={"#{Utils.dom_id(@panel)}-container"} phx-update="ignore">
+          <canvas id={Utils.dom_id(@panel)} time-range-selector-id={@time_range_selector.id} phx-hook={@panel.hook}></canvas>
+        </div>
+        <%= unless is_nil(@data) do %>
+          <.panel_statistics stats={Enum.map(@data.datasets, & &1.stats)}/>
+        <% end %>
+      </div>
+    """
+  end
+
+  @impl true
+  def actions() do
+    [
+      %{event: "download:csv", label: "Download CSV"},
+      %{event: "download:png", label: "Download Image"}
+    ]
+  end
+
   def statistics(rows, label) do
     init_stats = %{n: 0, sum: nil, min: nil, max: nil, max_decimal_digits: 0}
 
@@ -187,5 +208,33 @@ defmodule Luminous.Panel.Chart do
         |> Enum.reject(&(&1 == :time))
     end)
     |> Enum.uniq()
+  end
+
+  attr :stats, :map, required: true
+
+  def panel_statistics(assigns) do
+    if is_nil(assigns.stats) || length(assigns.stats) == 0 do
+      ~H""
+    else
+      ~H"""
+      <div class="grid grid-cols-10 gap-x-4 mt-2 mx-8 text-right text-xs">
+        <div class="col-span-5 text-xs font-semibold"></div>
+        <div class="font-semibold">N</div>
+        <div class="font-semibold">Min</div>
+        <div class="font-semibold">Max</div>
+        <div class="font-semibold">Avg</div>
+        <div class="font-semibold">Total</div>
+
+        <%= for var <- @stats do %>
+          <div class="col-span-5 truncate"><%= var.label %></div>
+          <div><%= var.n %></div>
+          <div><%= Utils.print_number(var.min) %></div>
+          <div><%= Utils.print_number(var.max) %></div>
+          <div><%= Utils.print_number(var.avg) %></div>
+          <div><%= Utils.print_number(var.sum) %></div>
+        <% end %>
+      </div>
+      """
+    end
   end
 end

@@ -207,7 +207,7 @@ defmodule Luminous.Dashboards.TestDashboardLive do
 
   def render(assigns) do
     ~H"""
-    <Components.dashboard dashboard={@dashboard} panel_data={@panel_data} />
+    <Components.dashboard dashboard={@dashboard} data={@panel_data} />
     """
   end
 end

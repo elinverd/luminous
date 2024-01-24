@@ -3,8 +3,7 @@ defmodule Luminous.Live do
   This module defines a macro that contains the functionality of a dashboard LiveView.
   For more information and usage examples see `Luminous.Dashboards.DemoDashboardLive`.
   """
-  alias Luminous.Dashboard
-  alias Luminous.Panel
+  alias Luminous.{Dashboard, Panel, Utils}
 
   defmacro __using__(opts) do
     quote do
@@ -138,7 +137,7 @@ defmodule Luminous.Live do
         socket =
           socket
           |> assign(panel_data: Map.put(socket.assigns.panel_data, id, panel_data))
-          |> push_event("#{Components.dom_id(panel)}::refresh-data", panel_data)
+          |> push_event("#{Utils.dom_id(panel)}::refresh-data", panel_data)
           |> push_panel_load_event(:end, id)
 
         {:noreply, socket}

@@ -1,7 +1,7 @@
 defmodule Luminous.Panel.Table do
   alias Luminous.Attributes
 
-  @behaviour Luminous.Panel
+  use Luminous.Panel
 
   @impl true
   def data_attributes(),
@@ -67,6 +67,18 @@ defmodule Luminous.Panel.Table do
       end)
 
     %{rows: datasets, columns: columns}
+  end
+
+  @impl true
+  def actions(), do: [%{label: "Download CSV", event: "download:csv"}]
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div class="w-full z-0">
+      <div id={"#{Luminous.Utils.dom_id(@panel)}"} phx-hook={@panel.hook} phx-update="ignore" />
+    </div>
+    """
   end
 
   defp extract_labels(rows) when is_list(rows) do

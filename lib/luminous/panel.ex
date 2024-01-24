@@ -1,11 +1,23 @@
 defmodule Luminous.Panel do
   @moduledoc """
   A panel represents a single visual element (chart) in a dashboard that can contain many queries.
+
+  It also defines a behaviour that must be implemented by concrete Panels.
   """
+
+  use Phoenix.Component
 
   alias Luminous.{Attributes, Dashboard, Query, TimeRange, Variable}
   alias Luminous.Query
   alias Luminous.Panel.{Chart, Table, Stat}
+
+  defmacro __using__(_opts) do
+    quote do
+      use Phoenix.Component
+
+      @behaviour Luminous.Panel
+    end
+  end
 
   @type t :: map()
 
@@ -19,6 +31,22 @@ defmodule Luminous.Panel do
   that will be sent to the concrete panel
   """
   @callback reduce(list(), t(), Dashboard.t()) :: any()
+
+  @doc """
+  the phoenix function component that renders the panel
+  see Luminous.Components.panel/1 for a description of the available assigns
+  """
+  @callback render(map()) :: Phoenix.LiveView.Rendered.t()
+
+  @doc """
+  A list of the available panel actions that will be transmitted as events using JS.dispatch
+  using the format panel:${panel_id}:${event}
+  The `label` will be shown in the dropdown.
+  This is an optional callback -- if undefined (or if it returns []), then the dropdown is not rendered
+  """
+  @callback actions() :: [%{event: binary(), label: binary()}]
+
+  @optional_callbacks actions: 0
 
   @doc """
   Define custom attributes according to the panel type
