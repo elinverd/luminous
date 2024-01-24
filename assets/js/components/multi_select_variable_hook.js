@@ -1,4 +1,4 @@
-function MultiSelectStateHook() {
+function MultiSelectVariableHook() {
   this.mounted = function() {
     this.state = {open: false, values: null}
 
@@ -28,4 +28,4 @@ function MultiSelectStateHook() {
   }
 }
 
-export default MultiSelectStateHook;
+export default MultiSelectVariableHook;
