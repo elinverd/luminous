@@ -6,11 +6,13 @@ import { LiveSocket } from "phoenix_live_view"
 import ChartJSHook from "./components/chartjs_hook"
 import TimeRangeHook from "./components/time_range_hook"
 import TableHook from "./components/table_hook"
+import MultiSelectVariableHook from "./components/multi_select_variable_hook"
 
 let Hooks = {
   ChartJSHook: new ChartJSHook(),
   TimeRangeHook: new TimeRangeHook(),
-  TableHook: new TableHook()
+  TableHook: new TableHook(),
+  MultiSelectVariableHook: new MultiSelectVariableHook()
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")

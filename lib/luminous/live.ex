@@ -53,14 +53,10 @@ defmodule Luminous.Live do
 
           # get variable values from params
           variables =
-            socket.assigns.dashboard.variables
-            |> Enum.map(fn var ->
-              if new_val = params["#{var.id}"] do
-                Variable.update_current(var, new_val)
-              else
-                var
-              end
-            end)
+            Enum.map(
+              socket.assigns.dashboard.variables,
+              &Variable.update_current(&1, params["#{&1.id}"])
+            )
 
           # update dashboard
           dashboard =
@@ -127,6 +123,8 @@ defmodule Luminous.Live do
             %{"variable" => variable, "value" => value},
             %{assigns: %{dashboard: dashboard}} = socket
           ) do
+        value = if value == [], do: "none", else: value
+
         {:noreply,
          push_patch(socket,
            to: Dashboard.path(dashboard, socket, [{String.to_existing_atom(variable), value}])

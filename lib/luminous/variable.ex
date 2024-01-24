@@ -24,10 +24,11 @@ defmodule Luminous.Variable do
   ]
 
   @doc """
-  Defines a new variable and returns a map
+  Defines a new variable and returns a map. The following options can be passed:
+  #{NimbleOptions.docs(@attributes)}
   """
   @spec define!(keyword()) :: t()
-  def define!(opts \\ []) do
+  def define!(opts) do
     variable = Attributes.parse!(opts, @attributes)
 
     if variable.id in [:from, :to] do
@@ -57,15 +58,23 @@ defmodule Luminous.Variable do
         s when is_binary(s) -> %{label: s, value: s}
       end)
 
-    var
-    |> Map.put(:values, values)
-    |> Map.put(:current, List.first(values))
+    case var.type do
+      :single ->
+        var
+        |> Map.put(:values, values)
+        |> Map.put(:current, List.first(values))
+
+      :multi ->
+        var
+        |> Map.put(:values, values)
+        |> Map.put(:current, values)
+    end
   end
 
   @doc """
   Returns the variable's current (descriptive) value or `nil`.
   """
-  @spec get_current(t()) :: descriptive_value() | nil
+  @spec get_current(t()) :: descriptive_value() | [descriptive_value()] | nil
   def get_current(nil), do: nil
   def get_current(%{current: value}), do: value
 
@@ -73,7 +82,7 @@ defmodule Luminous.Variable do
   Find the variable with the supplied `id` in the supplied variables
   and return its current extracted value.
   """
-  @spec get_current_and_extract_value([t()], atom()) :: binary()
+  @spec get_current_and_extract_value([t()], atom()) :: binary() | [binary()] | nil
   def get_current_and_extract_value(variables, variable_id) do
     variables
     |> find(variable_id)
@@ -82,28 +91,51 @@ defmodule Luminous.Variable do
   end
 
   @doc """
-  Extracts and returns the label from the descriptive variable value.
+  Returns the label based on the variable type and current value selection
   """
-  @spec extract_label(descriptive_value()) :: binary()
-  def extract_label(nil), do: nil
-  def extract_label(%{label: label}), do: label
+  @spec get_current_label(t()) :: binary() | nil
+  def get_current_label(%{current: nil}), do: nil
+  def get_current_label(%{current: %{label: label}}), do: label
+
+  def get_current_label(%{current: []}), do: "None"
+  def get_current_label(%{current: [value]}), do: value.label
+
+  def get_current_label(%{current: current} = var) when is_list(current) do
+    if length(current) == length(var.values) do
+      "All"
+    else
+      "#{length(current)} selected"
+    end
+  end
 
   @doc """
   Extract and returns the value from the descriptive variable value.
   """
-  @spec extract_value(descriptive_value()) :: binary()
+  @spec extract_value(descriptive_value()) :: binary() | [binary()] | nil
   def extract_value(nil), do: nil
   def extract_value(%{value: value}), do: value
+  def extract_value(values) when is_list(values), do: Enum.map(values, & &1.value)
 
   @doc """
-  Replaces the variables current value with the new value and returns the new struct.
+  Replaces the variables current value with the new value and returns the map.
   It performs a check whether the supplied value is a valid value (i.e. exists in values).
-  If it's not, then it returns the struct unchanged.
+  If it's not, then it returns the map unchanged.
+  The special "none" case is for when the variable's type is :multi and none of the
+  values are selected (empty list)
   """
-  @spec update_current(t(), binary()) :: t()
+  @spec update_current(t(), nil | binary() | [binary()]) :: t()
+  def update_current(var, nil), do: var
+  def update_current(%{type: :multi} = var, "none"), do: %{var | current: []}
+
   def update_current(var, new_value) when is_binary(new_value) do
     new_val = Enum.find(var.values, fn val -> val.value == new_value end)
 
     if is_nil(new_val), do: var, else: %{var | current: new_val}
+  end
+
+  def update_current(var, new_values) when is_list(new_values) do
+    new_values = Enum.filter(var.values, &(&1.value in new_values))
+
+    %{var | current: new_values}
   end
 end

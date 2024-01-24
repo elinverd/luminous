@@ -70,6 +70,14 @@
 		@apply text-left rounded-lg cursor-pointer hover:bg-slate-200
 	}
 
+	.lmn-multi-variable-dropdown-item-container {
+		@apply text-left rounded-lg cursor-pointer hover:bg-slate-200 px-4 py-3 flex items-center gap-2
+	}
+
+  .lmn-multi-variable-dropdown-checkbox {
+    @apply cursor-pointer text-slate-800 rounded focus:ring-0 focus:ring-offset-0
+  }
+
 	.lmn-variable-dropdown-item-content {
 		@apply px-4 py-3
 	}

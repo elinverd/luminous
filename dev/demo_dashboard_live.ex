@@ -121,7 +121,8 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
     ],
     variables: [
       Variable.define!(id: :multiplier_var, label: "Multiplier", module: Variables),
-      Variable.define!(id: :interval_var, label: "Interval", module: Variables)
+      Variable.define!(id: :interval_var, label: "Interval", module: Variables),
+      Variable.define!(id: :region_var, label: "Region", module: Variables, type: :multi)
     ]
 
   @impl true
@@ -158,6 +159,9 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
     end
 
     def variable(:interval_var, %{param_name: _some_value}), do: ["hour", "day"]
+
+    def variable(:region_var, _), do: ["north", "south", "east", "west"]
+    def variable(:region_var2, _), do: ["north2", "south2", "east2", "west2"]
   end
 
   defmodule Queries do
