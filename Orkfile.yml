@@ -39,7 +39,6 @@ tasks:
   - name: publish
     description: publish the package to hex
     depends_on:
-      - build
       - test
     actions:
       - mix hex.publish
