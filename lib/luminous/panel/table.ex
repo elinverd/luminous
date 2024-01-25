@@ -34,7 +34,7 @@ defmodule Luminous.Panel.Table do
         attrs =
           Map.get(panel.data_attributes, label) ||
             Map.get(panel.data_attributes, to_string(label)) ||
-            Attributes.parse!([], data_attributes() ++ Attributes.Data.common())
+            Attributes.parse!([], data_attributes() ++ Attributes.Schema.data())
 
         {label, attrs}
       end)

@@ -36,7 +36,7 @@ defmodule Luminous.Components do
   - time range selector
   - panels
 
-  Additinally, it registers callbacks for reacting to panel loading states.
+  Additionally, it registers callbacks for reacting to panel loading states.
   """
   attr :dashboard, :map, required: true
   attr :data, :map, required: true

@@ -43,7 +43,7 @@ defmodule Luminous.PanelTest do
       t2 = DateTime.to_unix(~U[2022-08-04T00:00:00Z], :millisecond)
 
       default_attrs =
-        Attributes.parse!([], Panel.Chart.data_attributes() ++ Attributes.Data.common())
+        Attributes.parse!([], Panel.Chart.data_attributes() ++ Attributes.Schema.data())
 
       expected_datasets = [
         %{
@@ -122,7 +122,7 @@ defmodule Luminous.PanelTest do
       t1 = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
       t2 = DateTime.to_unix(~U[2022-08-04T00:00:00Z], :millisecond)
 
-      default_schema = Attributes.Data.common() ++ Panel.Chart.data_attributes()
+      default_schema = Attributes.Schema.data() ++ Panel.Chart.data_attributes()
 
       expected_results = %{
         datasets: [
@@ -192,7 +192,7 @@ defmodule Luminous.PanelTest do
         |> Panel.Chart.reduce(panel, %{time_zone: "Etc/UTC"})
 
       default_attrs =
-        Attributes.parse!([], Panel.Chart.data_attributes() ++ Attributes.Data.common())
+        Attributes.parse!([], Panel.Chart.data_attributes() ++ Attributes.Schema.data())
 
       t = DateTime.to_unix(~U[2022-08-03T00:00:00Z], :millisecond)
 

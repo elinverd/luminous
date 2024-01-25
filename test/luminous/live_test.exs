@@ -9,7 +9,7 @@ defmodule Luminous.LiveTest do
 
       assert view |> element("#panel-p1-title") |> render() =~ "Panel 1"
 
-      schema = Attributes.Data.common() ++ Panel.Chart.data_attributes()
+      schema = Attributes.Schema.data() ++ Panel.Chart.data_attributes()
 
       expected_data = %{
         datasets: [
