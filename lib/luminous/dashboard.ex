@@ -1,16 +1,16 @@
 defmodule Luminous.Dashboard do
   @moduledoc """
-  A dashboard is the highest-level Luminous component initialized by
-  the dashboard live view. It contains all the necessary dashboard
-  attributes such as the panels, variables and the time range
-  selector. It is initialized by `use Luminous.Live` and populated at
-  runtime using `populate/1`.
+  A dashboard is the highest-level luminous component and contains all
+  the necessary dashboard attributes such as the panels, variables and
+  the time range selector. It also stores the state of the panels
+  (query results). The dashboard is initialized in `Luminous.Live`
+  and populated at runtime using `populate/2`.
   """
 
   alias Luminous.{Attributes, TimeRange, TimeRangeSelector, Variable}
 
   @doc """
-  The dashboard uses a TimeRangeSelector and a default time range must be defined.
+  The dashboard uses a `TimeRangeSelector` and a default time range must be defined.
   """
   @callback default_time_range(binary()) :: TimeRange.t()
 
@@ -38,8 +38,9 @@ defmodule Luminous.Dashboard do
   ]
 
   @doc """
-  Parse the supplied parameters according to the @attributes schema
-  and return the dashboard map structure
+  Parse the supplied parameters and return the dashboard map structure.
+  The following options are supported:
+  #{NimbleOptions.docs(@attributes)}
   """
   @spec define!(keyword()) :: t()
   def define!(opts), do: Attributes.parse!(opts, @attributes)
@@ -83,7 +84,7 @@ defmodule Luminous.Dashboard do
   end
 
   @doc """
-  Update the dashboard's variables with a new list.
+  Update the dashboard's variables
   """
   @spec update_variables(t(), [Variable.t()]) :: t()
   def update_variables(dashboard, new_variables) do
@@ -103,7 +104,7 @@ defmodule Luminous.Dashboard do
   def get_data(dashboard, panel_id), do: get_in(dashboard, [:data, panel_id])
 
   @doc """
-  Update the dashboard's current time range with a new one.
+  Update the dashboard's current time range
   """
   @spec update_current_time_range(t(), TimeRange.t()) :: t()
   def update_current_time_range(dashboard, time_range) do

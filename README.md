@@ -6,31 +6,45 @@
 Luminous is a framework for creating dashboards within [Phoenix Live
 View](https://www.phoenixframework.org/).
 
-Dashboards are defined using elixir code and consist of Panels which
-are responsible for visualizing the results of client-side
-Queries. Three different types of Panels are currently supported:
+Dashboards are defined by the client application (framework consumer)
+using elixir code and consist of Panels (`Luminous.Panel`) which are
+responsible for visualizing the results of multiple client-side
+queries (`Luminous.Query`).
 
-- `Panel.Chart` for visualizing 2-d data (including time series) using
-  the [chartjs](https://www.chartjs.org/) library (embedded in a JS hook)
-- `Panel.Stat` for displaying single or multiple numerical or other values
-- `Panel.Table` for displaying tabular data using the
-  [tabulator](https://tabulator.info/) JS library (embedded in a JS
-  hook)
+Three different types of Panels are currently offered out of the box
+by Luminous:
 
-Dashboards can be parameterized by a time range (using the
-[flatpickr](https://flatpickr.js.org/)) and by user-defined variables
-in the form of dropdown menus.
+- `Luminous.Panel.Chart` for visualizing 2-d data (including time
+  series) using the [chartjs](https://www.chartjs.org/) library
+  (embedded in a JS hook). Currently, only `:line` and `:bar`are
+  supported.
+- `Luminous.Panel.Stat` for displaying single or multiple numerical or
+  other values (e.g. strings)
+- `Luminous.Panel.Table` for displaying tabular data
+
+A client application can implement its own custom panels by
+implementing the `Luminous.Panel` behaviour.
+
+Dashboards are parameterized by:
+
+- a date range (using the [flatpickr](https://flatpickr.js.org/) library)
+- user-defined variables (`Luminous.Variable`) in the form of dropdown menus
+
+All panels are refreshed whenever at least one of these paramaters
+(date range, variables) change. The parameter values are available to
+client-side queries.
 
 ## Features
 
-- Time range selection and automatic refresh of all dashboard panel queries
-- Asynchronous queries and page updates
-- User-facing variable dropdowns whose selected values are available to panel queries
-- Client-side zoom in charts
-- Multiple supported chart types (currently `:line` and `:bar`)
-- Download panel data (CSV, PNG)
+- Date range selection and automatic asynchronous (i.e. non-blocking
+  for the UI) refresh of all dashboard panel queries
+- User-facing variable dropdowns (with single- or multi- selection)
+  whose selected values are available to panel queries
+- Client-side zoom in charts with automatic update of the entire
+  dashboard with the new date range
+- Panel data downloads depending on the panel type (CSV, PNG)
 - Stat panels (show single or multiple stats)
-- Table panels
+- Table panels using [tabulator](https://tabulator.info/)
 - Summary statistics in charts
 
 ## Installation
@@ -75,29 +89,107 @@ Finally, in `assets/css/app.css`:
 
 ## Usage
 
-A [demo dashboard](dev/demo_dashboard_live.ex) has been provided that
-showcases some of Luminous' capabilities.
+### Live View
 
-The demo can be inspected live using the project's dev server (run
-`mix dev` in the project and then visit [this
-page](http://localhost:5000/demo)).
+The dashboard live view is defined client-side like so:
 
-Luminous is a framework in the sense that the luminous client is
-responsible for specifying queries, variables etc. and `Luminous.Live`
-will call the client's code by setting up all the required plumbing.
+```elixir
+defmodule ClientApp.DashboardLive do
+  alias ClientApp.Router.Helpers, as: Routes
 
-In general, a custom client-side dashboard needs to:
+  use Luminous.Live,
+    title: "My Title",
+    path: &Routes.dashboard_path/3,
+    action: :index,
+    time_zone: "Europe/Paris",
+    panels: [
+      ...
+    ],
+    variables: [
+      ...
+    ]
 
-- implement the `Luminous.Variable` behaviour for the
-  dashboard-specific variables
-- implement the `Luminous.Query` behaviour for loading the necessary
-  data that will be visualized in the client
-- implement the `Luminous.Dashboard` behaviour for determining
-  the default time range for the dashboard and optionally injecting
-  parameters to `Luminous.Variable.variable/2` callbacks
-  (see `Luminous.Dashboard.parameters/1`)
-- `use` the `Luminous.Live` module to configure the `Luminous.Dashboard`
-- render the dashboard in the view template (only
-  `Luminous.Components.dashboard` is necessary but the layout can be
-  customized by using directly the various components in
-  `Luminous.Components`)
+  # we also need to implement the `Luminous.Dashboard` behaviour
+  @impl true
+  def default_time_range(tz), do: Luminous.TimeRange.today(tz)
+
+  # the dashboard can be rendered by leveraging the corresponding functionality
+  # from `Luminous.Components`
+  def render(assigns) do
+    ~H"""
+    <Luminous.Components.dashboard dashboard={@dashboard} />
+    """
+  end
+end
+```
+
+### Panels and Queries
+
+Client-side queries must be included in a module that implements the
+`Luminous.Query` behaviour:
+
+```elixir
+defmodule ClientApp.DashboardLive do
+
+  defmodule Queries do
+    @behaviour Luminous.Query
+    def query(:my_query, _time_range, _variables) do
+      [
+        [{:time, ~U[2022-08-19T10:00:00Z]}, {"foo", 10}, {"bar", 100}],
+        [{:time, ~U[2022-08-19T11:00:00Z]}, {"foo", 11}, {"bar", 101}]
+      ]
+    end
+  end
+
+  use Luminous.Live,
+    ...
+    panels: [
+      Panel.define!(
+        type: Luminous.Panel.Chart,
+        id: :simple_time_series,
+        title: "Simple Time Series",
+        queries: [
+          Query.define(:my_query, Queries)
+        ],
+        description: """
+        This will be rendered as a tooltip
+        when hovering over the panel's title
+        """
+      ),
+    ],
+    ...
+end
+```
+
+A panel may include multiple queries. When a panel is automatically
+refreshed, the execution flow is as follows:
+
+  - for each query:
+    - execute the user query callback
+    - execute the panel's `transform/2` callback with the query result output
+  - aggregate the transformed query results
+  - update the dashboard state variable with the panel's data
+    (possible server-side re-rendering)
+  - send a JS event to the browser (for panel hooks)
+
+The above flow needs to be understood when implementing custom
+panels. If the client application uses the panels provided by
+luminous, then the panel refresh flow is handled automatically and
+only `use Luminous.Live` with the appropriate options is necessary.
+
+### Variables
+
+Variables represent user-facing elements in the form of dropdowns in
+which the user can select single (variable type: `:single`) or
+multiple (variable type: `:multi`) values.
+
+Variable selections trigger the refresh of all panels in the
+dashboard. The state of all variables is available within the `query`
+callback that is implemented by the client application.
+
+### Demo
+
+Luminous provides a demo dashboard that showcases some of Luminous'
+capabilities. The demo dashboard can be inspected live using the
+project's development server (run `mix run` in the project and then
+visit [this page](http://localhost:5000)).

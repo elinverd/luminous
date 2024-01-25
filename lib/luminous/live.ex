@@ -1,7 +1,13 @@
 defmodule Luminous.Live do
   @moduledoc """
-  This module defines a macro that contains the functionality of a dashboard LiveView.
+  This module defines a macro that contains the functionality of a
+  dashboard LiveView. It needs to be used (`use Luminous.Live`)
+  inside a client application module with the appropriate options (as
+  specified in `Luminous.Dashboard.define!/1`).
+
+  More details and examples in the project README.
   """
+
   alias Luminous.{Dashboard, Panel, Utils}
 
   defmacro __using__(opts) do
@@ -22,7 +28,7 @@ defmodule Luminous.Live do
 
       require Logger
 
-      defp dashboard(), do: Dashboard.define!(unquote(opts))
+      defp __init_dashboard__(), do: Dashboard.define!(unquote(opts))
 
       @impl true
       def mount(_, _, socket) do
@@ -33,7 +39,7 @@ defmodule Luminous.Live do
             %{}
           end
 
-        dashboard = Dashboard.populate(dashboard(), params)
+        dashboard = Dashboard.populate(__init_dashboard__(), params)
 
         {:ok, assign(socket, dashboard: dashboard)}
       end

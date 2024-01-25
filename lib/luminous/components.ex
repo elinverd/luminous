@@ -1,6 +1,6 @@
 defmodule Luminous.Components do
   @moduledoc """
-  This module contains a set of components that can be used to create a dashboard.
+  Phoenix function components for visualizing a dashboard and its constituent components.
   """
 
   use Phoenix.Component
@@ -69,8 +69,8 @@ defmodule Luminous.Components do
   end
 
   @doc """
-  This component is responsible for rendering a Panel by rendering all the common panel elements
-  and then delegating the rendering to the concrete Panel
+  This component is responsible for rendering a `Panel` by rendering all the common panel elements
+  and then delegating the rendering to the concrete `Panel`
   """
   attr :panel, :map, required: true
   attr :dashboard, :map, required: true
@@ -108,12 +108,12 @@ defmodule Luminous.Components do
           <div
             id={"#{Utils.dom_id(@panel)}-actions"}
             class="absolute inline-block top-0 right-0"
-            phx-click-away={Utils.hide_dropdown("#{Utils.dom_id(@panel)}-actions-dropdown")}
+            phx-click-away={hide_dropdown("#{Utils.dom_id(@panel)}-actions-dropdown")}
           >
             <div
               tabindex="0"
               class="w-6 h-6 cursor-pointer focus:outline-none"
-              phx-click={Utils.show_dropdown("#{Utils.dom_id(@panel)}-actions-dropdown")}
+              phx-click={show_dropdown("#{Utils.dom_id(@panel)}-actions-dropdown")}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                 <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" />
@@ -126,7 +126,7 @@ defmodule Luminous.Components do
                     <div
                       class="lmn-panel-actions-dropdown-item-content"
                       phx-click={
-                        Utils.hide_dropdown("#{Utils.dom_id(@panel)}-actions-dropdown")
+                        hide_dropdown("#{Utils.dom_id(@panel)}-actions-dropdown")
                         |> JS.dispatch("panel:#{Utils.dom_id(@panel)}:#{event}",
                           to: "##{Utils.dom_id(@panel)}"
                         )
@@ -143,7 +143,7 @@ defmodule Luminous.Components do
 
         <div class="flex flex-row space-x-4">
           <div id={"#{Utils.dom_id(@panel)}-title"} class="text-xl font-medium">
-            <%= Utils.interpolate(@panel.title, @dashboard.variables) %>
+            <%= interpolate(@panel.title, @dashboard.variables) %>
           </div>
           <%= unless is_nil(@panel.description) do %>
             <div class="flex flex-col items-center lmn-has-tooltip">
@@ -185,7 +185,7 @@ defmodule Luminous.Components do
   end
 
   @doc """
-  This component is responsible for rendering the time range component.
+  This component is responsible for rendering the `Luminous.TimeRange` component.
   It consists of a date range picker and a presets dropdown.
   """
   attr :dashboard, :map, required: true
@@ -203,11 +203,8 @@ defmodule Luminous.Components do
           class="lmn-custom-time-range-input"
         />
         <!-- Presets button & dropdown -->
-        <div class="relative" phx-click-away={Utils.hide_dropdown("preset-dropdown")}>
-          <button
-            class="lmn-time-range-presets-button"
-            phx-click={Utils.show_dropdown("preset-dropdown")}
-          >
+        <div class="relative" phx-click-away={hide_dropdown("preset-dropdown")}>
+          <button class="lmn-time-range-presets-button" phx-click={show_dropdown("preset-dropdown")}>
             <svg
               class="lmn-time-range-presets-button-icon"
               id="chevron-down"
@@ -230,7 +227,7 @@ defmodule Luminous.Components do
                     class="lmn-time-range-presets-dropdown-item-content"
                     id={"time-range-preset-#{preset}"}
                     phx-click={
-                      Utils.hide_dropdown("preset-dropdown")
+                      hide_dropdown("preset-dropdown")
                       |> JS.push("lmn_preset_time_range_selected")
                     }
                     phx-value-preset={preset}
@@ -251,7 +248,7 @@ defmodule Luminous.Components do
   end
 
   @doc """
-  This component is responsible for rendering the dropdown of the assigned variable.
+  This component is responsible for rendering the dropdown of the assigned `Variable`.
   """
   attr :variable, :map, required: true
 
@@ -260,11 +257,11 @@ defmodule Luminous.Components do
     <div
       id={"#{@variable.id}-dropdown"}
       class="relative"
-      phx-click-away={Utils.hide_dropdown("#{@variable.id}-dropdown-content")}
+      phx-click-away={hide_dropdown("#{@variable.id}-dropdown-content")}
     >
       <button
         class="lmn-variable-button"
-        phx-click={Utils.show_dropdown("#{@variable.id}-dropdown-content")}
+        phx-click={show_dropdown("#{@variable.id}-dropdown-content")}
       >
         <div class="lmn-variable-button-label">
           <span class="lmn-variable-button-label-prefix"><%= "#{@variable.label}: " %></span><%= @variable.current.label %>
@@ -291,7 +288,7 @@ defmodule Luminous.Components do
                 id={"#{@variable.id}-#{value}"}
                 class="lmn-variable-dropdown-item-content"
                 phx-click={
-                  Utils.hide_dropdown("#{@variable.id}-dropdown-content")
+                  hide_dropdown("#{@variable.id}-dropdown-content")
                   |> JS.push("lmn_variable_updated")
                 }
                 phx-value-variable={"#{@variable.id}"}
@@ -314,14 +311,14 @@ defmodule Luminous.Components do
       class="relative"
       phx-hook="MultiSelectVariableHook"
       phx-click-away={
-        Utils.hide_dropdown("#{@variable.id}-dropdown-content")
+        hide_dropdown("#{@variable.id}-dropdown-content")
         |> JS.dispatch("clickAway", detail: %{"var_id" => @variable.id})
       }
     >
       <button
         class="lmn-variable-button"
         phx-click={
-          Utils.show_dropdown("#{@variable.id}-dropdown-content")
+          show_dropdown("#{@variable.id}-dropdown-content")
           |> JS.dispatch("dropdownOpen",
             detail: %{"values" => Variable.extract_value(@variable.current)}
           )
@@ -378,5 +375,29 @@ defmodule Luminous.Components do
       </div>
     </div>
     """
+  end
+
+  defp show_dropdown(dropdown_id) do
+    JS.show(
+      to: "##{dropdown_id}",
+      transition:
+        {"lmn-dropdown-transition-enter", "lmn-dropdown-transition-start",
+         "lmn-dropdown-transition-end"}
+    )
+  end
+
+  defp hide_dropdown(dropdown_id) do
+    JS.hide(to: "##{dropdown_id}")
+  end
+
+  # Interpolate all occurences of variable IDs in the format `$variable.id` in the string
+  # with the variable's descriptive value label. For example, the string: "Energy for asset $asset_var"
+  # will be replaced by the label of the variable with id `:asset_var` in variables.
+  defp interpolate(nil, _), do: ""
+
+  defp interpolate(string, variables) do
+    Enum.reduce(variables, string, fn var, title ->
+      String.replace(title, "$#{var.id}", "#{Variable.get_current_label(var)}")
+    end)
   end
 end

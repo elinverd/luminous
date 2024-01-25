@@ -1,26 +1,24 @@
 defmodule Luminous.Dev.DashboardLive do
-  @moduledoc """
-  This module demonstrates the functionality of a dashboard using `Luminous.Live`.
-  """
+  @moduledoc false
+  # This module demonstrates the functionality of a dashboard using `Luminous.Live`.
 
   alias Luminous.Dev.Router.Helpers, as: Routes
   alias Luminous.{Variable, Query, TimeRange, Components}
 
   defmodule Variables do
-    @moduledoc """
-    This is where we implement the `Luminous.Variable` behaviour, i.e. define
-    the dashboard's variables displayed as dropdowns in the view
+    @moduledoc false
+    # This is where we implement the `Luminous.Variable` behaviour, i.e. define
+    # the dashboard's variables displayed as dropdowns in the view
 
-    The first value in each list is the default one.
+    # The first value in each list is the default one.
 
-    Values can be either simple (a single binary) or descriptive
-    (label different than the value).
+    # Values can be either simple (a single binary) or descriptive
+    # (label different than the value).
 
-    Variables values are available within queries where they can serve
-    as parameters.
+    # Variables values are available within queries where they can serve
+    # as parameters.
 
-    More details in `Luminous.Variable`.
-    """
+    # More details in `Luminous.Variable`.
 
     @behaviour Variable
     @impl true
@@ -37,16 +35,15 @@ defmodule Luminous.Dev.DashboardLive do
   end
 
   defmodule Queries do
-    @moduledoc """
-    This is where we implement the `Luminous.Query` behaviour, i.e. all queries
-    that will be visualized in the dashboard's panels (a panel can
-    have multiple queries).
+    @moduledoc false
+    # This is where we implement the `Luminous.Query` behaviour, i.e. all queries
+    # that will be visualized in the dashboard's panels (a panel can
+    # have multiple queries).
 
-    All queries have access to the current dashboard variable values
-    and the selected time range.
+    # All queries have access to the current dashboard variable values
+    # and the selected time range.
 
-    More details in `Luminous.Query`.
-    """
+    # More details in `Luminous.Query`.
 
     @behaviour Query
     @impl true

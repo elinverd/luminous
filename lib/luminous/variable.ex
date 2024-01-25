@@ -1,13 +1,22 @@
 defmodule Luminous.Variable do
   @moduledoc """
-  A variable is defined at compile time and its values are determined at runtime.
-  It also stores a current value that can be updated. A variable value is
-  descriptive in that it contains a label (for display purposes) and the actual value.
+  A variable is defined inside a Dashboard and its values are
+  determined at runtime. The variable also stores a current value
+  that can be updated. A variable value can be simple (just a value)
+  or descriptive in that it contains a label (for display purposes)
+  and the actual value.
+
+  Variables are visualized as dropdowns in the dashboard view.
+
+  There are two Variable types:
+  - `single`: only one value can be selected by the user (default type)
+  - `multi`: multiple values can be selected by the user
+
   """
   alias Luminous.Attributes
 
   @doc """
-  A module must implement this behaviour to be passed as an argument to `define/3`.
+  A module must implement this behaviour to be passed as an argument to `define!/1`.
   """
   @callback variable(atom(), map()) :: [simple_value() | descriptive_value()]
 
@@ -45,8 +54,10 @@ defmodule Luminous.Variable do
   def find(variables, id), do: Enum.find(variables, fn v -> v.id == id end)
 
   @doc """
-  Uses the query to populate the variables's values and returns the new struct.
-  Additionally, it sets the current value to be the first of the calculated values.
+  Uses the callback to populate the variables's values and returns the
+  updated variable. Additionally, it sets the current value to be the
+  first of the available values in the case of a single variable or
+  all of the available values in the case of a multi variable.
   """
   @spec populate(t(), map()) :: t()
   def populate(var, params) do
@@ -72,7 +83,7 @@ defmodule Luminous.Variable do
   end
 
   @doc """
-  Returns the variable's current (descriptive) value or `nil`.
+  Returns the variable's current (descriptive) value(s) or `nil`.
   """
   @spec get_current(t()) :: descriptive_value() | [descriptive_value()] | nil
   def get_current(nil), do: nil
@@ -109,7 +120,7 @@ defmodule Luminous.Variable do
   end
 
   @doc """
-  Extract and returns the value from the descriptive variable value.
+  Extract and return the value from the descriptive variable value.
   """
   @spec extract_value(descriptive_value()) :: binary() | [binary()] | nil
   def extract_value(nil), do: nil

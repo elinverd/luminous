@@ -9,7 +9,7 @@ defmodule Luminous.Query do
   @type result :: any()
 
   @doc """
-  A module must implement this behaviour to be passed as an argument to `Luminous.Query.define/2`.
+  A module must implement this behaviour to be passed as an argument to `define/2`.
   A query must return a list of 2-tuples:
     - the 2-tuple's first element is the time series' label
     - the 2-tuple's second element is the label's value

@@ -1,7 +1,7 @@
 defmodule Luminous.Attributes do
   @moduledoc """
   Attributes map variable values (user-defined) to attribute keyword lists.
-  They are created by parsing and validating a NimbleOptions schema (see parse/2).
+  They are created by parsing and validating a `NimbleOptions` schema (see `parse/2`).
   """
   @type t :: map()
 
@@ -9,6 +9,7 @@ defmodule Luminous.Attributes do
     @moduledoc """
     Attribute schemas that are common across all instances of their type.
     """
+
     alias Luminous.Query
 
     @type t :: NimbleOptions.schema()
@@ -43,7 +44,6 @@ defmodule Luminous.Attributes do
 
   @doc """
   Parse the supplied keyword list using the specified schema (performs validations as well)
-  Return a map
   """
   @spec parse(keyword(), Schema.t()) :: {:ok, t()} | {:error, binary()}
   def parse(opts, schema) do
@@ -54,8 +54,7 @@ defmodule Luminous.Attributes do
   end
 
   @doc """
-  parse the supplied keyword list using the specified schema (performs validations as well)
-  return a map or raise on error
+  Parse the supplied keyword list using the specified schema (performs validations as well). Raises on error.
   """
   @spec parse!(keyword(), Schema.t()) :: map()
   def parse!(opts, schema) do

@@ -1,6 +1,6 @@
 defmodule Luminous.TimeRangeSelector do
   @moduledoc """
-  A selector represents the widget in the dashboard that allows
+  A selector supports the widget in the dashboard that allows
   for selecting a time range/period.
   It can also be updated with a new value.
   """
