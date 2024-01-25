@@ -14,7 +14,7 @@ config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
 
 # CSS
 config :tailwind,
-  version: "3.2.3",
+  version: "3.2.7",
   default: [
     args: ~w(
       --config=tailwind.config.js
@@ -34,7 +34,7 @@ config :tailwind,
 
 # JS
 config :esbuild,
-  version: "0.12.18",
+  version: "0.17.11",
   default: [
     args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
     cd: Path.expand("../assets", __DIR__),

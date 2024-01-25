@@ -47,13 +47,13 @@ defmodule Luminous.MixProject do
       {:decimal, "~> 2.0"},
       {:jason, "~> 1.2"},
       {:nimble_options, "~> 1.0"},
-      {:phoenix_live_view, ">= 0.18.0"},
+      {:phoenix_live_view, ">= 0.20.2"},
       {:phoenix_view, "~> 2.0"},
       {:tzdata, "~> 1.1"},
 
       # dev & test dependencies
-      {:tailwind, "~> 0.1.9", only: [:dev, :test]},
-      {:esbuild, "~> 0.5", only: [:dev, :test]},
+      {:tailwind, "~> 0.2", only: [:dev, :test]},
+      {:esbuild, "~> 0.8", only: [:dev, :test]},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:plug_cowboy, "~> 2.0", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
@@ -66,6 +66,7 @@ defmodule Luminous.MixProject do
     [
       setup: ["deps.get", "cmd --cd assets npm install"],
       run: "run --no-halt env/run.exs",
+      install: ["tailwind.install", "esbuild.install"],
       "assets.build": ["tailwind dist", "esbuild dist"]
     ]
   end

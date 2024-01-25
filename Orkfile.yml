@@ -5,6 +5,7 @@ tasks:
   - name: deps
     description: fetch all dependencies
     actions:
+      - mix install
       - mix deps.get
       - npm install --prefix ./assets
 

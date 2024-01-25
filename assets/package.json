@@ -13,11 +13,11 @@
     ".": "./js/app.js"
   },
   "devDependencies": {
-    "chart.js": "^3.3.0",
-    "chartjs-adapter-luxon": "^1.2.0",
-    "chartjs-plugin-zoom": "^1.2.1",
-    "flatpickr": "^4.6.9",
-    "luxon": "^3.0.3",
-    "tabulator-tables": "^5.4.3"
+    "chart.js": "^3.9.1",
+    "chartjs-adapter-luxon": "^1.3.1",
+    "chartjs-plugin-zoom": "^2.0.1",
+    "flatpickr": "^4.6.13",
+    "luxon": "^3.4.4",
+    "tabulator-tables": "^5.5.3"
   }
 }

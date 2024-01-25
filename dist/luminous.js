@@ -21,7 +21,6 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __objRest = (source, exclude) => {
   var target = {};
   for (var prop in source)
@@ -35,24 +34,29 @@ var __objRest = (source, exclude) => {
   return target;
 };
 var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[Object.keys(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
 var __export = (target, all) => {
-  __markAsModule(target);
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
-var __reExport = (target, module2, desc) => {
-  if (module2 && typeof module2 === "object" || typeof module2 === "function") {
-    for (let key of __getOwnPropNames(module2))
-      if (!__hasOwnProp.call(target, key) && key !== "default")
-        __defProp(target, key, { get: () => module2[key], enumerable: !(desc = __getOwnPropDesc(module2, key)) || desc.enumerable });
+var __copyProps = (to2, from2, except, desc) => {
+  if (from2 && typeof from2 === "object" || typeof from2 === "function") {
+    for (let key of __getOwnPropNames(from2))
+      if (!__hasOwnProp.call(to2, key) && key !== except)
+        __defProp(to2, key, { get: () => from2[key], enumerable: !(desc = __getOwnPropDesc(from2, key)) || desc.enumerable });
   }
-  return target;
+  return to2;
 };
-var __toModule = (module2) => {
-  return __reExport(__markAsModule(__defProp(module2 != null ? __create(__getProtoOf(module2)) : {}, "default", module2 && module2.__esModule && "default" in module2 ? { get: () => module2.default, enumerable: true } : { value: module2, enumerable: true })), module2);
-};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // node_modules/hammerjs/hammer.js
 var require_hammer = __commonJS({
@@ -289,13 +293,23 @@ var require_hammer = __commonJS({
         this.init();
       }
       Input.prototype = {
+        /**
+         * should handle the inputEvent data and trigger the callback
+         * @virtual
+         */
         handler: function() {
         },
+        /**
+         * bind the events
+         */
         init: function() {
           this.evEl && addEventListeners(this.element, this.evEl, this.domHandler);
           this.evTarget && addEventListeners(this.target, this.evTarget, this.domHandler);
           this.evWin && addEventListeners(getWindowForElement(this.element), this.evWin, this.domHandler);
         },
+        /**
+         * unbind the events
+         */
         destroy: function() {
           this.evEl && removeEventListeners(this.element, this.evEl, this.domHandler);
           this.evTarget && removeEventListeners(this.target, this.evTarget, this.domHandler);
@@ -496,6 +510,10 @@ var require_hammer = __commonJS({
         Input.apply(this, arguments);
       }
       inherit(MouseInput, Input, {
+        /**
+         * handle mouse events
+         * @param {Object} ev
+         */
         handler: function MEhandler(ev) {
           var eventType = MOUSE_INPUT_MAP[ev.type];
           if (eventType & INPUT_START && ev.button === 0) {
@@ -530,6 +548,7 @@ var require_hammer = __commonJS({
         3: INPUT_TYPE_PEN,
         4: INPUT_TYPE_MOUSE,
         5: INPUT_TYPE_KINECT
+        // see https://twitter.com/jacobrossi/status/480596438489890816
       };
       var POINTER_ELEMENT_EVENTS = "pointerdown";
       var POINTER_WINDOW_EVENTS = "pointermove pointerup pointercancel";
@@ -544,6 +563,10 @@ var require_hammer = __commonJS({
         this.store = this.manager.session.pointerEvents = [];
       }
       inherit(PointerEventInput, Input, {
+        /**
+         * handle mouse events
+         * @param {Object} ev
+         */
         handler: function PEhandler(ev) {
           var store = this.store;
           var removePointer = false;
@@ -677,6 +700,7 @@ var require_hammer = __commonJS({
           return;
         }
         return [
+          // merge targetTouches with changedTargetTouches so it contains ALL touches, including 'end' and 'cancel'
           uniqueArray(targetTouches.concat(changedTargetTouches), "identifier", true),
           changedTargetTouches
         ];
@@ -692,6 +716,12 @@ var require_hammer = __commonJS({
         this.lastTouches = [];
       }
       inherit(TouchMouseInput, Input, {
+        /**
+         * handle mouse and touch events
+         * @param {Hammer} manager
+         * @param {String} inputEvent
+         * @param {Object} inputData
+         */
         handler: function TMEhandler(manager, inputEvent, inputData) {
           var isTouch = inputData.pointerType == INPUT_TYPE_TOUCH, isMouse = inputData.pointerType == INPUT_TYPE_MOUSE;
           if (isMouse && inputData.sourceCapabilities && inputData.sourceCapabilities.firesTouchEvents) {
@@ -704,6 +734,9 @@ var require_hammer = __commonJS({
           }
           this.callback(manager, inputEvent, inputData);
         },
+        /**
+         * remove the event listeners
+         */
         destroy: function destroy() {
           this.touch.destroy();
           this.mouse.destroy();
@@ -757,6 +790,10 @@ var require_hammer = __commonJS({
         this.set(value);
       }
       TouchAction.prototype = {
+        /**
+         * set the touchAction value on the element or enable the polyfill
+         * @param {String} value
+         */
         set: function(value) {
           if (value == TOUCH_ACTION_COMPUTE) {
             value = this.compute();
@@ -766,9 +803,16 @@ var require_hammer = __commonJS({
           }
           this.actions = value.toLowerCase().trim();
         },
+        /**
+         * just re-set the touchAction value
+         */
         update: function() {
           this.set(this.manager.options.touchAction);
         },
+        /**
+         * compute the value for the touchAction property based on the recognizer's settings
+         * @returns {String} value
+         */
         compute: function() {
           var actions = [];
           each2(this.manager.recognizers, function(recognizer) {
@@ -778,6 +822,10 @@ var require_hammer = __commonJS({
           });
           return cleanTouchActions(actions.join(" "));
         },
+        /**
+         * this method is called on each input cycle and provides the preventing of the browser behavior
+         * @param {Object} input
+         */
         preventDefaults: function(input2) {
           var srcEvent = input2.srcEvent;
           var direction = input2.offsetDirection;
@@ -804,6 +852,10 @@ var require_hammer = __commonJS({
             return this.preventSrc(srcEvent);
           }
         },
+        /**
+         * call preventDefault to prevent the browser's default behavior (scrolling in most cases)
+         * @param {Object} srcEvent
+         */
         preventSrc: function(srcEvent) {
           this.manager.session.prevented = true;
           srcEvent.preventDefault();
@@ -854,12 +906,26 @@ var require_hammer = __commonJS({
         this.requireFail = [];
       }
       Recognizer.prototype = {
+        /**
+         * @virtual
+         * @type {Object}
+         */
         defaults: {},
+        /**
+         * set options
+         * @param {Object} options
+         * @return {Recognizer}
+         */
         set: function(options) {
           assign(this.options, options);
           this.manager && this.manager.touchAction.update();
           return this;
         },
+        /**
+         * recognize simultaneous with an other recognizer.
+         * @param {Recognizer} otherRecognizer
+         * @returns {Recognizer} this
+         */
         recognizeWith: function(otherRecognizer) {
           if (invokeArrayArg(otherRecognizer, "recognizeWith", this)) {
             return this;
@@ -872,6 +938,11 @@ var require_hammer = __commonJS({
           }
           return this;
         },
+        /**
+         * drop the simultaneous link. it doesnt remove the link on the other recognizer.
+         * @param {Recognizer} otherRecognizer
+         * @returns {Recognizer} this
+         */
         dropRecognizeWith: function(otherRecognizer) {
           if (invokeArrayArg(otherRecognizer, "dropRecognizeWith", this)) {
             return this;
@@ -880,6 +951,11 @@ var require_hammer = __commonJS({
           delete this.simultaneous[otherRecognizer.id];
           return this;
         },
+        /**
+         * recognizer can only run when an other is failing
+         * @param {Recognizer} otherRecognizer
+         * @returns {Recognizer} this
+         */
         requireFailure: function(otherRecognizer) {
           if (invokeArrayArg(otherRecognizer, "requireFailure", this)) {
             return this;
@@ -892,6 +968,11 @@ var require_hammer = __commonJS({
           }
           return this;
         },
+        /**
+         * drop the requireFailure link. it does not remove the link on the other recognizer.
+         * @param {Recognizer} otherRecognizer
+         * @returns {Recognizer} this
+         */
         dropRequireFailure: function(otherRecognizer) {
           if (invokeArrayArg(otherRecognizer, "dropRequireFailure", this)) {
             return this;
@@ -903,12 +984,26 @@ var require_hammer = __commonJS({
           }
           return this;
         },
+        /**
+         * has require failures boolean
+         * @returns {boolean}
+         */
         hasRequireFailures: function() {
           return this.requireFail.length > 0;
         },
+        /**
+         * if the recognizer can recognize simultaneous with an other recognizer
+         * @param {Recognizer} otherRecognizer
+         * @returns {Boolean}
+         */
         canRecognizeWith: function(otherRecognizer) {
           return !!this.simultaneous[otherRecognizer.id];
         },
+        /**
+         * You should use `tryEmit` instead of `emit` directly to check
+         * that all the needed recognizers has failed before emitting.
+         * @param {Object} input
+         */
         emit: function(input2) {
           var self2 = this;
           var state = this.state;
@@ -926,12 +1021,22 @@ var require_hammer = __commonJS({
             emit(self2.options.event + stateStr(state));
           }
         },
+        /**
+         * Check that all the require failure recognizers has failed,
+         * if true, it emits a gesture event,
+         * otherwise, setup the state to FAILED.
+         * @param {Object} input
+         */
         tryEmit: function(input2) {
           if (this.canEmit()) {
             return this.emit(input2);
           }
           this.state = STATE_FAILED;
         },
+        /**
+         * can we emit?
+         * @returns {boolean}
+         */
         canEmit: function() {
           var i2 = 0;
           while (i2 < this.requireFail.length) {
@@ -942,6 +1047,10 @@ var require_hammer = __commonJS({
           }
           return true;
         },
+        /**
+         * update the recognizer
+         * @param {Object} inputData
+         */
         recognize: function(inputData) {
           var inputDataClone = assign({}, inputData);
           if (!boolOrFn(this.options.enable, [this, inputDataClone])) {
@@ -957,10 +1066,28 @@ var require_hammer = __commonJS({
             this.tryEmit(inputDataClone);
           }
         },
+        /**
+         * return the state of the recognizer
+         * the actual recognizing happens in this method
+         * @virtual
+         * @param {Object} inputData
+         * @returns {Const} STATE
+         */
         process: function(inputData) {
         },
+        // jshint ignore:line
+        /**
+         * return the preferred touch-action
+         * @virtual
+         * @returns {Array}
+         */
         getTouchAction: function() {
         },
+        /**
+         * called when the gesture isn't allowed to recognize
+         * like when another is being recognized or it is disabled
+         * @virtual
+         */
         reset: function() {
         }
       };
@@ -999,13 +1126,33 @@ var require_hammer = __commonJS({
         Recognizer.apply(this, arguments);
       }
       inherit(AttrRecognizer, Recognizer, {
+        /**
+         * @namespace
+         * @memberof AttrRecognizer
+         */
         defaults: {
+          /**
+           * @type {Number}
+           * @default 1
+           */
           pointers: 1
         },
+        /**
+         * Used to check if it the recognizer receives valid input, like input.distance > 10.
+         * @memberof AttrRecognizer
+         * @param {Object} input
+         * @returns {Boolean} recognized
+         */
         attrTest: function(input2) {
           var optionPointers = this.options.pointers;
           return optionPointers === 0 || input2.pointers.length === optionPointers;
         },
+        /**
+         * Process the input and return the state for the recognizer
+         * @memberof AttrRecognizer
+         * @param {Object} input
+         * @returns {*} State
+         */
         process: function(input2) {
           var state = this.state;
           var eventType = input2.eventType;
@@ -1030,6 +1177,10 @@ var require_hammer = __commonJS({
         this.pY = null;
       }
       inherit(PanRecognizer, AttrRecognizer, {
+        /**
+         * @namespace
+         * @memberof PanRecognizer
+         */
         defaults: {
           event: "pan",
           threshold: 10,
@@ -1085,6 +1236,10 @@ var require_hammer = __commonJS({
         AttrRecognizer.apply(this, arguments);
       }
       inherit(PinchRecognizer, AttrRecognizer, {
+        /**
+         * @namespace
+         * @memberof PinchRecognizer
+         */
         defaults: {
           event: "pinch",
           threshold: 0,
@@ -1110,11 +1265,17 @@ var require_hammer = __commonJS({
         this._input = null;
       }
       inherit(PressRecognizer, Recognizer, {
+        /**
+         * @namespace
+         * @memberof PressRecognizer
+         */
         defaults: {
           event: "press",
           pointers: 1,
           time: 251,
+          // minimal time of the pointer to be pressed
           threshold: 9
+          // a minimal movement is ok, but keep it low
         },
         getTouchAction: function() {
           return [TOUCH_ACTION_AUTO];
@@ -1157,6 +1318,10 @@ var require_hammer = __commonJS({
         AttrRecognizer.apply(this, arguments);
       }
       inherit(RotateRecognizer, AttrRecognizer, {
+        /**
+         * @namespace
+         * @memberof RotateRecognizer
+         */
         defaults: {
           event: "rotate",
           threshold: 0,
@@ -1173,6 +1338,10 @@ var require_hammer = __commonJS({
         AttrRecognizer.apply(this, arguments);
       }
       inherit(SwipeRecognizer, AttrRecognizer, {
+        /**
+         * @namespace
+         * @memberof SwipeRecognizer
+         */
         defaults: {
           event: "swipe",
           threshold: 10,
@@ -1212,14 +1381,22 @@ var require_hammer = __commonJS({
         this.count = 0;
       }
       inherit(TapRecognizer, Recognizer, {
+        /**
+         * @namespace
+         * @memberof PinchRecognizer
+         */
         defaults: {
           event: "tap",
           pointers: 1,
           taps: 1,
           interval: 300,
+          // max time between the multi-tap taps
           time: 250,
+          // max time of the pointer to be down (like finger on the screen)
           threshold: 9,
+          // a minimal movement is ok, but keep it low
           posThreshold: 10
+          // a multi-tap can be a bit off the initial position
         },
         getTouchAction: function() {
           return [TOUCH_ACTION_MANIPULATION];
@@ -1285,12 +1462,46 @@ var require_hammer = __commonJS({
       }
       Hammer2.VERSION = "2.0.7";
       Hammer2.defaults = {
+        /**
+         * set if DOM events are being triggered.
+         * But this is slower and unused by simple implementations, so disabled by default.
+         * @type {Boolean}
+         * @default false
+         */
         domEvents: false,
+        /**
+         * The value for the touchAction property/fallback.
+         * When set to `compute` it will magically set the correct value based on the added recognizers.
+         * @type {String}
+         * @default compute
+         */
         touchAction: TOUCH_ACTION_COMPUTE,
+        /**
+         * @type {Boolean}
+         * @default true
+         */
         enable: true,
+        /**
+         * EXPERIMENTAL FEATURE -- can be removed/changed
+         * Change the parent input target element.
+         * If Null, then it is being set the to main element.
+         * @type {Null|EventTarget}
+         * @default null
+         */
         inputTarget: null,
+        /**
+         * force an input class
+         * @type {Null|Function}
+         * @default null
+         */
         inputClass: null,
+        /**
+         * Default recognizer setup when calling `Hammer()`
+         * When creating a new Manager these will be skipped.
+         * @type {Array}
+         */
         preset: [
+          // RecognizerClass, options, [recognizeWith, ...], [requireFailure, ...]
           [RotateRecognizer, { enable: false }],
           [PinchRecognizer, { enable: false }, ["rotate"]],
           [SwipeRecognizer, { direction: DIRECTION_HORIZONTAL }],
@@ -1299,12 +1510,50 @@ var require_hammer = __commonJS({
           [TapRecognizer, { event: "doubletap", taps: 2 }, ["tap"]],
           [PressRecognizer]
         ],
+        /**
+         * Some CSS properties can be used to improve the working of Hammer.
+         * Add them to this method and they will be set when creating a new Manager.
+         * @namespace
+         */
         cssProps: {
+          /**
+           * Disables text selection to improve the dragging gesture. Mainly for desktop browsers.
+           * @type {String}
+           * @default 'none'
+           */
           userSelect: "none",
+          /**
+           * Disable the Windows Phone grippers when pressing an element.
+           * @type {String}
+           * @default 'none'
+           */
           touchSelect: "none",
+          /**
+           * Disables the default callout shown when you touch and hold a touch target.
+           * On iOS, when you touch and hold a touch target such as a link, Safari displays
+           * a callout containing information about the link. This property allows you to disable that callout.
+           * @type {String}
+           * @default 'none'
+           */
           touchCallout: "none",
+          /**
+           * Specifies whether zooming is enabled. Used by IE10>
+           * @type {String}
+           * @default 'none'
+           */
           contentZooming: "none",
+          /**
+           * Specifies that an entire element should be draggable instead of its contents. Mainly for desktop browsers.
+           * @type {String}
+           * @default 'none'
+           */
           userDrag: "none",
+          /**
+           * Overrides the highlight color shown when the user taps a link or a JavaScript
+           * clickable element in iOS. This property obeys the alpha value, if specified.
+           * @type {String}
+           * @default 'rgba(0,0,0,0)'
+           */
           tapHighlightColor: "rgba(0,0,0,0)"
         }
       };
@@ -1328,6 +1577,11 @@ var require_hammer = __commonJS({
         }, this);
       }
       Manager.prototype = {
+        /**
+         * set options
+         * @param {Object} options
+         * @returns {Manager}
+         */
         set: function(options) {
           assign(this.options, options);
           if (options.touchAction) {
@@ -1340,9 +1594,21 @@ var require_hammer = __commonJS({
           }
           return this;
         },
+        /**
+         * stop recognizing for this session.
+         * This session will be discarded, when a new [input]start event is fired.
+         * When forced, the recognizer cycle is stopped immediately.
+         * @param {Boolean} [force]
+         */
         stop: function(force) {
           this.session.stopped = force ? FORCED_STOP : STOP;
         },
+        /**
+         * run the recognizers!
+         * called by the inputHandler function on every movement of the pointers (touches)
+         * it walks through all the recognizers and tries to detect the gesture that is being made
+         * @param {Object} inputData
+         */
         recognize: function(inputData) {
           var session = this.session;
           if (session.stopped) {
@@ -1358,7 +1624,9 @@ var require_hammer = __commonJS({
           var i2 = 0;
           while (i2 < recognizers.length) {
             recognizer = recognizers[i2];
-            if (session.stopped !== FORCED_STOP && (!curRecognizer || recognizer == curRecognizer || recognizer.canRecognizeWith(curRecognizer))) {
+            if (session.stopped !== FORCED_STOP && // 1
+            (!curRecognizer || recognizer == curRecognizer || // 2
+            recognizer.canRecognizeWith(curRecognizer))) {
               recognizer.recognize(inputData);
             } else {
               recognizer.reset();
@@ -1369,6 +1637,11 @@ var require_hammer = __commonJS({
             i2++;
           }
         },
+        /**
+         * get a recognizer by its event name.
+         * @param {Recognizer|String} recognizer
+         * @returns {Recognizer|Null}
+         */
         get: function(recognizer) {
           if (recognizer instanceof Recognizer) {
             return recognizer;
@@ -1381,6 +1654,12 @@ var require_hammer = __commonJS({
           }
           return null;
         },
+        /**
+         * add a recognizer to the manager
+         * existing recognizers with the same event name will be removed
+         * @param {Recognizer} recognizer
+         * @returns {Recognizer|Manager}
+         */
         add: function(recognizer) {
           if (invokeArrayArg(recognizer, "add", this)) {
             return this;
@@ -1394,6 +1673,11 @@ var require_hammer = __commonJS({
           this.touchAction.update();
           return recognizer;
         },
+        /**
+         * remove a recognizer by name or instance
+         * @param {Recognizer|String} recognizer
+         * @returns {Manager}
+         */
         remove: function(recognizer) {
           if (invokeArrayArg(recognizer, "remove", this)) {
             return this;
@@ -1409,6 +1693,12 @@ var require_hammer = __commonJS({
           }
           return this;
         },
+        /**
+         * bind event
+         * @param {String} events
+         * @param {Function} handler
+         * @returns {EventEmitter} this
+         */
         on: function(events, handler) {
           if (events === undefined2) {
             return;
@@ -1423,6 +1713,12 @@ var require_hammer = __commonJS({
           });
           return this;
         },
+        /**
+         * unbind event, leave emit blank to remove all handlers
+         * @param {String} events
+         * @param {Function} [handler]
+         * @returns {EventEmitter} this
+         */
         off: function(events, handler) {
           if (events === undefined2) {
             return;
@@ -1437,6 +1733,11 @@ var require_hammer = __commonJS({
           });
           return this;
         },
+        /**
+         * emit event to the listeners
+         * @param {String} event
+         * @param {Object} data
+         */
         emit: function(event, data) {
           if (this.options.domEvents) {
             triggerDomEvent(event, data);
@@ -1455,6 +1756,10 @@ var require_hammer = __commonJS({
             i2++;
           }
         },
+        /**
+         * destroy the manager and unbinds all events
+         * it doesn't unbind dom events, that is the user own responsibility
+         */
         destroy: function() {
           this.element && toggleCssProps(this, false);
           this.handlers = {};
@@ -1550,11 +1855,13 @@ var require_hammer = __commonJS({
 });
 
 // js/luminous.js
-__export(exports, {
+var luminous_exports = {};
+__export(luminous_exports, {
   ChartJSHook: () => chartjs_hook_default,
   TableHook: () => table_hook_default,
   TimeRangeHook: () => time_range_hook_default
 });
+module.exports = __toCommonJS(luminous_exports);
 
 // node_modules/chart.js/dist/chunks/helpers.segment.mjs
 function noop() {
@@ -1635,7 +1942,7 @@ function clone$1(source) {
     return source.map(clone$1);
   }
   if (isObject(source)) {
-    const target = Object.create(null);
+    const target = /* @__PURE__ */ Object.create(null);
     const keys = Object.keys(source);
     const klen = keys.length;
     let k = 0;
@@ -1942,7 +2249,7 @@ function unlistenArrayEvents(array2, listener) {
   delete array2._chartjs;
 }
 function _arrayUnique(items) {
-  const set2 = new Set();
+  const set2 = /* @__PURE__ */ new Set();
   let i2, ilen;
   for (i2 = 0, ilen = items.length; i2 < ilen; ++i2) {
     set2.add(items[i2]);
@@ -2002,10 +2309,24 @@ function _getStartAndCountOfVisiblePoints(meta, points, animationsDisabled) {
     const axis = iScale.axis;
     const { min, max, minDefined, maxDefined } = iScale.getUserBounds();
     if (minDefined) {
-      start = _limitValue(Math.min(_lookupByKey(_parsed, iScale.axis, min).lo, animationsDisabled ? pointCount : _lookupByKey(points, axis, iScale.getPixelForValue(min)).lo), 0, pointCount - 1);
+      start = _limitValue(
+        Math.min(
+          _lookupByKey(_parsed, iScale.axis, min).lo,
+          animationsDisabled ? pointCount : _lookupByKey(points, axis, iScale.getPixelForValue(min)).lo
+        ),
+        0,
+        pointCount - 1
+      );
     }
     if (maxDefined) {
-      count = _limitValue(Math.max(_lookupByKey(_parsed, iScale.axis, max, true).hi + 1, animationsDisabled ? 0 : _lookupByKey(points, axis, iScale.getPixelForValue(max), true).hi + 1), start, pointCount) - start;
+      count = _limitValue(
+        Math.max(
+          _lookupByKey(_parsed, iScale.axis, max, true).hi + 1,
+          animationsDisabled ? 0 : _lookupByKey(points, axis, iScale.getPixelForValue(max), true).hi + 1
+        ),
+        start,
+        pointCount
+      ) - start;
     } else {
       count = pointCount - start;
     }
@@ -2664,8 +2985,8 @@ function color(value) {
 function getHoverColor(value) {
   return isPatternOrGradient(value) ? value : index_esm(value).saturate(0.5).darken(0.1).hexString();
 }
-var overrides = Object.create(null);
-var descriptors = Object.create(null);
+var overrides = /* @__PURE__ */ Object.create(null);
+var descriptors = /* @__PURE__ */ Object.create(null);
 function getScope$1(node, key) {
   if (!key) {
     return node;
@@ -2673,7 +2994,7 @@ function getScope$1(node, key) {
   const keys = key.split(".");
   for (let i2 = 0, n3 = keys.length; i2 < n3; ++i2) {
     const k = keys[i2];
-    node = node[k] || (node[k] = Object.create(null));
+    node = node[k] || (node[k] = /* @__PURE__ */ Object.create(null));
   }
   return node;
 }
@@ -2985,7 +3306,14 @@ function _bezierCurveTo(ctx, previous, target, flip) {
   if (!previous) {
     return ctx.lineTo(target.x, target.y);
   }
-  ctx.bezierCurveTo(flip ? previous.cp1x : previous.cp2x, flip ? previous.cp1y : previous.cp2y, flip ? target.cp2x : target.cp1x, flip ? target.cp2y : target.cp1y, target.x, target.y);
+  ctx.bezierCurveTo(
+    flip ? previous.cp1x : previous.cp2x,
+    flip ? previous.cp1y : previous.cp2y,
+    flip ? target.cp2x : target.cp1x,
+    flip ? target.cp2y : target.cp1y,
+    target.x,
+    target.y
+  );
 }
 function renderText(ctx, text, x, y, font, opts = {}) {
   const lines = isArray(text) ? text : [text];
@@ -3175,7 +3503,11 @@ function _createResolver(scopes, prefixes = [""], rootScopes = scopes, fallback,
       return true;
     },
     get(target, prop) {
-      return _cached(target, prop, () => _resolveWithPrefixes(prop, prefixes, scopes, target));
+      return _cached(
+        target,
+        prop,
+        () => _resolveWithPrefixes(prop, prefixes, scopes, target)
+      );
     },
     getOwnPropertyDescriptor(target, prop) {
       return Reflect.getOwnPropertyDescriptor(target._scopes[0], prop);
@@ -3203,7 +3535,7 @@ function _attachContext(proxy, context, subProxy, descriptorDefaults) {
     _proxy: proxy,
     _context: context,
     _subProxy: subProxy,
-    _stack: new Set(),
+    _stack: /* @__PURE__ */ new Set(),
     _descriptors: _descriptors(proxy, descriptorDefaults),
     setContext: (ctx) => _attachContext(proxy, ctx, subProxy, descriptorDefaults),
     override: (scope) => _attachContext(proxy.override(scope), context, subProxy, descriptorDefaults)
@@ -3215,7 +3547,11 @@ function _attachContext(proxy, context, subProxy, descriptorDefaults) {
       return true;
     },
     get(target, prop, receiver) {
-      return _cached(target, prop, () => _resolveWithContext(target, prop, receiver));
+      return _cached(
+        target,
+        prop,
+        () => _resolveWithContext(target, prop, receiver)
+      );
     },
     getOwnPropertyDescriptor(target, prop) {
       return target._descriptors.allKeys ? Reflect.has(proxy, prop) ? { enumerable: true, configurable: true } : void 0 : Reflect.getOwnPropertyDescriptor(proxy, prop);
@@ -3321,7 +3657,7 @@ function createSubResolver(parentScopes, resolver, prop, value) {
   const rootScopes = resolver._rootScopes;
   const fallback = resolveFallback(resolver._fallback, prop, value);
   const allScopes = [...parentScopes, ...rootScopes];
-  const set2 = new Set();
+  const set2 = /* @__PURE__ */ new Set();
   set2.add(value);
   let key = addScopesFromKey(set2, allScopes, prop, fallback || prop, value);
   if (key === null) {
@@ -3333,7 +3669,13 @@ function createSubResolver(parentScopes, resolver, prop, value) {
       return false;
     }
   }
-  return _createResolver(Array.from(set2), [""], rootScopes, fallback, () => subGetTarget(resolver, prop, value));
+  return _createResolver(
+    Array.from(set2),
+    [""],
+    rootScopes,
+    fallback,
+    () => subGetTarget(resolver, prop, value)
+  );
 }
 function addScopesFromKey(set2, allScopes, key, fallback, item) {
   while (key) {
@@ -3380,7 +3722,7 @@ function getKeysFromAllScopes(target) {
   return keys;
 }
 function resolveKeysFromAllScopes(scopes) {
-  const set2 = new Set();
+  const set2 = /* @__PURE__ */ new Set();
   for (const scope of scopes) {
     for (const key of Object.keys(scope).filter((k) => !k.startsWith("_"))) {
       set2.add(key);
@@ -3537,7 +3879,12 @@ function _updateBezierControlPoints(points, options, area, loop, indexAxis) {
     let prev = loop ? points[points.length - 1] : points[0];
     for (i2 = 0, ilen = points.length; i2 < ilen; ++i2) {
       point = points[i2];
-      controlPoints = splineCurve(prev, point, points[Math.min(i2 + 1, ilen - (loop ? 0 : 1)) % ilen], options.tension);
+      controlPoints = splineCurve(
+        prev,
+        point,
+        points[Math.min(i2 + 1, ilen - (loop ? 0 : 1)) % ilen],
+        options.tension
+      );
       point.cp1x = controlPoints.previous.x;
       point.cp1y = controlPoints.previous.y;
       point.cp2x = controlPoints.next.x;
@@ -3740,7 +4087,7 @@ function _bezierInterpolation(p1, p2, t, mode) {
   const e = _pointInLine(b, c, t);
   return _pointInLine(d, e, t);
 }
-var intlCache = new Map();
+var intlCache = /* @__PURE__ */ new Map();
 function getNumberFormat(locale, options) {
   options = options || {};
   const cacheKey = locale + JSON.stringify(options);
@@ -4055,7 +4402,7 @@ function styleChanged(style, prevStyle) {
 var Animator = class {
   constructor() {
     this._request = null;
-    this._charts = new Map();
+    this._charts = /* @__PURE__ */ new Map();
     this._running = false;
     this._lastDate = void 0;
   }
@@ -4090,7 +4437,7 @@ var Animator = class {
       }
       const items = anims.items;
       let i2 = items.length - 1;
-      let draw2 = false;
+      let draw3 = false;
       let item;
       for (; i2 >= 0; --i2) {
         item = items[i2];
@@ -4099,13 +4446,13 @@ var Animator = class {
             anims.duration = item._total;
           }
           item.tick(date2);
-          draw2 = true;
+          draw3 = true;
         } else {
           items[i2] = items[items.length - 1];
           items.pop();
         }
       }
-      if (draw2) {
+      if (draw3) {
         chart.draw();
         this._notify(chart, anims, date2, "progress");
       }
@@ -4349,7 +4696,7 @@ defaults.set("transitions", {
 var Animations = class {
   constructor(chart, config) {
     this._chart = chart;
-    this._properties = new Map();
+    this._properties = /* @__PURE__ */ new Map();
     this.configure(config);
   }
   configure(config) {
@@ -4597,14 +4944,17 @@ function getFirstScaleId(chart, axis) {
   return Object.keys(scales2).filter((key) => scales2[key].axis === axis).shift();
 }
 function createDatasetContext(parent, index2) {
-  return createContext(parent, {
-    active: false,
-    dataset: void 0,
-    datasetIndex: index2,
-    index: index2,
-    mode: "default",
-    type: "dataset"
-  });
+  return createContext(
+    parent,
+    {
+      active: false,
+      dataset: void 0,
+      datasetIndex: index2,
+      index: index2,
+      mode: "default",
+      type: "dataset"
+    }
+  );
 }
 function createDataContext(parent, index2, element) {
   return createContext(parent, {
@@ -7039,7 +7389,10 @@ var Scale = class extends Element {
       tickWidth = maxWidth / (numTicks - (options.offset ? 0.5 : 1));
       maxHeight = this.maxHeight - getTickMarkLength(options.grid) - tickOpts.padding - getTitleHeight(options.title, this.chart.options.font);
       maxLabelDiagonal = Math.sqrt(maxLabelWidth * maxLabelWidth + maxLabelHeight * maxLabelHeight);
-      labelRotation = toDegrees(Math.min(Math.asin(_limitValue((labelSizes.highest.height + 6) / tickWidth, -1, 1)), Math.asin(_limitValue(maxHeight / maxLabelDiagonal, -1, 1)) - Math.asin(_limitValue(maxLabelHeight / maxLabelDiagonal, -1, 1))));
+      labelRotation = toDegrees(Math.min(
+        Math.asin(_limitValue((labelSizes.highest.height + 6) / tickWidth, -1, 1)),
+        Math.asin(_limitValue(maxHeight / maxLabelDiagonal, -1, 1)) - Math.asin(_limitValue(maxLabelHeight / maxLabelDiagonal, -1, 1))
+      ));
       labelRotation = Math.max(minRotation, Math.min(maxRotation, labelRotation));
     }
     this.labelRotation = labelRotation;
@@ -7679,15 +8032,23 @@ var Scale = class extends Element {
       for (i2 = 0, ilen = items.length; i2 < ilen; ++i2) {
         const item = items[i2];
         if (grid.drawOnChartArea) {
-          drawLine({ x: item.x1, y: item.y1 }, { x: item.x2, y: item.y2 }, item);
+          drawLine(
+            { x: item.x1, y: item.y1 },
+            { x: item.x2, y: item.y2 },
+            item
+          );
         }
         if (grid.drawTicks) {
-          drawLine({ x: item.tx1, y: item.ty1 }, { x: item.tx2, y: item.ty2 }, {
-            color: item.tickColor,
-            width: item.tickWidth,
-            borderDash: item.tickBorderDash,
-            borderDashOffset: item.tickBorderDashOffset
-          });
+          drawLine(
+            { x: item.tx1, y: item.ty1 },
+            { x: item.tx2, y: item.ty2 },
+            {
+              color: item.tickColor,
+              width: item.tickWidth,
+              borderDash: item.tickBorderDash,
+              borderDashOffset: item.tickBorderDashOffset
+            }
+          );
         }
       }
     }
@@ -7842,7 +8203,7 @@ var TypedRegistry = class {
     this.type = type;
     this.scope = scope;
     this.override = override;
-    this.items = Object.create(null);
+    this.items = /* @__PURE__ */ Object.create(null);
   }
   isForType(type) {
     return Object.prototype.isPrototypeOf.call(this.type.prototype, type.prototype);
@@ -7888,7 +8249,7 @@ var TypedRegistry = class {
   }
 };
 function registerDefaults(item, scope, parentScope) {
-  const itemDefaults = merge(Object.create(null), [
+  const itemDefaults = merge(/* @__PURE__ */ Object.create(null), [
     parentScope ? defaults.get(parentScope) : {},
     defaults.get(scope),
     item.defaults
@@ -8488,7 +8849,11 @@ function fitBoxes(boxes, chartArea, params, stacks) {
   for (i2 = 0, ilen = boxes.length, refit = 0; i2 < ilen; ++i2) {
     layout = boxes[i2];
     box = layout.box;
-    box.update(layout.width || chartArea.w, layout.height || chartArea.h, getMargins(layout.horizontal, chartArea));
+    box.update(
+      layout.width || chartArea.w,
+      layout.height || chartArea.h,
+      getMargins(layout.horizontal, chartArea)
+    );
     const { same, other } = updateDims(chartArea, params, layout, stacks);
     refit |= same && refitBoxes.length;
     changed = changed || other;
@@ -8782,7 +9147,7 @@ function createDetachObserver(chart, type, listener) {
   observer.observe(document, { childList: true, subtree: true });
   return observer;
 }
-var drpListeningCharts = new Map();
+var drpListeningCharts = /* @__PURE__ */ new Map();
 var oldDevicePixelRatio = 0;
 function onWindowResize() {
   const dpr = window.devicePixelRatio;
@@ -9075,8 +9440,8 @@ function mergeScaleConfig(config, options) {
   const chartDefaults = overrides[config.type] || { scales: {} };
   const configScales = options.scales || {};
   const chartIndexAxis = getIndexAxis(config.type, options);
-  const firstIDs = Object.create(null);
-  const scales2 = Object.create(null);
+  const firstIDs = /* @__PURE__ */ Object.create(null);
+  const scales2 = /* @__PURE__ */ Object.create(null);
   Object.keys(configScales).forEach((id) => {
     const scaleConf = configScales[id];
     if (!isObject(scaleConf)) {
@@ -9089,7 +9454,7 @@ function mergeScaleConfig(config, options) {
     const defaultId = getDefaultScaleIDFromAxis(axis, chartIndexAxis);
     const defaultScaleOptions = chartDefaults.scales || {};
     firstIDs[axis] = firstIDs[axis] || id;
-    scales2[id] = mergeIf(Object.create(null), [{ axis }, scaleConf, defaultScaleOptions[axis], defaultScaleOptions[defaultId]]);
+    scales2[id] = mergeIf(/* @__PURE__ */ Object.create(null), [{ axis }, scaleConf, defaultScaleOptions[axis], defaultScaleOptions[defaultId]]);
   });
   config.data.datasets.forEach((dataset) => {
     const type = dataset.type || config.type;
@@ -9099,7 +9464,7 @@ function mergeScaleConfig(config, options) {
     Object.keys(defaultScaleOptions).forEach((defaultID) => {
       const axis = getAxisFromDefaultScaleID(defaultID, indexAxis);
       const id = dataset[axis + "AxisID"] || firstIDs[axis] || axis;
-      scales2[id] = scales2[id] || Object.create(null);
+      scales2[id] = scales2[id] || /* @__PURE__ */ Object.create(null);
       mergeIf(scales2[id], [{ axis }, configScales[id], defaultScaleOptions[defaultID]]);
     });
   });
@@ -9126,8 +9491,8 @@ function initConfig(config) {
   initOptions(config);
   return config;
 }
-var keyCache = new Map();
-var keysCached = new Set();
+var keyCache = /* @__PURE__ */ new Map();
+var keysCached = /* @__PURE__ */ new Set();
 function cachedKeys(cacheKey, generate) {
   let keys = keyCache.get(cacheKey);
   if (!keys) {
@@ -9146,8 +9511,8 @@ var addIfFound = (set2, obj, key) => {
 var Config = class {
   constructor(config) {
     this._config = initConfig(config);
-    this._scopeCache = new Map();
-    this._resolverCache = new Map();
+    this._scopeCache = /* @__PURE__ */ new Map();
+    this._resolverCache = /* @__PURE__ */ new Map();
   }
   get platform() {
     return this._config.platform;
@@ -9183,44 +9548,56 @@ var Config = class {
     this._resolverCache.clear();
   }
   datasetScopeKeys(datasetType) {
-    return cachedKeys(datasetType, () => [[
-      `datasets.${datasetType}`,
-      ""
-    ]]);
-  }
-  datasetAnimationScopeKeys(datasetType, transition) {
-    return cachedKeys(`${datasetType}.transition.${transition}`, () => [
-      [
-        `datasets.${datasetType}.transitions.${transition}`,
-        `transitions.${transition}`
-      ],
-      [
+    return cachedKeys(
+      datasetType,
+      () => [[
         `datasets.${datasetType}`,
         ""
+      ]]
+    );
+  }
+  datasetAnimationScopeKeys(datasetType, transition) {
+    return cachedKeys(
+      `${datasetType}.transition.${transition}`,
+      () => [
+        [
+          `datasets.${datasetType}.transitions.${transition}`,
+          `transitions.${transition}`
+        ],
+        [
+          `datasets.${datasetType}`,
+          ""
+        ]
       ]
-    ]);
+    );
   }
   datasetElementScopeKeys(datasetType, elementType) {
-    return cachedKeys(`${datasetType}-${elementType}`, () => [[
-      `datasets.${datasetType}.elements.${elementType}`,
-      `datasets.${datasetType}`,
-      `elements.${elementType}`,
-      ""
-    ]]);
+    return cachedKeys(
+      `${datasetType}-${elementType}`,
+      () => [[
+        `datasets.${datasetType}.elements.${elementType}`,
+        `datasets.${datasetType}`,
+        `elements.${elementType}`,
+        ""
+      ]]
+    );
   }
   pluginScopeKeys(plugin2) {
     const id = plugin2.id;
     const type = this.type;
-    return cachedKeys(`${type}-plugin-${id}`, () => [[
-      `plugins.${id}`,
-      ...plugin2.additionalOptionScopes || []
-    ]]);
+    return cachedKeys(
+      `${type}-plugin-${id}`,
+      () => [[
+        `plugins.${id}`,
+        ...plugin2.additionalOptionScopes || []
+      ]]
+    );
   }
   _cachedScopes(mainScope, resetCache) {
     const _scopeCache = this._scopeCache;
     let cache = _scopeCache.get(mainScope);
     if (!cache || resetCache) {
-      cache = new Map();
+      cache = /* @__PURE__ */ new Map();
       _scopeCache.set(mainScope, cache);
     }
     return cache;
@@ -9232,7 +9609,7 @@ var Config = class {
     if (cached) {
       return cached;
     }
-    const scopes = new Set();
+    const scopes = /* @__PURE__ */ new Set();
     keyLists.forEach((keys) => {
       if (mainScope) {
         scopes.add(mainScope);
@@ -9245,7 +9622,7 @@ var Config = class {
     });
     const array2 = Array.from(scopes);
     if (array2.length === 0) {
-      array2.push(Object.create(null));
+      array2.push(/* @__PURE__ */ Object.create(null));
     }
     if (keysCached.has(keyLists)) {
       cache.set(keyLists, array2);
@@ -9286,7 +9663,7 @@ var Config = class {
 function getResolver(resolverCache, scopes, prefixes) {
   let cache = resolverCache.get(scopes);
   if (!cache) {
-    cache = new Map();
+    cache = /* @__PURE__ */ new Map();
     resolverCache.set(scopes, cache);
   }
   const cacheKey = prefixes.join();
@@ -9379,7 +9756,9 @@ var Chart = class {
     const initialCanvas = getCanvas(item);
     const existingChart = getChart(initialCanvas);
     if (existingChart) {
-      throw new Error("Canvas is already in use. Chart with ID '" + existingChart.id + "' must be destroyed before the canvas with ID '" + existingChart.canvas.id + "' can be reused.");
+      throw new Error(
+        "Canvas is already in use. Chart with ID '" + existingChart.id + "' must be destroyed before the canvas with ID '" + existingChart.canvas.id + "' can be reused."
+      );
     }
     const options = config.createResolver(config.chartOptionScopes(), this.getContext());
     this.platform = new (config.platform || _detectPlatform(initialCanvas))();
@@ -9513,17 +9892,19 @@ var Chart = class {
     }, {});
     let items = [];
     if (scaleOpts) {
-      items = items.concat(Object.keys(scaleOpts).map((id) => {
-        const scaleOptions = scaleOpts[id];
-        const axis = determineAxis(id, scaleOptions);
-        const isRadial = axis === "r";
-        const isHorizontal = axis === "x";
-        return {
-          options: scaleOptions,
-          dposition: isRadial ? "chartArea" : isHorizontal ? "bottom" : "left",
-          dtype: isRadial ? "radialLinear" : isHorizontal ? "category" : "linear"
-        };
-      }));
+      items = items.concat(
+        Object.keys(scaleOpts).map((id) => {
+          const scaleOptions = scaleOpts[id];
+          const axis = determineAxis(id, scaleOptions);
+          const isRadial = axis === "r";
+          const isHorizontal = axis === "x";
+          return {
+            options: scaleOptions,
+            dposition: isRadial ? "chartArea" : isHorizontal ? "bottom" : "left",
+            dtype: isRadial ? "radialLinear" : isHorizontal ? "category" : "linear"
+          };
+        })
+      );
     }
     each(items, (item) => {
       const scaleOptions = item.options;
@@ -9698,7 +10079,9 @@ var Chart = class {
     }
     this._dataChanges = [];
     const datasetCount = this.data.datasets.length;
-    const makeSet = (idx) => new Set(_dataChanges.filter((c) => c[0] === idx).map((c, i2) => i2 + "," + c.splice(1).join(",")));
+    const makeSet = (idx) => new Set(
+      _dataChanges.filter((c) => c[0] === idx).map((c, i2) => i2 + "," + c.splice(1).join(","))
+    );
     const changeSet = makeSet(0);
     for (let i2 = 1; i2 < datasetCount; i2++) {
       if (!setsEqual(changeSet, makeSet(i2))) {
@@ -10968,7 +11351,9 @@ function lttbDecimation(data, start, count, availableWidth, options) {
     const { x: pointAx, y: pointAy } = data[a];
     maxArea = area = -1;
     for (j = rangeOffs; j < rangeTo; j++) {
-      area = 0.5 * Math.abs((pointAx - avgX) * (data[j].y - pointAy) - (pointAx - data[j].x) * (avgY - pointAy));
+      area = 0.5 * Math.abs(
+        (pointAx - avgX) * (data[j].y - pointAy) - (pointAx - data[j].x) * (avgY - pointAy)
+      );
       if (area > maxArea) {
         maxArea = area;
         maxAreaPoint = data[j];
@@ -11599,7 +11984,7 @@ var index = {
     }
   },
   beforeDraw(chart, _args, options) {
-    const draw2 = options.drawTime === "beforeDraw";
+    const draw3 = options.drawTime === "beforeDraw";
     const metasets = chart.getSortedVisibleDatasetMetas();
     const area = chart.chartArea;
     for (let i2 = metasets.length - 1; i2 >= 0; --i2) {
@@ -11608,7 +11993,7 @@ var index = {
         continue;
       }
       source.line.updateControlPoints(area, source.axis);
-      if (draw2 && source.fill) {
+      if (draw3 && source.fill) {
         _drawfill(chart.ctx, source, area);
       }
     }
@@ -12245,7 +12630,7 @@ var plugin_title = {
     _indexable: false
   }
 };
-var map2 = new WeakMap();
+var map2 = /* @__PURE__ */ new WeakMap();
 var plugin_subtitle = {
   id: "subtitle",
   start(chart, _args, options) {
@@ -13397,7 +13782,10 @@ function generateTicks$1(generationOptions, dataRange) {
       numSpaces = Math.ceil(numSpaces);
     }
   }
-  const decimalPlaces = Math.max(_decimalPlaces(spacing), _decimalPlaces(niceMin));
+  const decimalPlaces = Math.max(
+    _decimalPlaces(spacing),
+    _decimalPlaces(niceMin)
+  );
   factor = Math.pow(10, isNullOrUndef(precision) ? decimalPlaces : precision);
   niceMin = Math.round(niceMin * factor) / factor;
   niceMax = Math.round(niceMax * factor) / factor;
@@ -13771,7 +14159,12 @@ function fitWithPointLabels(scale) {
     const vLimits = determineLimits(angle, pointPosition.y, textSize.h, 90, 270);
     updateLimits(limits, orig, angleRadians, hLimits, vLimits);
   }
-  scale.setCenterPoint(orig.l - limits.l, limits.r - orig.r, orig.t - limits.t, limits.b - orig.b);
+  scale.setCenterPoint(
+    orig.l - limits.l,
+    limits.r - orig.r,
+    orig.t - limits.t,
+    limits.b - orig.b
+  );
   scale._pointLabelItems = buildPointLabelItems(scale, labelSizes, padding);
 }
 function updateLimits(limits, orig, angle, hLimits, vLimits) {
@@ -13873,11 +14266,18 @@ function drawPointLabels(scale, labelCount) {
         ctx.fillRect(backdropLeft, backdropTop, backdropWidth, backdropHeight);
       }
     }
-    renderText(ctx, scale._pointLabels[i2], x, y + plFont.lineHeight / 2, plFont, {
-      color: optsAtIndex.color,
-      textAlign,
-      textBaseline: "middle"
-    });
+    renderText(
+      ctx,
+      scale._pointLabels[i2],
+      x,
+      y + plFont.lineHeight / 2,
+      plFont,
+      {
+        color: optsAtIndex.color,
+        textAlign,
+        textBaseline: "middle"
+      }
+    );
   }
 }
 function pathRadiusLine(scale, radius, circular, labelCount) {
@@ -14097,7 +14497,12 @@ var RadialLinearScale = class extends LinearScaleBase {
         width = ctx.measureText(tick.label).width;
         ctx.fillStyle = optsAtIndex.backdropColor;
         const padding = toPadding(optsAtIndex.backdropPadding);
-        ctx.fillRect(-width / 2 - padding.left, -offset2 - tickFont.size / 2 - padding.top, width + padding.width, tickFont.size + padding.height);
+        ctx.fillRect(
+          -width / 2 - padding.left,
+          -offset2 - tickFont.size / 2 - padding.top,
+          width + padding.width,
+          tickFont.size + padding.height
+        );
       }
       renderText(ctx, tick.label, 0, -offset2, tickFont, {
         color: optsAtIndex.color
@@ -14805,30 +15210,79 @@ var DATETIME_HUGE_WITH_SECONDS = {
 
 // node_modules/luxon/src/zone.js
 var Zone = class {
+  /**
+   * The type of zone
+   * @abstract
+   * @type {string}
+   */
   get type() {
     throw new ZoneIsAbstractError();
   }
+  /**
+   * The name of this zone.
+   * @abstract
+   * @type {string}
+   */
   get name() {
     throw new ZoneIsAbstractError();
   }
   get ianaName() {
     return this.name;
   }
+  /**
+   * Returns whether the offset is known to be fixed for the whole year.
+   * @abstract
+   * @type {boolean}
+   */
   get isUniversal() {
     throw new ZoneIsAbstractError();
   }
+  /**
+   * Returns the offset's common name (such as EST) at the specified timestamp
+   * @abstract
+   * @param {number} ts - Epoch milliseconds for which to get the name
+   * @param {Object} opts - Options to affect the format
+   * @param {string} opts.format - What style of offset to return. Accepts 'long' or 'short'.
+   * @param {string} opts.locale - What locale to return the offset name in.
+   * @return {string}
+   */
   offsetName(ts, opts) {
     throw new ZoneIsAbstractError();
   }
+  /**
+   * Returns the offset's value as a string
+   * @abstract
+   * @param {number} ts - Epoch milliseconds for which to get the offset
+   * @param {string} format - What style of offset to return.
+   *                          Accepts 'narrow', 'short', or 'techie'. Returning '+6', '+06:00', or '+0600' respectively
+   * @return {string}
+   */
   formatOffset(ts, format) {
     throw new ZoneIsAbstractError();
   }
+  /**
+   * Return the offset in minutes for this zone at the specified timestamp.
+   * @abstract
+   * @param {number} ts - Epoch milliseconds for which to compute the offset
+   * @return {number}
+   */
   offset(ts) {
     throw new ZoneIsAbstractError();
   }
+  /**
+   * Return whether this Zone is equal to another zone
+   * @abstract
+   * @param {Zone} otherZone - the zone to compare
+   * @return {boolean}
+   */
   equals(otherZone) {
     throw new ZoneIsAbstractError();
   }
+  /**
+   * Return whether this Zone is valid.
+   * @abstract
+   * @type {boolean}
+   */
   get isValid() {
     throw new ZoneIsAbstractError();
   }
@@ -14837,33 +15291,45 @@ var Zone = class {
 // node_modules/luxon/src/zones/systemZone.js
 var singleton = null;
 var SystemZone = class extends Zone {
+  /**
+   * Get a singleton instance of the local zone
+   * @return {SystemZone}
+   */
   static get instance() {
     if (singleton === null) {
       singleton = new SystemZone();
     }
     return singleton;
   }
+  /** @override **/
   get type() {
     return "system";
   }
+  /** @override **/
   get name() {
     return new Intl.DateTimeFormat().resolvedOptions().timeZone;
   }
+  /** @override **/
   get isUniversal() {
     return false;
   }
+  /** @override **/
   offsetName(ts, { format, locale }) {
     return parseZoneInfo(ts, format, locale);
   }
+  /** @override **/
   formatOffset(ts, format) {
     return formatOffset(this.offset(ts), format);
   }
+  /** @override **/
   offset(ts) {
     return -new Date(ts).getTimezoneOffset();
   }
+  /** @override **/
   equals(otherZone) {
     return otherZone.type === "system";
   }
+  /** @override **/
   get isValid() {
     return true;
   }
@@ -14916,19 +15382,43 @@ function partsOffset(dtf, date2) {
 }
 var ianaZoneCache = {};
 var IANAZone = class extends Zone {
+  /**
+   * @param {string} name - Zone name
+   * @return {IANAZone}
+   */
   static create(name) {
     if (!ianaZoneCache[name]) {
       ianaZoneCache[name] = new IANAZone(name);
     }
     return ianaZoneCache[name];
   }
+  /**
+   * Reset local caches. Should only be necessary in testing scenarios.
+   * @return {void}
+   */
   static resetCache() {
     ianaZoneCache = {};
     dtfCache = {};
   }
+  /**
+   * Returns whether the provided string is a valid specifier. This only checks the string's format, not that the specifier identifies a known zone; see isValidZone for that.
+   * @param {string} s - The string to check validity on
+   * @example IANAZone.isValidSpecifier("America/New_York") //=> true
+   * @example IANAZone.isValidSpecifier("Sport~~blorp") //=> false
+   * @deprecated This method returns false for some valid IANA names. Use isValidZone instead.
+   * @return {boolean}
+   */
   static isValidSpecifier(s2) {
     return this.isValidZone(s2);
   }
+  /**
+   * Returns whether the provided string identifies a real zone
+   * @param {string} zone - The string to check
+   * @example IANAZone.isValidZone("America/New_York") //=> true
+   * @example IANAZone.isValidZone("Fantasia/Castle") //=> false
+   * @example IANAZone.isValidZone("Sport~~blorp") //=> false
+   * @return {boolean}
+   */
   static isValidZone(zone) {
     if (!zone) {
       return false;
@@ -14945,21 +15435,27 @@ var IANAZone = class extends Zone {
     this.zoneName = name;
     this.valid = IANAZone.isValidZone(name);
   }
+  /** @override **/
   get type() {
     return "iana";
   }
+  /** @override **/
   get name() {
     return this.zoneName;
   }
+  /** @override **/
   get isUniversal() {
     return false;
   }
+  /** @override **/
   offsetName(ts, { format, locale }) {
     return parseZoneInfo(ts, format, locale, this.name);
   }
+  /** @override **/
   formatOffset(ts, format) {
     return formatOffset(this.offset(ts), format);
   }
+  /** @override **/
   offset(ts) {
     const date2 = new Date(ts);
     if (isNaN(date2))
@@ -14984,9 +15480,11 @@ var IANAZone = class extends Zone {
     asTS -= over >= 0 ? over : 1e3 + over;
     return (asUTC - asTS) / (60 * 1e3);
   }
+  /** @override **/
   equals(otherZone) {
     return otherZone.type === "iana" && otherZone.name === this.name;
   }
+  /** @override **/
   get isValid() {
     return this.valid;
   }
@@ -15043,6 +15541,16 @@ function systemLocale() {
     return sysLocaleCache;
   }
 }
+var weekInfoCache = {};
+function getCachedWeekInfo(locString) {
+  let data = weekInfoCache[locString];
+  if (!data) {
+    const locale = new Intl.Locale(locString);
+    data = "getWeekInfo" in locale ? locale.getWeekInfo() : locale.weekInfo;
+    weekInfoCache[locString] = data;
+  }
+  return data;
+}
 function parseLocaleString(localeStr) {
   const xIndex = localeStr.indexOf("-x-");
   if (xIndex !== -1) {
@@ -15085,7 +15593,7 @@ function intlConfigString(localeStr, numberingSystem, outputCalendar) {
 function mapMonths(f) {
   const ms = [];
   for (let i2 = 1; i2 <= 12; i2++) {
-    const dt = DateTime.utc(2016, i2, 1);
+    const dt = DateTime.utc(2009, i2, 1);
     ms.push(f(dt));
   }
   return ms;
@@ -15098,8 +15606,8 @@ function mapWeekdays(f) {
   }
   return ms;
 }
-function listStuff(loc, length, defaultOK, englishFn, intlFn) {
-  const mode = loc.listingMode(defaultOK);
+function listStuff(loc, length, englishFn, intlFn) {
+  const mode = loc.listingMode();
   if (mode === "error") {
     return null;
   } else if (mode === "en") {
@@ -15220,16 +15728,28 @@ var PolyRelFormatter = class {
     }
   }
 };
+var fallbackWeekSettings = {
+  firstDay: 1,
+  minimalDays: 4,
+  weekend: [6, 7]
+};
 var Locale = class {
   static fromOpts(opts) {
-    return Locale.create(opts.locale, opts.numberingSystem, opts.outputCalendar, opts.defaultToEN);
+    return Locale.create(
+      opts.locale,
+      opts.numberingSystem,
+      opts.outputCalendar,
+      opts.weekSettings,
+      opts.defaultToEN
+    );
   }
-  static create(locale, numberingSystem, outputCalendar, defaultToEN = false) {
+  static create(locale, numberingSystem, outputCalendar, weekSettings, defaultToEN = false) {
     const specifiedLocale = locale || Settings.defaultLocale;
     const localeR = specifiedLocale || (defaultToEN ? "en-US" : systemLocale());
     const numberingSystemR = numberingSystem || Settings.defaultNumberingSystem;
     const outputCalendarR = outputCalendar || Settings.defaultOutputCalendar;
-    return new Locale(localeR, numberingSystemR, outputCalendarR, specifiedLocale);
+    const weekSettingsR = validateWeekSettings(weekSettings) || Settings.defaultWeekSettings;
+    return new Locale(localeR, numberingSystemR, outputCalendarR, weekSettingsR, specifiedLocale);
   }
   static resetCache() {
     sysLocaleCache = null;
@@ -15237,14 +15757,15 @@ var Locale = class {
     intlNumCache = {};
     intlRelCache = {};
   }
-  static fromObject({ locale, numberingSystem, outputCalendar } = {}) {
-    return Locale.create(locale, numberingSystem, outputCalendar);
+  static fromObject({ locale, numberingSystem, outputCalendar, weekSettings } = {}) {
+    return Locale.create(locale, numberingSystem, outputCalendar, weekSettings);
   }
-  constructor(locale, numbering, outputCalendar, specifiedLocale) {
+  constructor(locale, numbering, outputCalendar, weekSettings, specifiedLocale) {
     const [parsedLocale, parsedNumberingSystem, parsedOutputCalendar] = parseLocaleString(locale);
     this.locale = parsedLocale;
     this.numberingSystem = numbering || parsedNumberingSystem || null;
     this.outputCalendar = outputCalendar || parsedOutputCalendar || null;
+    this.weekSettings = weekSettings;
     this.intl = intlConfigString(this.locale, this.numberingSystem, this.outputCalendar);
     this.weekdaysCache = { format: {}, standalone: {} };
     this.monthsCache = { format: {}, standalone: {} };
@@ -15268,7 +15789,13 @@ var Locale = class {
     if (!alts || Object.getOwnPropertyNames(alts).length === 0) {
       return this;
     } else {
-      return Locale.create(alts.locale || this.specifiedLocale, alts.numberingSystem || this.numberingSystem, alts.outputCalendar || this.outputCalendar, alts.defaultToEN || false);
+      return Locale.create(
+        alts.locale || this.specifiedLocale,
+        alts.numberingSystem || this.numberingSystem,
+        alts.outputCalendar || this.outputCalendar,
+        validateWeekSettings(alts.weekSettings) || this.weekSettings,
+        alts.defaultToEN || false
+      );
     }
   }
   redefaultToEN(alts = {}) {
@@ -15277,8 +15804,8 @@ var Locale = class {
   redefaultToSystem(alts = {}) {
     return this.clone(__spreadProps(__spreadValues({}, alts), { defaultToEN: false }));
   }
-  months(length, format = false, defaultOK = true) {
-    return listStuff(this, length, defaultOK, months, () => {
+  months(length, format = false) {
+    return listStuff(this, length, months, () => {
       const intl = format ? { month: length, day: "numeric" } : { month: length }, formatStr = format ? "format" : "standalone";
       if (!this.monthsCache[formatStr][length]) {
         this.monthsCache[formatStr][length] = mapMonths((dt) => this.extract(dt, intl, "month"));
@@ -15286,29 +15813,40 @@ var Locale = class {
       return this.monthsCache[formatStr][length];
     });
   }
-  weekdays(length, format = false, defaultOK = true) {
-    return listStuff(this, length, defaultOK, weekdays, () => {
+  weekdays(length, format = false) {
+    return listStuff(this, length, weekdays, () => {
       const intl = format ? { weekday: length, year: "numeric", month: "long", day: "numeric" } : { weekday: length }, formatStr = format ? "format" : "standalone";
       if (!this.weekdaysCache[formatStr][length]) {
-        this.weekdaysCache[formatStr][length] = mapWeekdays((dt) => this.extract(dt, intl, "weekday"));
+        this.weekdaysCache[formatStr][length] = mapWeekdays(
+          (dt) => this.extract(dt, intl, "weekday")
+        );
       }
       return this.weekdaysCache[formatStr][length];
     });
   }
-  meridiems(defaultOK = true) {
-    return listStuff(this, void 0, defaultOK, () => meridiems, () => {
-      if (!this.meridiemCache) {
-        const intl = { hour: "numeric", hourCycle: "h12" };
-        this.meridiemCache = [DateTime.utc(2016, 11, 13, 9), DateTime.utc(2016, 11, 13, 19)].map((dt) => this.extract(dt, intl, "dayperiod"));
+  meridiems() {
+    return listStuff(
+      this,
+      void 0,
+      () => meridiems,
+      () => {
+        if (!this.meridiemCache) {
+          const intl = { hour: "numeric", hourCycle: "h12" };
+          this.meridiemCache = [DateTime.utc(2016, 11, 13, 9), DateTime.utc(2016, 11, 13, 19)].map(
+            (dt) => this.extract(dt, intl, "dayperiod")
+          );
+        }
+        return this.meridiemCache;
       }
-      return this.meridiemCache;
-    });
+    );
   }
-  eras(length, defaultOK = true) {
-    return listStuff(this, length, defaultOK, eras, () => {
+  eras(length) {
+    return listStuff(this, length, eras, () => {
       const intl = { era: length };
       if (!this.eraCache[length]) {
-        this.eraCache[length] = [DateTime.utc(-40, 1, 1), DateTime.utc(2017, 1, 1)].map((dt) => this.extract(dt, intl, "era"));
+        this.eraCache[length] = [DateTime.utc(-40, 1, 1), DateTime.utc(2017, 1, 1)].map(
+          (dt) => this.extract(dt, intl, "era")
+        );
       }
       return this.eraCache[length];
     });
@@ -15332,6 +15870,24 @@ var Locale = class {
   isEnglish() {
     return this.locale === "en" || this.locale.toLowerCase() === "en-us" || new Intl.DateTimeFormat(this.intl).resolvedOptions().locale.startsWith("en-us");
   }
+  getWeekSettings() {
+    if (this.weekSettings) {
+      return this.weekSettings;
+    } else if (!hasLocaleWeekInfo()) {
+      return fallbackWeekSettings;
+    } else {
+      return getCachedWeekInfo(this.locale);
+    }
+  }
+  getStartOfWeek() {
+    return this.getWeekSettings().firstDay;
+  }
+  getMinDaysInFirstWeek() {
+    return this.getWeekSettings().minimalDays;
+  }
+  getWeekendDays() {
+    return this.getWeekSettings().weekend;
+  }
   equals(other) {
     return this.locale === other.locale && this.numberingSystem === other.numberingSystem && this.outputCalendar === other.outputCalendar;
   }
@@ -15340,15 +15896,32 @@ var Locale = class {
 // node_modules/luxon/src/zones/fixedOffsetZone.js
 var singleton2 = null;
 var FixedOffsetZone = class extends Zone {
+  /**
+   * Get a singleton instance of UTC
+   * @return {FixedOffsetZone}
+   */
   static get utcInstance() {
     if (singleton2 === null) {
       singleton2 = new FixedOffsetZone(0);
     }
     return singleton2;
   }
+  /**
+   * Get an instance with a specified offset
+   * @param {number} offset - The offset in minutes
+   * @return {FixedOffsetZone}
+   */
   static instance(offset2) {
     return offset2 === 0 ? FixedOffsetZone.utcInstance : new FixedOffsetZone(offset2);
   }
+  /**
+   * Get an instance of FixedOffsetZone from a UTC offset string, like "UTC+6"
+   * @param {string} s - The offset string to parse
+   * @example FixedOffsetZone.parseSpecifier("UTC+6")
+   * @example FixedOffsetZone.parseSpecifier("UTC+06")
+   * @example FixedOffsetZone.parseSpecifier("UTC-6:00")
+   * @return {FixedOffsetZone}
+   */
   static parseSpecifier(s2) {
     if (s2) {
       const r = s2.match(/^utc(?:([+-]\d{1,2})(?::(\d{2}))?)?$/i);
@@ -15362,9 +15935,11 @@ var FixedOffsetZone = class extends Zone {
     super();
     this.fixed = offset2;
   }
+  /** @override **/
   get type() {
     return "fixed";
   }
+  /** @override **/
   get name() {
     return this.fixed === 0 ? "UTC" : `UTC${formatOffset(this.fixed, "narrow")}`;
   }
@@ -15375,21 +15950,27 @@ var FixedOffsetZone = class extends Zone {
       return `Etc/GMT${formatOffset(-this.fixed, "narrow")}`;
     }
   }
+  /** @override **/
   offsetName() {
     return this.name;
   }
+  /** @override **/
   formatOffset(ts, format) {
     return formatOffset(this.fixed, format);
   }
+  /** @override **/
   get isUniversal() {
     return true;
   }
+  /** @override **/
   offset() {
     return this.fixed;
   }
+  /** @override **/
   equals(otherZone) {
     return otherZone.type === "fixed" && otherZone.fixed === this.fixed;
   }
+  /** @override **/
   get isValid() {
     return true;
   }
@@ -15401,27 +15982,35 @@ var InvalidZone = class extends Zone {
     super();
     this.zoneName = zoneName;
   }
+  /** @override **/
   get type() {
     return "invalid";
   }
+  /** @override **/
   get name() {
     return this.zoneName;
   }
+  /** @override **/
   get isUniversal() {
     return false;
   }
+  /** @override **/
   offsetName() {
     return null;
   }
+  /** @override **/
   formatOffset() {
     return "";
   }
+  /** @override **/
   offset() {
     return NaN;
   }
+  /** @override **/
   equals() {
     return false;
   }
+  /** @override **/
   get isValid() {
     return false;
   }
@@ -15446,7 +16035,7 @@ function normalizeZone(input2, defaultZone2) {
       return FixedOffsetZone.parseSpecifier(lowered) || IANAZone.create(input2);
   } else if (isNumber2(input2)) {
     return FixedOffsetZone.instance(input2);
-  } else if (typeof input2 === "object" && input2.offset && typeof input2.offset === "number") {
+  } else if (typeof input2 === "object" && "offset" in input2 && typeof input2.offset === "function") {
     return input2;
   } else {
     return new InvalidZone(input2);
@@ -15461,54 +16050,303 @@ var defaultNumberingSystem = null;
 var defaultOutputCalendar = null;
 var twoDigitCutoffYear = 60;
 var throwOnInvalid;
+var defaultWeekSettings = null;
 var Settings = class {
+  /**
+   * Get the callback for returning the current timestamp.
+   * @type {function}
+   */
   static get now() {
     return now;
   }
+  /**
+   * Set the callback for returning the current timestamp.
+   * The function should return a number, which will be interpreted as an Epoch millisecond count
+   * @type {function}
+   * @example Settings.now = () => Date.now() + 3000 // pretend it is 3 seconds in the future
+   * @example Settings.now = () => 0 // always pretend it's Jan 1, 1970 at midnight in UTC time
+   */
   static set now(n3) {
     now = n3;
   }
+  /**
+   * Set the default time zone to create DateTimes in. Does not affect existing instances.
+   * Use the value "system" to reset this value to the system's time zone.
+   * @type {string}
+   */
   static set defaultZone(zone) {
     defaultZone = zone;
   }
+  /**
+   * Get the default time zone object currently used to create DateTimes. Does not affect existing instances.
+   * The default value is the system's time zone (the one set on the machine that runs this code).
+   * @type {Zone}
+   */
   static get defaultZone() {
     return normalizeZone(defaultZone, SystemZone.instance);
   }
+  /**
+   * Get the default locale to create DateTimes with. Does not affect existing instances.
+   * @type {string}
+   */
   static get defaultLocale() {
     return defaultLocale;
   }
+  /**
+   * Set the default locale to create DateTimes with. Does not affect existing instances.
+   * @type {string}
+   */
   static set defaultLocale(locale) {
     defaultLocale = locale;
   }
+  /**
+   * Get the default numbering system to create DateTimes with. Does not affect existing instances.
+   * @type {string}
+   */
   static get defaultNumberingSystem() {
     return defaultNumberingSystem;
   }
+  /**
+   * Set the default numbering system to create DateTimes with. Does not affect existing instances.
+   * @type {string}
+   */
   static set defaultNumberingSystem(numberingSystem) {
     defaultNumberingSystem = numberingSystem;
   }
+  /**
+   * Get the default output calendar to create DateTimes with. Does not affect existing instances.
+   * @type {string}
+   */
   static get defaultOutputCalendar() {
     return defaultOutputCalendar;
   }
+  /**
+   * Set the default output calendar to create DateTimes with. Does not affect existing instances.
+   * @type {string}
+   */
   static set defaultOutputCalendar(outputCalendar) {
     defaultOutputCalendar = outputCalendar;
   }
+  /**
+   * @typedef {Object} WeekSettings
+   * @property {number} firstDay
+   * @property {number} minimalDays
+   * @property {number[]} weekend
+   */
+  /**
+   * @return {WeekSettings|null}
+   */
+  static get defaultWeekSettings() {
+    return defaultWeekSettings;
+  }
+  /**
+   * Allows overriding the default locale week settings, i.e. the start of the week, the weekend and
+   * how many days are required in the first week of a year.
+   * Does not affect existing instances.
+   *
+   * @param {WeekSettings|null} weekSettings
+   */
+  static set defaultWeekSettings(weekSettings) {
+    defaultWeekSettings = validateWeekSettings(weekSettings);
+  }
+  /**
+   * Get the cutoff year after which a string encoding a year as two digits is interpreted to occur in the current century.
+   * @type {number}
+   */
   static get twoDigitCutoffYear() {
     return twoDigitCutoffYear;
   }
+  /**
+   * Set the cutoff year after which a string encoding a year as two digits is interpreted to occur in the current century.
+   * @type {number}
+   * @example Settings.twoDigitCutoffYear = 0 // cut-off year is 0, so all 'yy' are interpreted as current century
+   * @example Settings.twoDigitCutoffYear = 50 // '49' -> 1949; '50' -> 2050
+   * @example Settings.twoDigitCutoffYear = 1950 // interpreted as 50
+   * @example Settings.twoDigitCutoffYear = 2050 // ALSO interpreted as 50
+   */
   static set twoDigitCutoffYear(cutoffYear) {
     twoDigitCutoffYear = cutoffYear % 100;
   }
+  /**
+   * Get whether Luxon will throw when it encounters invalid DateTimes, Durations, or Intervals
+   * @type {boolean}
+   */
   static get throwOnInvalid() {
     return throwOnInvalid;
   }
+  /**
+   * Set whether Luxon will throw when it encounters invalid DateTimes, Durations, or Intervals
+   * @type {boolean}
+   */
   static set throwOnInvalid(t) {
     throwOnInvalid = t;
   }
+  /**
+   * Reset Luxon's global caches. Should only be necessary in testing scenarios.
+   * @return {void}
+   */
   static resetCaches() {
     Locale.resetCache();
     IANAZone.resetCache();
   }
 };
+
+// node_modules/luxon/src/impl/invalid.js
+var Invalid = class {
+  constructor(reason, explanation) {
+    this.reason = reason;
+    this.explanation = explanation;
+  }
+  toMessage() {
+    if (this.explanation) {
+      return `${this.reason}: ${this.explanation}`;
+    } else {
+      return this.reason;
+    }
+  }
+};
+
+// node_modules/luxon/src/impl/conversions.js
+var nonLeapLadder = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+var leapLadder = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+function unitOutOfRange(unit, value) {
+  return new Invalid(
+    "unit out of range",
+    `you specified ${value} (of type ${typeof value}) as a ${unit}, which is invalid`
+  );
+}
+function dayOfWeek(year, month, day) {
+  const d = new Date(Date.UTC(year, month - 1, day));
+  if (year < 100 && year >= 0) {
+    d.setUTCFullYear(d.getUTCFullYear() - 1900);
+  }
+  const js = d.getUTCDay();
+  return js === 0 ? 7 : js;
+}
+function computeOrdinal(year, month, day) {
+  return day + (isLeapYear(year) ? leapLadder : nonLeapLadder)[month - 1];
+}
+function uncomputeOrdinal(year, ordinal) {
+  const table = isLeapYear(year) ? leapLadder : nonLeapLadder, month0 = table.findIndex((i2) => i2 < ordinal), day = ordinal - table[month0];
+  return { month: month0 + 1, day };
+}
+function isoWeekdayToLocal(isoWeekday, startOfWeek) {
+  return (isoWeekday - startOfWeek + 7) % 7 + 1;
+}
+function gregorianToWeek(gregObj, minDaysInFirstWeek = 4, startOfWeek = 1) {
+  const { year, month, day } = gregObj, ordinal = computeOrdinal(year, month, day), weekday = isoWeekdayToLocal(dayOfWeek(year, month, day), startOfWeek);
+  let weekNumber = Math.floor((ordinal - weekday + 14 - minDaysInFirstWeek) / 7), weekYear;
+  if (weekNumber < 1) {
+    weekYear = year - 1;
+    weekNumber = weeksInWeekYear(weekYear, minDaysInFirstWeek, startOfWeek);
+  } else if (weekNumber > weeksInWeekYear(year, minDaysInFirstWeek, startOfWeek)) {
+    weekYear = year + 1;
+    weekNumber = 1;
+  } else {
+    weekYear = year;
+  }
+  return __spreadValues({ weekYear, weekNumber, weekday }, timeObject(gregObj));
+}
+function weekToGregorian(weekData, minDaysInFirstWeek = 4, startOfWeek = 1) {
+  const { weekYear, weekNumber, weekday } = weekData, weekdayOfJan4 = isoWeekdayToLocal(dayOfWeek(weekYear, 1, minDaysInFirstWeek), startOfWeek), yearInDays = daysInYear(weekYear);
+  let ordinal = weekNumber * 7 + weekday - weekdayOfJan4 - 7 + minDaysInFirstWeek, year;
+  if (ordinal < 1) {
+    year = weekYear - 1;
+    ordinal += daysInYear(year);
+  } else if (ordinal > yearInDays) {
+    year = weekYear + 1;
+    ordinal -= daysInYear(weekYear);
+  } else {
+    year = weekYear;
+  }
+  const { month, day } = uncomputeOrdinal(year, ordinal);
+  return __spreadValues({ year, month, day }, timeObject(weekData));
+}
+function gregorianToOrdinal(gregData) {
+  const { year, month, day } = gregData;
+  const ordinal = computeOrdinal(year, month, day);
+  return __spreadValues({ year, ordinal }, timeObject(gregData));
+}
+function ordinalToGregorian(ordinalData) {
+  const { year, ordinal } = ordinalData;
+  const { month, day } = uncomputeOrdinal(year, ordinal);
+  return __spreadValues({ year, month, day }, timeObject(ordinalData));
+}
+function usesLocalWeekValues(obj, loc) {
+  const hasLocaleWeekData = !isUndefined(obj.localWeekday) || !isUndefined(obj.localWeekNumber) || !isUndefined(obj.localWeekYear);
+  if (hasLocaleWeekData) {
+    const hasIsoWeekData = !isUndefined(obj.weekday) || !isUndefined(obj.weekNumber) || !isUndefined(obj.weekYear);
+    if (hasIsoWeekData) {
+      throw new ConflictingSpecificationError(
+        "Cannot mix locale-based week fields with ISO-based week fields"
+      );
+    }
+    if (!isUndefined(obj.localWeekday))
+      obj.weekday = obj.localWeekday;
+    if (!isUndefined(obj.localWeekNumber))
+      obj.weekNumber = obj.localWeekNumber;
+    if (!isUndefined(obj.localWeekYear))
+      obj.weekYear = obj.localWeekYear;
+    delete obj.localWeekday;
+    delete obj.localWeekNumber;
+    delete obj.localWeekYear;
+    return {
+      minDaysInFirstWeek: loc.getMinDaysInFirstWeek(),
+      startOfWeek: loc.getStartOfWeek()
+    };
+  } else {
+    return { minDaysInFirstWeek: 4, startOfWeek: 1 };
+  }
+}
+function hasInvalidWeekData(obj, minDaysInFirstWeek = 4, startOfWeek = 1) {
+  const validYear = isInteger(obj.weekYear), validWeek = integerBetween(
+    obj.weekNumber,
+    1,
+    weeksInWeekYear(obj.weekYear, minDaysInFirstWeek, startOfWeek)
+  ), validWeekday = integerBetween(obj.weekday, 1, 7);
+  if (!validYear) {
+    return unitOutOfRange("weekYear", obj.weekYear);
+  } else if (!validWeek) {
+    return unitOutOfRange("week", obj.weekNumber);
+  } else if (!validWeekday) {
+    return unitOutOfRange("weekday", obj.weekday);
+  } else
+    return false;
+}
+function hasInvalidOrdinalData(obj) {
+  const validYear = isInteger(obj.year), validOrdinal = integerBetween(obj.ordinal, 1, daysInYear(obj.year));
+  if (!validYear) {
+    return unitOutOfRange("year", obj.year);
+  } else if (!validOrdinal) {
+    return unitOutOfRange("ordinal", obj.ordinal);
+  } else
+    return false;
+}
+function hasInvalidGregorianData(obj) {
+  const validYear = isInteger(obj.year), validMonth = integerBetween(obj.month, 1, 12), validDay = integerBetween(obj.day, 1, daysInMonth(obj.year, obj.month));
+  if (!validYear) {
+    return unitOutOfRange("year", obj.year);
+  } else if (!validMonth) {
+    return unitOutOfRange("month", obj.month);
+  } else if (!validDay) {
+    return unitOutOfRange("day", obj.day);
+  } else
+    return false;
+}
+function hasInvalidTimeData(obj) {
+  const { hour, minute, second, millisecond } = obj;
+  const validHour = integerBetween(hour, 0, 23) || hour === 24 && minute === 0 && second === 0 && millisecond === 0, validMinute = integerBetween(minute, 0, 59), validSecond = integerBetween(second, 0, 59), validMillisecond = integerBetween(millisecond, 0, 999);
+  if (!validHour) {
+    return unitOutOfRange("hour", hour);
+  } else if (!validMinute) {
+    return unitOutOfRange("minute", minute);
+  } else if (!validSecond) {
+    return unitOutOfRange("second", second);
+  } else if (!validMillisecond) {
+    return unitOutOfRange("millisecond", millisecond);
+  } else
+    return false;
+}
 
 // node_modules/luxon/src/impl/util.js
 function isUndefined(o) {
@@ -15529,6 +16367,13 @@ function isDate(o) {
 function hasRelative() {
   try {
     return typeof Intl !== "undefined" && !!Intl.RelativeTimeFormat;
+  } catch (e) {
+    return false;
+  }
+}
+function hasLocaleWeekInfo() {
+  try {
+    return typeof Intl !== "undefined" && !!Intl.Locale && ("weekInfo" in Intl.Locale.prototype || "getWeekInfo" in Intl.Locale.prototype);
   } catch (e) {
     return false;
   }
@@ -15559,6 +16404,22 @@ function pick(obj, keys) {
 }
 function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+function validateWeekSettings(settings) {
+  if (settings == null) {
+    return null;
+  } else if (typeof settings !== "object") {
+    throw new InvalidArgumentError("Week settings must be an object");
+  } else {
+    if (!integerBetween(settings.firstDay, 1, 7) || !integerBetween(settings.minimalDays, 1, 7) || !Array.isArray(settings.weekend) || settings.weekend.some((v) => !integerBetween(v, 1, 7))) {
+      throw new InvalidArgumentError("Invalid week settings");
+    }
+    return {
+      firstDay: settings.firstDay,
+      minimalDays: settings.minimalDays,
+      weekend: Array.from(settings.weekend)
+    };
+  }
 }
 function integerBetween(thing, bottom, top) {
   return isInteger(thing) && thing >= bottom && thing <= top;
@@ -15617,16 +16478,29 @@ function daysInMonth(year, month) {
   }
 }
 function objToLocalTS(obj) {
-  let d = Date.UTC(obj.year, obj.month - 1, obj.day, obj.hour, obj.minute, obj.second, obj.millisecond);
+  let d = Date.UTC(
+    obj.year,
+    obj.month - 1,
+    obj.day,
+    obj.hour,
+    obj.minute,
+    obj.second,
+    obj.millisecond
+  );
   if (obj.year < 100 && obj.year >= 0) {
     d = new Date(d);
     d.setUTCFullYear(obj.year, obj.month - 1, obj.day);
   }
   return +d;
 }
-function weeksInWeekYear(weekYear) {
-  const p1 = (weekYear + Math.floor(weekYear / 4) - Math.floor(weekYear / 100) + Math.floor(weekYear / 400)) % 7, last = weekYear - 1, p2 = (last + Math.floor(last / 4) - Math.floor(last / 100) + Math.floor(last / 400)) % 7;
-  return p1 === 4 || p2 === 3 ? 53 : 52;
+function firstWeekOffset(year, minDaysInFirstWeek, startOfWeek) {
+  const fwdlw = isoWeekdayToLocal(dayOfWeek(year, 1, minDaysInFirstWeek), startOfWeek);
+  return -fwdlw + minDaysInFirstWeek - 1;
+}
+function weeksInWeekYear(weekYear, minDaysInFirstWeek = 4, startOfWeek = 1) {
+  const weekOffset = firstWeekOffset(weekYear, minDaysInFirstWeek, startOfWeek);
+  const weekOffsetNext = firstWeekOffset(weekYear + 1, minDaysInFirstWeek, startOfWeek);
+  return (daysInYear(weekYear) - weekOffset + weekOffsetNext) / 7;
 }
 function untruncateYear(year) {
   if (year > 99) {
@@ -15902,21 +16776,21 @@ var Formatter = class {
     const df = this.systemLoc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
     return df.format();
   }
-  formatDateTime(dt, opts = {}) {
-    const df = this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
-    return df.format();
+  dtFormatter(dt, opts = {}) {
+    return this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
   }
-  formatDateTimeParts(dt, opts = {}) {
-    const df = this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
-    return df.formatToParts();
+  formatDateTime(dt, opts) {
+    return this.dtFormatter(dt, opts).format();
   }
-  formatInterval(interval, opts = {}) {
-    const df = this.loc.dtFormatter(interval.start, __spreadValues(__spreadValues({}, this.opts), opts));
+  formatDateTimeParts(dt, opts) {
+    return this.dtFormatter(dt, opts).formatToParts();
+  }
+  formatInterval(interval, opts) {
+    const df = this.dtFormatter(interval.start, opts);
     return df.dtf.formatRange(interval.start.toJSDate(), interval.end.toJSDate());
   }
-  resolvedOptions(dt, opts = {}) {
-    const df = this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
-    return df.resolvedOptions();
+  resolvedOptions(dt, opts) {
+    return this.dtFormatter(dt, opts).resolvedOptions();
   }
   num(n3, p = 0) {
     if (this.opts.forceSimple) {
@@ -15934,7 +16808,10 @@ var Formatter = class {
         return "Z";
       }
       return dt.isValid ? dt.zone.formatOffset(dt.ts, opts.format) : "";
-    }, meridiem = () => knownEnglish ? meridiemForDateTime(dt) : string2({ hour: "numeric", hourCycle: "h12" }, "dayperiod"), month = (length, standalone) => knownEnglish ? monthForDateTime(dt, length) : string2(standalone ? { month: length } : { month: length, day: "numeric" }, "month"), weekday = (length, standalone) => knownEnglish ? weekdayForDateTime(dt, length) : string2(standalone ? { weekday: length } : { weekday: length, month: "long", day: "numeric" }, "weekday"), maybeMacro = (token) => {
+    }, meridiem = () => knownEnglish ? meridiemForDateTime(dt) : string2({ hour: "numeric", hourCycle: "h12" }, "dayperiod"), month = (length, standalone) => knownEnglish ? monthForDateTime(dt, length) : string2(standalone ? { month: length } : { month: length, day: "numeric" }, "month"), weekday = (length, standalone) => knownEnglish ? weekdayForDateTime(dt, length) : string2(
+      standalone ? { weekday: length } : { weekday: length, month: "long", day: "numeric" },
+      "weekday"
+    ), maybeMacro = (token) => {
       const formatOpts = Formatter.macroTokenToFormatOpts(token);
       if (formatOpts) {
         return this.formatWithSystemDefault(dt, formatOpts);
@@ -16044,6 +16921,14 @@ var Formatter = class {
           return this.num(dt.weekNumber);
         case "WW":
           return this.num(dt.weekNumber, 2);
+        case "n":
+          return this.num(dt.localWeekNumber);
+        case "nn":
+          return this.num(dt.localWeekNumber, 2);
+        case "ii":
+          return this.num(dt.localWeekYear.toString().slice(-2), 2);
+        case "iiii":
+          return this.num(dt.localWeekYear, 4);
         case "o":
           return this.num(dt.ordinal);
         case "ooo":
@@ -16091,23 +16976,11 @@ var Formatter = class {
       } else {
         return token;
       }
-    }, tokens = Formatter.parseFormat(fmt), realTokens = tokens.reduce((found, { literal, val }) => literal ? found : found.concat(val), []), collapsed = dur.shiftTo(...realTokens.map(tokenToField).filter((t) => t));
+    }, tokens = Formatter.parseFormat(fmt), realTokens = tokens.reduce(
+      (found, { literal, val }) => literal ? found : found.concat(val),
+      []
+    ), collapsed = dur.shiftTo(...realTokens.map(tokenToField).filter((t) => t));
     return stringifyTokens(tokens, tokenToString(collapsed));
-  }
-};
-
-// node_modules/luxon/src/impl/invalid.js
-var Invalid = class {
-  constructor(reason, explanation) {
-    this.reason = reason;
-    this.explanation = explanation;
-  }
-  toMessage() {
-    if (this.explanation) {
-      return `${this.reason}: ${this.explanation}`;
-    } else {
-      return this.reason;
-    }
   }
 };
 
@@ -16118,10 +16991,13 @@ function combineRegexes(...regexes) {
   return RegExp(`^${full}$`);
 }
 function combineExtractors(...extractors) {
-  return (m) => extractors.reduce(([mergedVals, mergedZone, cursor], ex) => {
-    const [val, zone, next] = ex(m, cursor);
-    return [__spreadValues(__spreadValues({}, mergedVals), val), zone || mergedZone, next];
-  }, [{}, null, 1]).slice(0, 2);
+  return (m) => extractors.reduce(
+    ([mergedVals, mergedZone, cursor], ex) => {
+      const [val, zone, next] = ex(m, cursor);
+      return [__spreadValues(__spreadValues({}, mergedVals), val), zone || mergedZone, next];
+    },
+    [{}, null, 1]
+  ).slice(0, 2);
 }
 function parse2(s2, ...patterns) {
   if (s2 == null) {
@@ -16156,7 +17032,9 @@ var isoOrdinalRegex = /(\d{4})-?(\d{3})/;
 var extractISOWeekData = simpleParse("weekYear", "weekNumber", "weekDay");
 var extractISOOrdinalData = simpleParse("year", "ordinal");
 var sqlYmdRegex = /(\d{4})-(\d\d)-(\d\d)/;
-var sqlTimeRegex = RegExp(`${isoTimeBaseRegex.source} ?(?:${offsetRegex.source}|(${ianaRegex.source}))?`);
+var sqlTimeRegex = RegExp(
+  `${isoTimeBaseRegex.source} ?(?:${offsetRegex.source}|(${ianaRegex.source}))?`
+);
 var sqlTimeExtensionRegex = RegExp(`(?: ${sqlTimeRegex.source})?`);
 function int(match2, pos, fallback) {
   const m = match2[pos];
@@ -16277,18 +17155,48 @@ var isoYmdWithTimeExtensionRegex = combineRegexes(isoYmdRegex, isoTimeExtensionR
 var isoWeekWithTimeExtensionRegex = combineRegexes(isoWeekRegex, isoTimeExtensionRegex);
 var isoOrdinalWithTimeExtensionRegex = combineRegexes(isoOrdinalRegex, isoTimeExtensionRegex);
 var isoTimeCombinedRegex = combineRegexes(isoTimeRegex);
-var extractISOYmdTimeAndOffset = combineExtractors(extractISOYmd, extractISOTime, extractISOOffset, extractIANAZone);
-var extractISOWeekTimeAndOffset = combineExtractors(extractISOWeekData, extractISOTime, extractISOOffset, extractIANAZone);
-var extractISOOrdinalDateAndTime = combineExtractors(extractISOOrdinalData, extractISOTime, extractISOOffset, extractIANAZone);
-var extractISOTimeAndOffset = combineExtractors(extractISOTime, extractISOOffset, extractIANAZone);
+var extractISOYmdTimeAndOffset = combineExtractors(
+  extractISOYmd,
+  extractISOTime,
+  extractISOOffset,
+  extractIANAZone
+);
+var extractISOWeekTimeAndOffset = combineExtractors(
+  extractISOWeekData,
+  extractISOTime,
+  extractISOOffset,
+  extractIANAZone
+);
+var extractISOOrdinalDateAndTime = combineExtractors(
+  extractISOOrdinalData,
+  extractISOTime,
+  extractISOOffset,
+  extractIANAZone
+);
+var extractISOTimeAndOffset = combineExtractors(
+  extractISOTime,
+  extractISOOffset,
+  extractIANAZone
+);
 function parseISODate(s2) {
-  return parse2(s2, [isoYmdWithTimeExtensionRegex, extractISOYmdTimeAndOffset], [isoWeekWithTimeExtensionRegex, extractISOWeekTimeAndOffset], [isoOrdinalWithTimeExtensionRegex, extractISOOrdinalDateAndTime], [isoTimeCombinedRegex, extractISOTimeAndOffset]);
+  return parse2(
+    s2,
+    [isoYmdWithTimeExtensionRegex, extractISOYmdTimeAndOffset],
+    [isoWeekWithTimeExtensionRegex, extractISOWeekTimeAndOffset],
+    [isoOrdinalWithTimeExtensionRegex, extractISOOrdinalDateAndTime],
+    [isoTimeCombinedRegex, extractISOTimeAndOffset]
+  );
 }
 function parseRFC2822Date(s2) {
   return parse2(preprocessRFC2822(s2), [rfc2822, extractRFC2822]);
 }
 function parseHTTPDate(s2) {
-  return parse2(s2, [rfc1123, extractRFC1123Or850], [rfc850, extractRFC1123Or850], [ascii, extractASCII]);
+  return parse2(
+    s2,
+    [rfc1123, extractRFC1123Or850],
+    [rfc850, extractRFC1123Or850],
+    [ascii, extractASCII]
+  );
 }
 function parseISODuration(s2) {
   return parse2(s2, [isoDuration, extractISODuration]);
@@ -16299,9 +17207,17 @@ function parseISOTimeOnly(s2) {
 }
 var sqlYmdWithTimeExtensionRegex = combineRegexes(sqlYmdRegex, sqlTimeExtensionRegex);
 var sqlTimeCombinedRegex = combineRegexes(sqlTimeRegex);
-var extractISOTimeOffsetAndIANAZone = combineExtractors(extractISOTime, extractISOOffset, extractIANAZone);
+var extractISOTimeOffsetAndIANAZone = combineExtractors(
+  extractISOTime,
+  extractISOOffset,
+  extractIANAZone
+);
 function parseSQL(s2) {
-  return parse2(s2, [sqlYmdWithTimeExtensionRegex, extractISOYmdTimeAndOffset], [sqlTimeCombinedRegex, extractISOTimeOffsetAndIANAZone]);
+  return parse2(
+    s2,
+    [sqlYmdWithTimeExtensionRegex, extractISOYmdTimeAndOffset],
+    [sqlTimeCombinedRegex, extractISOTimeOffsetAndIANAZone]
+  );
 }
 
 // node_modules/luxon/src/duration.js
@@ -16405,19 +17321,38 @@ function clone2(dur, alts, clear = false) {
   };
   return new Duration(conf);
 }
-function antiTrunc(n3) {
-  return n3 < 0 ? Math.floor(n3) : Math.ceil(n3);
-}
-function convert(matrix, fromMap, fromUnit, toMap, toUnit) {
-  const conv = matrix[toUnit][fromUnit], raw = fromMap[fromUnit] / conv, sameSign = Math.sign(raw) === Math.sign(toMap[toUnit]), added = !sameSign && toMap[toUnit] !== 0 && Math.abs(raw) <= 1 ? antiTrunc(raw) : Math.trunc(raw);
-  toMap[toUnit] += added;
-  fromMap[fromUnit] -= added * conv;
+function durationToMillis(matrix, vals) {
+  var _a;
+  let sum = (_a = vals.milliseconds) != null ? _a : 0;
+  for (const unit of reverseUnits.slice(1)) {
+    if (vals[unit]) {
+      sum += vals[unit] * matrix[unit]["milliseconds"];
+    }
+  }
+  return sum;
 }
 function normalizeValues(matrix, vals) {
-  reverseUnits.reduce((previous, current) => {
+  const factor = durationToMillis(matrix, vals) < 0 ? -1 : 1;
+  orderedUnits.reduceRight((previous, current) => {
     if (!isUndefined(vals[current])) {
       if (previous) {
-        convert(matrix, vals, previous, vals, current);
+        const previousVal = vals[previous] * factor;
+        const conv = matrix[current][previous];
+        const rollUp = Math.floor(previousVal / conv);
+        vals[current] += rollUp * factor;
+        vals[previous] -= rollUp * conv * factor;
+      }
+      return current;
+    } else {
+      return previous;
+    }
+  }, null);
+  orderedUnits.reduce((previous, current) => {
+    if (!isUndefined(vals[current])) {
+      if (previous) {
+        const fraction = vals[previous] % 1;
+        vals[previous] -= fraction;
+        vals[current] += fraction * matrix[previous][current];
       }
       return current;
     } else {
@@ -16435,6 +17370,9 @@ function removeZeroes(vals) {
   return newVals;
 }
 var Duration = class {
+  /**
+   * @private
+   */
   constructor(config) {
     const accurate = config.conversionAccuracy === "longterm" || false;
     let matrix = accurate ? accurateMatrix : casualMatrix;
@@ -16448,12 +17386,43 @@ var Duration = class {
     this.matrix = matrix;
     this.isLuxonDuration = true;
   }
+  /**
+   * Create Duration from a number of milliseconds.
+   * @param {number} count of milliseconds
+   * @param {Object} opts - options for parsing
+   * @param {string} [opts.locale='en-US'] - the locale to use
+   * @param {string} opts.numberingSystem - the numbering system to use
+   * @param {string} [opts.conversionAccuracy='casual'] - the conversion system to use
+   * @return {Duration}
+   */
   static fromMillis(count, opts) {
     return Duration.fromObject({ milliseconds: count }, opts);
   }
+  /**
+   * Create a Duration from a JavaScript object with keys like 'years' and 'hours'.
+   * If this object is empty then a zero milliseconds duration is returned.
+   * @param {Object} obj - the object to create the DateTime from
+   * @param {number} obj.years
+   * @param {number} obj.quarters
+   * @param {number} obj.months
+   * @param {number} obj.weeks
+   * @param {number} obj.days
+   * @param {number} obj.hours
+   * @param {number} obj.minutes
+   * @param {number} obj.seconds
+   * @param {number} obj.milliseconds
+   * @param {Object} [opts=[]] - options for creating this Duration
+   * @param {string} [opts.locale='en-US'] - the locale to use
+   * @param {string} opts.numberingSystem - the numbering system to use
+   * @param {string} [opts.conversionAccuracy='casual'] - the preset conversion system to use
+   * @param {string} [opts.matrix=Object] - the custom conversion system to use
+   * @return {Duration}
+   */
   static fromObject(obj, opts = {}) {
     if (obj == null || typeof obj !== "object") {
-      throw new InvalidArgumentError(`Duration.fromObject: argument expected to be an object, got ${obj === null ? "null" : typeof obj}`);
+      throw new InvalidArgumentError(
+        `Duration.fromObject: argument expected to be an object, got ${obj === null ? "null" : typeof obj}`
+      );
     }
     return new Duration({
       values: normalizeObject(obj, Duration.normalizeUnit),
@@ -16462,6 +17431,16 @@ var Duration = class {
       matrix: opts.matrix
     });
   }
+  /**
+   * Create a Duration from DurationLike.
+   *
+   * @param {Object | number | Duration} durationLike
+   * One of:
+   * - object with keys like 'years' and 'hours'.
+   * - number representing milliseconds
+   * - Duration instance
+   * @return {Duration}
+   */
   static fromDurationLike(durationLike) {
     if (isNumber2(durationLike)) {
       return Duration.fromMillis(durationLike);
@@ -16470,9 +17449,25 @@ var Duration = class {
     } else if (typeof durationLike === "object") {
       return Duration.fromObject(durationLike);
     } else {
-      throw new InvalidArgumentError(`Unknown duration argument ${durationLike} of type ${typeof durationLike}`);
+      throw new InvalidArgumentError(
+        `Unknown duration argument ${durationLike} of type ${typeof durationLike}`
+      );
     }
   }
+  /**
+   * Create a Duration from an ISO 8601 duration string.
+   * @param {string} text - text to parse
+   * @param {Object} opts - options for parsing
+   * @param {string} [opts.locale='en-US'] - the locale to use
+   * @param {string} opts.numberingSystem - the numbering system to use
+   * @param {string} [opts.conversionAccuracy='casual'] - the preset conversion system to use
+   * @param {string} [opts.matrix=Object] - the preset conversion system to use
+   * @see https://en.wikipedia.org/wiki/ISO_8601#Durations
+   * @example Duration.fromISO('P3Y6M1W4DT12H30M5S').toObject() //=> { years: 3, months: 6, weeks: 1, days: 4, hours: 12, minutes: 30, seconds: 5 }
+   * @example Duration.fromISO('PT23H').toObject() //=> { hours: 23 }
+   * @example Duration.fromISO('P5Y3M').toObject() //=> { years: 5, months: 3 }
+   * @return {Duration}
+   */
   static fromISO(text, opts) {
     const [parsed] = parseISODuration(text);
     if (parsed) {
@@ -16481,6 +17476,22 @@ var Duration = class {
       return Duration.invalid("unparsable", `the input "${text}" can't be parsed as ISO 8601`);
     }
   }
+  /**
+   * Create a Duration from an ISO 8601 time string.
+   * @param {string} text - text to parse
+   * @param {Object} opts - options for parsing
+   * @param {string} [opts.locale='en-US'] - the locale to use
+   * @param {string} opts.numberingSystem - the numbering system to use
+   * @param {string} [opts.conversionAccuracy='casual'] - the preset conversion system to use
+   * @param {string} [opts.matrix=Object] - the conversion system to use
+   * @see https://en.wikipedia.org/wiki/ISO_8601#Times
+   * @example Duration.fromISOTime('11:22:33.444').toObject() //=> { hours: 11, minutes: 22, seconds: 33, milliseconds: 444 }
+   * @example Duration.fromISOTime('11:00').toObject() //=> { hours: 11, minutes: 0, seconds: 0 }
+   * @example Duration.fromISOTime('T11:00').toObject() //=> { hours: 11, minutes: 0, seconds: 0 }
+   * @example Duration.fromISOTime('1100').toObject() //=> { hours: 11, minutes: 0, seconds: 0 }
+   * @example Duration.fromISOTime('T1100').toObject() //=> { hours: 11, minutes: 0, seconds: 0 }
+   * @return {Duration}
+   */
   static fromISOTime(text, opts) {
     const [parsed] = parseISOTimeOnly(text);
     if (parsed) {
@@ -16489,6 +17500,12 @@ var Duration = class {
       return Duration.invalid("unparsable", `the input "${text}" can't be parsed as ISO 8601`);
     }
   }
+  /**
+   * Create an invalid Duration.
+   * @param {string} reason - simple string of why this datetime is invalid. Should not contain parameters or anything else data-dependent
+   * @param {string} [explanation=null] - longer explanation, may include parameters and other useful debugging information
+   * @return {Duration}
+   */
   static invalid(reason, explanation = null) {
     if (!reason) {
       throw new InvalidArgumentError("need to specify a reason the Duration is invalid");
@@ -16500,6 +17517,9 @@ var Duration = class {
       return new Duration({ invalid });
     }
   }
+  /**
+   * @private
+   */
   static normalizeUnit(unit) {
     const normalized = {
       year: "years",
@@ -16525,22 +17545,74 @@ var Duration = class {
       throw new InvalidUnitError(unit);
     return normalized;
   }
+  /**
+   * Check if an object is a Duration. Works across context boundaries
+   * @param {object} o
+   * @return {boolean}
+   */
   static isDuration(o) {
     return o && o.isLuxonDuration || false;
   }
+  /**
+   * Get  the locale of a Duration, such 'en-GB'
+   * @type {string}
+   */
   get locale() {
     return this.isValid ? this.loc.locale : null;
   }
+  /**
+   * Get the numbering system of a Duration, such 'beng'. The numbering system is used when formatting the Duration
+   *
+   * @type {string}
+   */
   get numberingSystem() {
     return this.isValid ? this.loc.numberingSystem : null;
   }
+  /**
+   * Returns a string representation of this Duration formatted according to the specified format string. You may use these tokens:
+   * * `S` for milliseconds
+   * * `s` for seconds
+   * * `m` for minutes
+   * * `h` for hours
+   * * `d` for days
+   * * `w` for weeks
+   * * `M` for months
+   * * `y` for years
+   * Notes:
+   * * Add padding by repeating the token, e.g. "yy" pads the years to two digits, "hhhh" pads the hours out to four digits
+   * * Tokens can be escaped by wrapping with single quotes.
+   * * The duration will be converted to the set of units in the format string using {@link Duration#shiftTo} and the Durations's conversion accuracy setting.
+   * @param {string} fmt - the format string
+   * @param {Object} opts - options
+   * @param {boolean} [opts.floor=true] - floor numerical values
+   * @example Duration.fromObject({ years: 1, days: 6, seconds: 2 }).toFormat("y d s") //=> "1 6 2"
+   * @example Duration.fromObject({ years: 1, days: 6, seconds: 2 }).toFormat("yy dd sss") //=> "01 06 002"
+   * @example Duration.fromObject({ years: 1, days: 6, seconds: 2 }).toFormat("M S") //=> "12 518402000"
+   * @return {string}
+   */
   toFormat(fmt, opts = {}) {
     const fmtOpts = __spreadProps(__spreadValues({}, opts), {
       floor: opts.round !== false && opts.floor !== false
     });
     return this.isValid ? Formatter.create(this.loc, fmtOpts).formatDurationFromString(this, fmt) : INVALID;
   }
+  /**
+   * Returns a string representation of a Duration with all units included.
+   * To modify its behavior, use `listStyle` and any Intl.NumberFormat option, though `unitDisplay` is especially relevant.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options
+   * @param {Object} opts - Formatting options. Accepts the same keys as the options parameter of the native `Intl.NumberFormat` constructor, as well as `listStyle`.
+   * @param {string} [opts.listStyle='narrow'] - How to format the merged list. Corresponds to the `style` property of the options parameter of the native `Intl.ListFormat` constructor.
+   * @example
+   * ```js
+   * var dur = Duration.fromObject({ days: 1, hours: 5, minutes: 6 })
+   * dur.toHuman() //=> '1 day, 5 hours, 6 minutes'
+   * dur.toHuman({ listStyle: "long" }) //=> '1 day, 5 hours, and 6 minutes'
+   * dur.toHuman({ unitDisplay: "short" }) //=> '1 day, 5 hr, 6 min'
+   * ```
+   */
   toHuman(opts = {}) {
+    if (!this.isValid)
+      return INVALID;
     const l2 = orderedUnits.map((unit) => {
       const val = this.values[unit];
       if (isUndefined(val)) {
@@ -16550,11 +17622,26 @@ var Duration = class {
     }).filter((n3) => n3);
     return this.loc.listFormatter(__spreadValues({ type: "conjunction", style: opts.listStyle || "narrow" }, opts)).format(l2);
   }
+  /**
+   * Returns a JavaScript object with this Duration's values.
+   * @example Duration.fromObject({ years: 1, days: 6, seconds: 2 }).toObject() //=> { years: 1, days: 6, seconds: 2 }
+   * @return {Object}
+   */
   toObject() {
     if (!this.isValid)
       return {};
     return __spreadValues({}, this.values);
   }
+  /**
+   * Returns an ISO 8601-compliant string representation of this Duration.
+   * @see https://en.wikipedia.org/wiki/ISO_8601#Durations
+   * @example Duration.fromObject({ years: 3, seconds: 45 }).toISO() //=> 'P3YT45S'
+   * @example Duration.fromObject({ months: 4, seconds: 45 }).toISO() //=> 'P4MT45S'
+   * @example Duration.fromObject({ months: 5 }).toISO() //=> 'P5M'
+   * @example Duration.fromObject({ minutes: 5 }).toISO() //=> 'PT5M'
+   * @example Duration.fromObject({ milliseconds: 6 }).toISO() //=> 'PT0.006S'
+   * @return {string}
+   */
   toISO() {
     if (!this.isValid)
       return null;
@@ -16579,44 +17666,85 @@ var Duration = class {
       s2 += "T0S";
     return s2;
   }
+  /**
+   * Returns an ISO 8601-compliant string representation of this Duration, formatted as a time of day.
+   * Note that this will return null if the duration is invalid, negative, or equal to or greater than 24 hours.
+   * @see https://en.wikipedia.org/wiki/ISO_8601#Times
+   * @param {Object} opts - options
+   * @param {boolean} [opts.suppressMilliseconds=false] - exclude milliseconds from the format if they're 0
+   * @param {boolean} [opts.suppressSeconds=false] - exclude seconds from the format if they're 0
+   * @param {boolean} [opts.includePrefix=false] - include the `T` prefix
+   * @param {string} [opts.format='extended'] - choose between the basic and extended format
+   * @example Duration.fromObject({ hours: 11 }).toISOTime() //=> '11:00:00.000'
+   * @example Duration.fromObject({ hours: 11 }).toISOTime({ suppressMilliseconds: true }) //=> '11:00:00'
+   * @example Duration.fromObject({ hours: 11 }).toISOTime({ suppressSeconds: true }) //=> '11:00'
+   * @example Duration.fromObject({ hours: 11 }).toISOTime({ includePrefix: true }) //=> 'T11:00:00.000'
+   * @example Duration.fromObject({ hours: 11 }).toISOTime({ format: 'basic' }) //=> '110000.000'
+   * @return {string}
+   */
   toISOTime(opts = {}) {
     if (!this.isValid)
       return null;
     const millis = this.toMillis();
     if (millis < 0 || millis >= 864e5)
       return null;
-    opts = __spreadValues({
+    opts = __spreadProps(__spreadValues({
       suppressMilliseconds: false,
       suppressSeconds: false,
       includePrefix: false,
       format: "extended"
-    }, opts);
-    const value = this.shiftTo("hours", "minutes", "seconds", "milliseconds");
-    let fmt = opts.format === "basic" ? "hhmm" : "hh:mm";
-    if (!opts.suppressSeconds || value.seconds !== 0 || value.milliseconds !== 0) {
-      fmt += opts.format === "basic" ? "ss" : ":ss";
-      if (!opts.suppressMilliseconds || value.milliseconds !== 0) {
-        fmt += ".SSS";
-      }
-    }
-    let str = value.toFormat(fmt);
-    if (opts.includePrefix) {
-      str = "T" + str;
-    }
-    return str;
+    }, opts), {
+      includeOffset: false
+    });
+    const dateTime = DateTime.fromMillis(millis, { zone: "UTC" });
+    return dateTime.toISOTime(opts);
   }
+  /**
+   * Returns an ISO 8601 representation of this Duration appropriate for use in JSON.
+   * @return {string}
+   */
   toJSON() {
     return this.toISO();
   }
+  /**
+   * Returns an ISO 8601 representation of this Duration appropriate for use in debugging.
+   * @return {string}
+   */
   toString() {
     return this.toISO();
   }
-  toMillis() {
-    return this.as("milliseconds");
+  /**
+   * Returns a string representation of this Duration appropriate for the REPL.
+   * @return {string}
+   */
+  [Symbol.for("nodejs.util.inspect.custom")]() {
+    if (this.isValid) {
+      return `Duration { values: ${JSON.stringify(this.values)} }`;
+    } else {
+      return `Duration { Invalid, reason: ${this.invalidReason} }`;
+    }
   }
+  /**
+   * Returns an milliseconds value of this Duration.
+   * @return {number}
+   */
+  toMillis() {
+    if (!this.isValid)
+      return NaN;
+    return durationToMillis(this.matrix, this.values);
+  }
+  /**
+   * Returns an milliseconds value of this Duration. Alias of {@link toMillis}
+   * @return {number}
+   */
   valueOf() {
     return this.toMillis();
   }
+  /**
+   * Make this Duration longer by the specified amount. Return a newly-constructed Duration.
+   * @param {Duration|Object|number} duration - The amount to add. Either a Luxon Duration, a number of milliseconds, the object argument to Duration.fromObject()
+   * @return {Duration}
+   */
   plus(duration2) {
     if (!this.isValid)
       return this;
@@ -16628,12 +17756,24 @@ var Duration = class {
     }
     return clone2(this, { values: result }, true);
   }
+  /**
+   * Make this Duration shorter by the specified amount. Return a newly-constructed Duration.
+   * @param {Duration|Object|number} duration - The amount to subtract. Either a Luxon Duration, a number of milliseconds, the object argument to Duration.fromObject()
+   * @return {Duration}
+   */
   minus(duration2) {
     if (!this.isValid)
       return this;
     const dur = Duration.fromDurationLike(duration2);
     return this.plus(dur.negate());
   }
+  /**
+   * Scale this Duration by the specified amount. Return a newly-constructed Duration.
+   * @param {function} fn - The function to apply to each unit. Arity is 1 or 2: the value of the unit and, optionally, the unit name. Must return a number.
+   * @example Duration.fromObject({ hours: 1, minutes: 30 }).mapUnits(x => x * 2) //=> { hours: 2, minutes: 60 }
+   * @example Duration.fromObject({ hours: 1, minutes: 30 }).mapUnits((x, u) => u === "hours" ? x * 2 : x) //=> { hours: 2, minutes: 30 }
+   * @return {Duration}
+   */
   mapUnits(fn) {
     if (!this.isValid)
       return this;
@@ -16643,23 +17783,66 @@ var Duration = class {
     }
     return clone2(this, { values: result }, true);
   }
+  /**
+   * Get the value of unit.
+   * @param {string} unit - a unit such as 'minute' or 'day'
+   * @example Duration.fromObject({years: 2, days: 3}).get('years') //=> 2
+   * @example Duration.fromObject({years: 2, days: 3}).get('months') //=> 0
+   * @example Duration.fromObject({years: 2, days: 3}).get('days') //=> 3
+   * @return {number}
+   */
   get(unit) {
     return this[Duration.normalizeUnit(unit)];
   }
+  /**
+   * "Set" the values of specified units. Return a newly-constructed Duration.
+   * @param {Object} values - a mapping of units to numbers
+   * @example dur.set({ years: 2017 })
+   * @example dur.set({ hours: 8, minutes: 30 })
+   * @return {Duration}
+   */
   set(values2) {
     if (!this.isValid)
       return this;
     const mixed = __spreadValues(__spreadValues({}, this.values), normalizeObject(values2, Duration.normalizeUnit));
     return clone2(this, { values: mixed });
   }
+  /**
+   * "Set" the locale and/or numberingSystem.  Returns a newly-constructed Duration.
+   * @example dur.reconfigure({ locale: 'en-GB' })
+   * @return {Duration}
+   */
   reconfigure({ locale, numberingSystem, conversionAccuracy, matrix } = {}) {
     const loc = this.loc.clone({ locale, numberingSystem });
     const opts = { loc, matrix, conversionAccuracy };
     return clone2(this, opts);
   }
+  /**
+   * Return the length of the duration in the specified unit.
+   * @param {string} unit - a unit such as 'minutes' or 'days'
+   * @example Duration.fromObject({years: 1}).as('days') //=> 365
+   * @example Duration.fromObject({years: 1}).as('months') //=> 12
+   * @example Duration.fromObject({hours: 60}).as('days') //=> 2.5
+   * @return {number}
+   */
   as(unit) {
     return this.isValid ? this.shiftTo(unit).get(unit) : NaN;
   }
+  /**
+   * Reduce this Duration to its canonical representation in its current units.
+   * Assuming the overall value of the Duration is positive, this means:
+   * - excessive values for lower-order units are converted to higher-order units (if possible, see first and second example)
+   * - negative lower-order units are converted to higher order units (there must be such a higher order unit, otherwise
+   *   the overall value would be negative, see third example)
+   * - fractional values for higher-order units are converted to lower-order units (if possible, see fourth example)
+   *
+   * If the overall value is negative, the result of this method is equivalent to `this.negate().normalize().negate()`.
+   * @example Duration.fromObject({ years: 2, days: 5000 }).normalize().toObject() //=> { years: 15, days: 255 }
+   * @example Duration.fromObject({ days: 5000 }).normalize().toObject() //=> { days: 5000 }
+   * @example Duration.fromObject({ hours: 12, minutes: -45 }).normalize().toObject() //=> { hours: 11, minutes: 15 }
+   * @example Duration.fromObject({ years: 2.5, days: 0, hours: 0 }).normalize().toObject() //=> { years: 2, days: 182, hours: 12 }
+   * @return {Duration}
+   */
   normalize() {
     if (!this.isValid)
       return this;
@@ -16667,12 +17850,22 @@ var Duration = class {
     normalizeValues(this.matrix, vals);
     return clone2(this, { values: vals }, true);
   }
+  /**
+   * Rescale units to its largest representation
+   * @example Duration.fromObject({ milliseconds: 90000 }).rescale().toObject() //=> { minutes: 1, seconds: 30 }
+   * @return {Duration}
+   */
   rescale() {
     if (!this.isValid)
       return this;
     const vals = removeZeroes(this.normalize().shiftToAll().toObject());
     return clone2(this, { values: vals }, true);
   }
+  /**
+   * Convert this Duration into its representation in a different set of units.
+   * @example Duration.fromObject({ hours: 1, seconds: 30 }).shiftTo('minutes', 'milliseconds').toObject() //=> { minutes: 60, milliseconds: 30000 }
+   * @return {Duration}
+   */
   shiftTo(...units) {
     if (!this.isValid)
       return this;
@@ -16696,11 +17889,6 @@ var Duration = class {
         const i2 = Math.trunc(own);
         built[k] = i2;
         accumulated[k] = (own * 1e3 - i2 * 1e3) / 1e3;
-        for (const down in vals) {
-          if (orderedUnits.indexOf(down) > orderedUnits.indexOf(k)) {
-            convert(this.matrix, vals, down, built, k);
-          }
-        }
       } else if (isNumber2(vals[k])) {
         accumulated[k] = vals[k];
       }
@@ -16710,13 +17898,33 @@ var Duration = class {
         built[lastUnit] += key === lastUnit ? accumulated[key] : accumulated[key] / this.matrix[lastUnit][key];
       }
     }
-    return clone2(this, { values: built }, true).normalize();
+    normalizeValues(this.matrix, built);
+    return clone2(this, { values: built }, true);
   }
+  /**
+   * Shift this Duration to all available units.
+   * Same as shiftTo("years", "months", "weeks", "days", "hours", "minutes", "seconds", "milliseconds")
+   * @return {Duration}
+   */
   shiftToAll() {
     if (!this.isValid)
       return this;
-    return this.shiftTo("years", "months", "weeks", "days", "hours", "minutes", "seconds", "milliseconds");
+    return this.shiftTo(
+      "years",
+      "months",
+      "weeks",
+      "days",
+      "hours",
+      "minutes",
+      "seconds",
+      "milliseconds"
+    );
   }
+  /**
+   * Return the negative of this Duration.
+   * @example Duration.fromObject({ hours: 1, seconds: 30 }).negate().toObject() //=> { hours: -1, seconds: -30 }
+   * @return {Duration}
+   */
   negate() {
     if (!this.isValid)
       return this;
@@ -16726,42 +17934,97 @@ var Duration = class {
     }
     return clone2(this, { values: negated }, true);
   }
+  /**
+   * Get the years.
+   * @type {number}
+   */
   get years() {
     return this.isValid ? this.values.years || 0 : NaN;
   }
+  /**
+   * Get the quarters.
+   * @type {number}
+   */
   get quarters() {
     return this.isValid ? this.values.quarters || 0 : NaN;
   }
+  /**
+   * Get the months.
+   * @type {number}
+   */
   get months() {
     return this.isValid ? this.values.months || 0 : NaN;
   }
+  /**
+   * Get the weeks
+   * @type {number}
+   */
   get weeks() {
     return this.isValid ? this.values.weeks || 0 : NaN;
   }
+  /**
+   * Get the days.
+   * @type {number}
+   */
   get days() {
     return this.isValid ? this.values.days || 0 : NaN;
   }
+  /**
+   * Get the hours.
+   * @type {number}
+   */
   get hours() {
     return this.isValid ? this.values.hours || 0 : NaN;
   }
+  /**
+   * Get the minutes.
+   * @type {number}
+   */
   get minutes() {
     return this.isValid ? this.values.minutes || 0 : NaN;
   }
+  /**
+   * Get the seconds.
+   * @return {number}
+   */
   get seconds() {
     return this.isValid ? this.values.seconds || 0 : NaN;
   }
+  /**
+   * Get the milliseconds.
+   * @return {number}
+   */
   get milliseconds() {
     return this.isValid ? this.values.milliseconds || 0 : NaN;
   }
+  /**
+   * Returns whether the Duration is invalid. Invalid durations are returned by diff operations
+   * on invalid DateTimes or Intervals.
+   * @return {boolean}
+   */
   get isValid() {
     return this.invalid === null;
   }
+  /**
+   * Returns an error code if this Duration became invalid, or null if the Duration is valid
+   * @return {string}
+   */
   get invalidReason() {
     return this.invalid ? this.invalid.reason : null;
   }
+  /**
+   * Returns an explanation of why this Duration became invalid, or null if the Duration is valid
+   * @type {string}
+   */
   get invalidExplanation() {
     return this.invalid ? this.invalid.explanation : null;
   }
+  /**
+   * Equality check
+   * Two Durations are equal iff they have the same units and the same values for each unit.
+   * @param {Duration} other
+   * @return {boolean}
+   */
   equals(other) {
     if (!this.isValid || !other.isValid) {
       return false;
@@ -16791,18 +18054,30 @@ function validateStartEnd(start, end) {
   } else if (!end || !end.isValid) {
     return Interval.invalid("missing or invalid end");
   } else if (end < start) {
-    return Interval.invalid("end before start", `The end of an interval must be after its start, but you had start=${start.toISO()} and end=${end.toISO()}`);
+    return Interval.invalid(
+      "end before start",
+      `The end of an interval must be after its start, but you had start=${start.toISO()} and end=${end.toISO()}`
+    );
   } else {
     return null;
   }
 }
 var Interval = class {
+  /**
+   * @private
+   */
   constructor(config) {
     this.s = config.start;
     this.e = config.end;
     this.invalid = config.invalid || null;
     this.isLuxonInterval = true;
   }
+  /**
+   * Create an invalid Interval.
+   * @param {string} reason - simple string of why this Interval is invalid. Should not contain parameters or anything else data-dependent
+   * @param {string} [explanation=null] - longer explanation, may include parameters and other useful debugging information
+   * @return {Interval}
+   */
   static invalid(reason, explanation = null) {
     if (!reason) {
       throw new InvalidArgumentError("need to specify a reason the Interval is invalid");
@@ -16814,6 +18089,12 @@ var Interval = class {
       return new Interval({ invalid });
     }
   }
+  /**
+   * Create an Interval from a start DateTime and an end DateTime. Inclusive of the start but not the end.
+   * @param {DateTime|Date|Object} start
+   * @param {DateTime|Date|Object} end
+   * @return {Interval}
+   */
   static fromDateTimes(start, end) {
     const builtStart = friendlyDateTime(start), builtEnd = friendlyDateTime(end);
     const validateError = validateStartEnd(builtStart, builtEnd);
@@ -16826,14 +18107,34 @@ var Interval = class {
       return validateError;
     }
   }
+  /**
+   * Create an Interval from a start DateTime and a Duration to extend to.
+   * @param {DateTime|Date|Object} start
+   * @param {Duration|Object|number} duration - the length of the Interval.
+   * @return {Interval}
+   */
   static after(start, duration2) {
     const dur = Duration.fromDurationLike(duration2), dt = friendlyDateTime(start);
     return Interval.fromDateTimes(dt, dt.plus(dur));
   }
+  /**
+   * Create an Interval from an end DateTime and a Duration to extend backwards to.
+   * @param {DateTime|Date|Object} end
+   * @param {Duration|Object|number} duration - the length of the Interval.
+   * @return {Interval}
+   */
   static before(end, duration2) {
     const dur = Duration.fromDurationLike(duration2), dt = friendlyDateTime(end);
     return Interval.fromDateTimes(dt.minus(dur), dt);
   }
+  /**
+   * Create an Interval from an ISO 8601 string.
+   * Accepts `<start>/<end>`, `<start>/<duration>`, and `<duration>/<end>` formats.
+   * @param {string} text - the ISO string to parse
+   * @param {Object} [opts] - options to pass {@link DateTime#fromISO} and optionally {@link Duration#fromISO}
+   * @see https://en.wikipedia.org/wiki/ISO_8601#Time_intervals
+   * @return {Interval}
+   */
   static fromISO(text, opts) {
     const [s2, e] = (text || "").split("/", 2);
     if (s2 && e) {
@@ -16868,63 +18169,145 @@ var Interval = class {
     }
     return Interval.invalid("unparsable", `the input "${text}" can't be parsed as ISO 8601`);
   }
+  /**
+   * Check if an object is an Interval. Works across context boundaries
+   * @param {object} o
+   * @return {boolean}
+   */
   static isInterval(o) {
     return o && o.isLuxonInterval || false;
   }
+  /**
+   * Returns the start of the Interval
+   * @type {DateTime}
+   */
   get start() {
     return this.isValid ? this.s : null;
   }
+  /**
+   * Returns the end of the Interval
+   * @type {DateTime}
+   */
   get end() {
     return this.isValid ? this.e : null;
   }
+  /**
+   * Returns whether this Interval's end is at least its start, meaning that the Interval isn't 'backwards'.
+   * @type {boolean}
+   */
   get isValid() {
     return this.invalidReason === null;
   }
+  /**
+   * Returns an error code if this Interval is invalid, or null if the Interval is valid
+   * @type {string}
+   */
   get invalidReason() {
     return this.invalid ? this.invalid.reason : null;
   }
+  /**
+   * Returns an explanation of why this Interval became invalid, or null if the Interval is valid
+   * @type {string}
+   */
   get invalidExplanation() {
     return this.invalid ? this.invalid.explanation : null;
   }
+  /**
+   * Returns the length of the Interval in the specified unit.
+   * @param {string} unit - the unit (such as 'hours' or 'days') to return the length in.
+   * @return {number}
+   */
   length(unit = "milliseconds") {
     return this.isValid ? this.toDuration(...[unit]).get(unit) : NaN;
   }
-  count(unit = "milliseconds") {
+  /**
+   * Returns the count of minutes, hours, days, months, or years included in the Interval, even in part.
+   * Unlike {@link Interval#length} this counts sections of the calendar, not periods of time, e.g. specifying 'day'
+   * asks 'what dates are included in this interval?', not 'how many days long is this interval?'
+   * @param {string} [unit='milliseconds'] - the unit of time to count.
+   * @param {Object} opts - options
+   * @param {boolean} [opts.useLocaleWeeks=false] - If true, use weeks based on the locale, i.e. use the locale-dependent start of the week; this operation will always use the locale of the start DateTime
+   * @return {number}
+   */
+  count(unit = "milliseconds", opts) {
     if (!this.isValid)
       return NaN;
-    const start = this.start.startOf(unit), end = this.end.startOf(unit);
+    const start = this.start.startOf(unit, opts);
+    let end;
+    if (opts == null ? void 0 : opts.useLocaleWeeks) {
+      end = this.end.reconfigure({ locale: start.locale });
+    } else {
+      end = this.end;
+    }
+    end = end.startOf(unit, opts);
     return Math.floor(end.diff(start, unit).get(unit)) + (end.valueOf() !== this.end.valueOf());
   }
+  /**
+   * Returns whether this Interval's start and end are both in the same unit of time
+   * @param {string} unit - the unit of time to check sameness on
+   * @return {boolean}
+   */
   hasSame(unit) {
     return this.isValid ? this.isEmpty() || this.e.minus(1).hasSame(this.s, unit) : false;
   }
+  /**
+   * Return whether this Interval has the same start and end DateTimes.
+   * @return {boolean}
+   */
   isEmpty() {
     return this.s.valueOf() === this.e.valueOf();
   }
+  /**
+   * Return whether this Interval's start is after the specified DateTime.
+   * @param {DateTime} dateTime
+   * @return {boolean}
+   */
   isAfter(dateTime) {
     if (!this.isValid)
       return false;
     return this.s > dateTime;
   }
+  /**
+   * Return whether this Interval's end is before the specified DateTime.
+   * @param {DateTime} dateTime
+   * @return {boolean}
+   */
   isBefore(dateTime) {
     if (!this.isValid)
       return false;
     return this.e <= dateTime;
   }
+  /**
+   * Return whether this Interval contains the specified DateTime.
+   * @param {DateTime} dateTime
+   * @return {boolean}
+   */
   contains(dateTime) {
     if (!this.isValid)
       return false;
     return this.s <= dateTime && this.e > dateTime;
   }
+  /**
+   * "Sets" the start and/or end dates. Returns a newly-constructed Interval.
+   * @param {Object} values - the values to set
+   * @param {DateTime} values.start - the starting DateTime
+   * @param {DateTime} values.end - the ending DateTime
+   * @return {Interval}
+   */
   set({ start, end } = {}) {
     if (!this.isValid)
       return this;
     return Interval.fromDateTimes(start || this.s, end || this.e);
   }
+  /**
+   * Split this Interval at each of the specified DateTimes
+   * @param {...DateTime} dateTimes - the unit of time to count.
+   * @return {Array}
+   */
   splitAt(...dateTimes) {
     if (!this.isValid)
       return [];
-    const sorted = dateTimes.map(friendlyDateTime).filter((d) => this.contains(d)).sort(), results = [];
+    const sorted = dateTimes.map(friendlyDateTime).filter((d) => this.contains(d)).sort((a, b) => a.toMillis() - b.toMillis()), results = [];
     let { s: s2 } = this, i2 = 0;
     while (s2 < this.e) {
       const added = sorted[i2] || this.e, next = +added > +this.e ? this.e : added;
@@ -16934,6 +18317,12 @@ var Interval = class {
     }
     return results;
   }
+  /**
+   * Split this Interval into smaller Intervals, each of the specified length.
+   * Left over time is grouped into a smaller interval
+   * @param {Duration|Object|number} duration - The length of each resulting interval.
+   * @return {Array}
+   */
   splitBy(duration2) {
     const dur = Duration.fromDurationLike(duration2);
     if (!this.isValid || !dur.isValid || dur.as("milliseconds") === 0) {
@@ -16950,35 +18339,72 @@ var Interval = class {
     }
     return results;
   }
+  /**
+   * Split this Interval into the specified number of smaller intervals.
+   * @param {number} numberOfParts - The number of Intervals to divide the Interval into.
+   * @return {Array}
+   */
   divideEqually(numberOfParts) {
     if (!this.isValid)
       return [];
     return this.splitBy(this.length() / numberOfParts).slice(0, numberOfParts);
   }
+  /**
+   * Return whether this Interval overlaps with the specified Interval
+   * @param {Interval} other
+   * @return {boolean}
+   */
   overlaps(other) {
     return this.e > other.s && this.s < other.e;
   }
+  /**
+   * Return whether this Interval's end is adjacent to the specified Interval's start.
+   * @param {Interval} other
+   * @return {boolean}
+   */
   abutsStart(other) {
     if (!this.isValid)
       return false;
     return +this.e === +other.s;
   }
+  /**
+   * Return whether this Interval's start is adjacent to the specified Interval's end.
+   * @param {Interval} other
+   * @return {boolean}
+   */
   abutsEnd(other) {
     if (!this.isValid)
       return false;
     return +other.e === +this.s;
   }
+  /**
+   * Return whether this Interval engulfs the start and end of the specified Interval.
+   * @param {Interval} other
+   * @return {boolean}
+   */
   engulfs(other) {
     if (!this.isValid)
       return false;
     return this.s <= other.s && this.e >= other.e;
   }
+  /**
+   * Return whether this Interval has the same start and end as the specified Interval.
+   * @param {Interval} other
+   * @return {boolean}
+   */
   equals(other) {
     if (!this.isValid || !other.isValid) {
       return false;
     }
     return this.s.equals(other.s) && this.e.equals(other.e);
   }
+  /**
+   * Return an Interval representing the intersection of this Interval and the specified Interval.
+   * Specifically, the resulting Interval has the maximum start time and the minimum end time of the two Intervals.
+   * Returns null if the intersection is empty, meaning, the intervals don't intersect.
+   * @param {Interval} other
+   * @return {Interval}
+   */
   intersection(other) {
     if (!this.isValid)
       return this;
@@ -16989,27 +18415,47 @@ var Interval = class {
       return Interval.fromDateTimes(s2, e);
     }
   }
+  /**
+   * Return an Interval representing the union of this Interval and the specified Interval.
+   * Specifically, the resulting Interval has the minimum start time and the maximum end time of the two Intervals.
+   * @param {Interval} other
+   * @return {Interval}
+   */
   union(other) {
     if (!this.isValid)
       return this;
     const s2 = this.s < other.s ? this.s : other.s, e = this.e > other.e ? this.e : other.e;
     return Interval.fromDateTimes(s2, e);
   }
+  /**
+   * Merge an array of Intervals into a equivalent minimal set of Intervals.
+   * Combines overlapping and adjacent Intervals.
+   * @param {Array} intervals
+   * @return {Array}
+   */
   static merge(intervals) {
-    const [found, final] = intervals.sort((a, b) => a.s - b.s).reduce(([sofar, current], item) => {
-      if (!current) {
-        return [sofar, item];
-      } else if (current.overlaps(item) || current.abutsStart(item)) {
-        return [sofar, current.union(item)];
-      } else {
-        return [sofar.concat([current]), item];
-      }
-    }, [[], null]);
+    const [found, final] = intervals.sort((a, b) => a.s - b.s).reduce(
+      ([sofar, current], item) => {
+        if (!current) {
+          return [sofar, item];
+        } else if (current.overlaps(item) || current.abutsStart(item)) {
+          return [sofar, current.union(item)];
+        } else {
+          return [sofar.concat([current]), item];
+        }
+      },
+      [[], null]
+    );
     if (final) {
       found.push(final);
     }
     return found;
   }
+  /**
+   * Return an array of Intervals representing the spans of time that only appear in one of the specified Intervals.
+   * @param {Array} intervals
+   * @return {Array}
+   */
   static xor(intervals) {
     let start = null, currentCount = 0;
     const results = [], ends = intervals.map((i2) => [
@@ -17029,43 +18475,130 @@ var Interval = class {
     }
     return Interval.merge(results);
   }
+  /**
+   * Return an Interval representing the span of time in this Interval that doesn't overlap with any of the specified Intervals.
+   * @param {...Interval} intervals
+   * @return {Array}
+   */
   difference(...intervals) {
     return Interval.xor([this].concat(intervals)).map((i2) => this.intersection(i2)).filter((i2) => i2 && !i2.isEmpty());
   }
+  /**
+   * Returns a string representation of this Interval appropriate for debugging.
+   * @return {string}
+   */
   toString() {
     if (!this.isValid)
       return INVALID2;
     return `[${this.s.toISO()} \u2013 ${this.e.toISO()})`;
   }
+  /**
+   * Returns a string representation of this Interval appropriate for the REPL.
+   * @return {string}
+   */
+  [Symbol.for("nodejs.util.inspect.custom")]() {
+    if (this.isValid) {
+      return `Interval { start: ${this.s.toISO()}, end: ${this.e.toISO()} }`;
+    } else {
+      return `Interval { Invalid, reason: ${this.invalidReason} }`;
+    }
+  }
+  /**
+   * Returns a localized string representing this Interval. Accepts the same options as the
+   * Intl.DateTimeFormat constructor and any presets defined by Luxon, such as
+   * {@link DateTime.DATE_FULL} or {@link DateTime.TIME_SIMPLE}. The exact behavior of this method
+   * is browser-specific, but in general it will return an appropriate representation of the
+   * Interval in the assigned locale. Defaults to the system's locale if no locale has been
+   * specified.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat
+   * @param {Object} [formatOpts=DateTime.DATE_SHORT] - Either a DateTime preset or
+   * Intl.DateTimeFormat constructor options.
+   * @param {Object} opts - Options to override the configuration of the start DateTime.
+   * @example Interval.fromISO('2022-11-07T09:00Z/2022-11-08T09:00Z').toLocaleString(); //=> 11/7/2022 – 11/8/2022
+   * @example Interval.fromISO('2022-11-07T09:00Z/2022-11-08T09:00Z').toLocaleString(DateTime.DATE_FULL); //=> November 7 – 8, 2022
+   * @example Interval.fromISO('2022-11-07T09:00Z/2022-11-08T09:00Z').toLocaleString(DateTime.DATE_FULL, { locale: 'fr-FR' }); //=> 7–8 novembre 2022
+   * @example Interval.fromISO('2022-11-07T17:00Z/2022-11-07T19:00Z').toLocaleString(DateTime.TIME_SIMPLE); //=> 6:00 – 8:00 PM
+   * @example Interval.fromISO('2022-11-07T17:00Z/2022-11-07T19:00Z').toLocaleString({ weekday: 'short', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }); //=> Mon, Nov 07, 6:00 – 8:00 p
+   * @return {string}
+   */
   toLocaleString(formatOpts = DATE_SHORT, opts = {}) {
     return this.isValid ? Formatter.create(this.s.loc.clone(opts), formatOpts).formatInterval(this) : INVALID2;
   }
+  /**
+   * Returns an ISO 8601-compliant string representation of this Interval.
+   * @see https://en.wikipedia.org/wiki/ISO_8601#Time_intervals
+   * @param {Object} opts - The same options as {@link DateTime#toISO}
+   * @return {string}
+   */
   toISO(opts) {
     if (!this.isValid)
       return INVALID2;
     return `${this.s.toISO(opts)}/${this.e.toISO(opts)}`;
   }
+  /**
+   * Returns an ISO 8601-compliant string representation of date of this Interval.
+   * The time components are ignored.
+   * @see https://en.wikipedia.org/wiki/ISO_8601#Time_intervals
+   * @return {string}
+   */
   toISODate() {
     if (!this.isValid)
       return INVALID2;
     return `${this.s.toISODate()}/${this.e.toISODate()}`;
   }
+  /**
+   * Returns an ISO 8601-compliant string representation of time of this Interval.
+   * The date components are ignored.
+   * @see https://en.wikipedia.org/wiki/ISO_8601#Time_intervals
+   * @param {Object} opts - The same options as {@link DateTime#toISO}
+   * @return {string}
+   */
   toISOTime(opts) {
     if (!this.isValid)
       return INVALID2;
     return `${this.s.toISOTime(opts)}/${this.e.toISOTime(opts)}`;
   }
+  /**
+   * Returns a string representation of this Interval formatted according to the specified format
+   * string. **You may not want this.** See {@link Interval#toLocaleString} for a more flexible
+   * formatting tool.
+   * @param {string} dateFormat - The format string. This string formats the start and end time.
+   * See {@link DateTime#toFormat} for details.
+   * @param {Object} opts - Options.
+   * @param {string} [opts.separator =  ' – '] - A separator to place between the start and end
+   * representations.
+   * @return {string}
+   */
   toFormat(dateFormat, { separator = " \u2013 " } = {}) {
     if (!this.isValid)
       return INVALID2;
     return `${this.s.toFormat(dateFormat)}${separator}${this.e.toFormat(dateFormat)}`;
   }
+  /**
+   * Return a Duration representing the time spanned by this interval.
+   * @param {string|string[]} [unit=['milliseconds']] - the unit or units (such as 'hours' or 'days') to include in the duration.
+   * @param {Object} opts - options that affect the creation of the Duration
+   * @param {string} [opts.conversionAccuracy='casual'] - the conversion system to use
+   * @example Interval.fromDateTimes(dt1, dt2).toDuration().toObject() //=> { milliseconds: 88489257 }
+   * @example Interval.fromDateTimes(dt1, dt2).toDuration('days').toObject() //=> { days: 1.0241812152777778 }
+   * @example Interval.fromDateTimes(dt1, dt2).toDuration(['hours', 'minutes']).toObject() //=> { hours: 24, minutes: 34.82095 }
+   * @example Interval.fromDateTimes(dt1, dt2).toDuration(['hours', 'minutes', 'seconds']).toObject() //=> { hours: 24, minutes: 34, seconds: 49.257 }
+   * @example Interval.fromDateTimes(dt1, dt2).toDuration('seconds').toObject() //=> { seconds: 88489.257 }
+   * @return {Duration}
+   */
   toDuration(unit, opts) {
     if (!this.isValid) {
       return Duration.invalid(this.invalidReason);
     }
     return this.e.diff(this.s, unit, opts);
   }
+  /**
+   * Run mapFn on the interval start and end, returning a new Interval from the resulting DateTimes
+   * @param {function} mapFn
+   * @return {Interval}
+   * @example Interval.fromDateTimes(dt1, dt2).mapEndpoints(endpoint => endpoint.toUTC())
+   * @example Interval.fromDateTimes(dt1, dt2).mapEndpoints(endpoint => endpoint.plus({ hours: 2 }))
+   */
   mapEndpoints(mapFn) {
     return Interval.fromDateTimes(mapFn(this.s), mapFn(this.e));
   }
@@ -17073,36 +18606,174 @@ var Interval = class {
 
 // node_modules/luxon/src/info.js
 var Info = class {
+  /**
+   * Return whether the specified zone contains a DST.
+   * @param {string|Zone} [zone='local'] - Zone to check. Defaults to the environment's local zone.
+   * @return {boolean}
+   */
   static hasDST(zone = Settings.defaultZone) {
     const proto = DateTime.now().setZone(zone).set({ month: 12 });
     return !zone.isUniversal && proto.offset !== proto.set({ month: 6 }).offset;
   }
+  /**
+   * Return whether the specified zone is a valid IANA specifier.
+   * @param {string} zone - Zone to check
+   * @return {boolean}
+   */
   static isValidIANAZone(zone) {
     return IANAZone.isValidZone(zone);
   }
+  /**
+   * Converts the input into a {@link Zone} instance.
+   *
+   * * If `input` is already a Zone instance, it is returned unchanged.
+   * * If `input` is a string containing a valid time zone name, a Zone instance
+   *   with that name is returned.
+   * * If `input` is a string that doesn't refer to a known time zone, a Zone
+   *   instance with {@link Zone#isValid} == false is returned.
+   * * If `input is a number, a Zone instance with the specified fixed offset
+   *   in minutes is returned.
+   * * If `input` is `null` or `undefined`, the default zone is returned.
+   * @param {string|Zone|number} [input] - the value to be converted
+   * @return {Zone}
+   */
   static normalizeZone(input2) {
     return normalizeZone(input2, Settings.defaultZone);
   }
+  /**
+   * Get the weekday on which the week starts according to the given locale.
+   * @param {Object} opts - options
+   * @param {string} [opts.locale] - the locale code
+   * @param {string} [opts.locObj=null] - an existing locale object to use
+   * @returns {number} the start of the week, 1 for Monday through 7 for Sunday
+   */
+  static getStartOfWeek({ locale = null, locObj = null } = {}) {
+    return (locObj || Locale.create(locale)).getStartOfWeek();
+  }
+  /**
+   * Get the minimum number of days necessary in a week before it is considered part of the next year according
+   * to the given locale.
+   * @param {Object} opts - options
+   * @param {string} [opts.locale] - the locale code
+   * @param {string} [opts.locObj=null] - an existing locale object to use
+   * @returns {number}
+   */
+  static getMinimumDaysInFirstWeek({ locale = null, locObj = null } = {}) {
+    return (locObj || Locale.create(locale)).getMinDaysInFirstWeek();
+  }
+  /**
+   * Get the weekdays, which are considered the weekend according to the given locale
+   * @param {Object} opts - options
+   * @param {string} [opts.locale] - the locale code
+   * @param {string} [opts.locObj=null] - an existing locale object to use
+   * @returns {number[]} an array of weekdays, 1 for Monday through 7 for Sunday
+   */
+  static getWeekendWeekdays({ locale = null, locObj = null } = {}) {
+    return (locObj || Locale.create(locale)).getWeekendDays().slice();
+  }
+  /**
+   * Return an array of standalone month names.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat
+   * @param {string} [length='long'] - the length of the month representation, such as "numeric", "2-digit", "narrow", "short", "long"
+   * @param {Object} opts - options
+   * @param {string} [opts.locale] - the locale code
+   * @param {string} [opts.numberingSystem=null] - the numbering system
+   * @param {string} [opts.locObj=null] - an existing locale object to use
+   * @param {string} [opts.outputCalendar='gregory'] - the calendar
+   * @example Info.months()[0] //=> 'January'
+   * @example Info.months('short')[0] //=> 'Jan'
+   * @example Info.months('numeric')[0] //=> '1'
+   * @example Info.months('short', { locale: 'fr-CA' } )[0] //=> 'janv.'
+   * @example Info.months('numeric', { locale: 'ar' })[0] //=> '١'
+   * @example Info.months('long', { outputCalendar: 'islamic' })[0] //=> 'Rabiʻ I'
+   * @return {Array}
+   */
   static months(length = "long", { locale = null, numberingSystem = null, locObj = null, outputCalendar = "gregory" } = {}) {
     return (locObj || Locale.create(locale, numberingSystem, outputCalendar)).months(length);
   }
+  /**
+   * Return an array of format month names.
+   * Format months differ from standalone months in that they're meant to appear next to the day of the month. In some languages, that
+   * changes the string.
+   * See {@link Info#months}
+   * @param {string} [length='long'] - the length of the month representation, such as "numeric", "2-digit", "narrow", "short", "long"
+   * @param {Object} opts - options
+   * @param {string} [opts.locale] - the locale code
+   * @param {string} [opts.numberingSystem=null] - the numbering system
+   * @param {string} [opts.locObj=null] - an existing locale object to use
+   * @param {string} [opts.outputCalendar='gregory'] - the calendar
+   * @return {Array}
+   */
   static monthsFormat(length = "long", { locale = null, numberingSystem = null, locObj = null, outputCalendar = "gregory" } = {}) {
     return (locObj || Locale.create(locale, numberingSystem, outputCalendar)).months(length, true);
   }
+  /**
+   * Return an array of standalone week names.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat
+   * @param {string} [length='long'] - the length of the weekday representation, such as "narrow", "short", "long".
+   * @param {Object} opts - options
+   * @param {string} [opts.locale] - the locale code
+   * @param {string} [opts.numberingSystem=null] - the numbering system
+   * @param {string} [opts.locObj=null] - an existing locale object to use
+   * @example Info.weekdays()[0] //=> 'Monday'
+   * @example Info.weekdays('short')[0] //=> 'Mon'
+   * @example Info.weekdays('short', { locale: 'fr-CA' })[0] //=> 'lun.'
+   * @example Info.weekdays('short', { locale: 'ar' })[0] //=> 'الاثنين'
+   * @return {Array}
+   */
   static weekdays(length = "long", { locale = null, numberingSystem = null, locObj = null } = {}) {
     return (locObj || Locale.create(locale, numberingSystem, null)).weekdays(length);
   }
+  /**
+   * Return an array of format week names.
+   * Format weekdays differ from standalone weekdays in that they're meant to appear next to more date information. In some languages, that
+   * changes the string.
+   * See {@link Info#weekdays}
+   * @param {string} [length='long'] - the length of the month representation, such as "narrow", "short", "long".
+   * @param {Object} opts - options
+   * @param {string} [opts.locale=null] - the locale code
+   * @param {string} [opts.numberingSystem=null] - the numbering system
+   * @param {string} [opts.locObj=null] - an existing locale object to use
+   * @return {Array}
+   */
   static weekdaysFormat(length = "long", { locale = null, numberingSystem = null, locObj = null } = {}) {
     return (locObj || Locale.create(locale, numberingSystem, null)).weekdays(length, true);
   }
+  /**
+   * Return an array of meridiems.
+   * @param {Object} opts - options
+   * @param {string} [opts.locale] - the locale code
+   * @example Info.meridiems() //=> [ 'AM', 'PM' ]
+   * @example Info.meridiems({ locale: 'my' }) //=> [ 'နံနက်', 'ညနေ' ]
+   * @return {Array}
+   */
   static meridiems({ locale = null } = {}) {
     return Locale.create(locale).meridiems();
   }
+  /**
+   * Return an array of eras, such as ['BC', 'AD']. The locale can be specified, but the calendar system is always Gregorian.
+   * @param {string} [length='short'] - the length of the era representation, such as "short" or "long".
+   * @param {Object} opts - options
+   * @param {string} [opts.locale] - the locale code
+   * @example Info.eras() //=> [ 'BC', 'AD' ]
+   * @example Info.eras('long') //=> [ 'Before Christ', 'Anno Domini' ]
+   * @example Info.eras('long', { locale: 'fr' }) //=> [ 'avant Jésus-Christ', 'après Jésus-Christ' ]
+   * @return {Array}
+   */
   static eras(length = "short", { locale = null } = {}) {
     return Locale.create(locale, null, "gregory").eras(length);
   }
+  /**
+   * Return the set of available features in this environment.
+   * Some features of Luxon are not available in all environments. For example, on older browsers, relative time formatting support is not available. Use this function to figure out if that's the case.
+   * Keys:
+   * * `relative`: whether this environment supports relative time formatting
+   * * `localeWeek`: whether this environment supports different weekdays for the start of the week based on the locale
+   * @example Info.features() //=> { relative: false, localeWeek: true }
+   * @return {Object}
+   */
   static features() {
-    return { relative: hasRelative() };
+    return { relative: hasRelative(), localeWeek: hasLocaleWeekInfo() };
   }
 };
 
@@ -17136,6 +18807,11 @@ function highOrderDiffs(cursor, later, units) {
       if (highWater > later) {
         results[unit]--;
         cursor = earlier.plus(results);
+        if (cursor > later) {
+          highWater = cursor;
+          results[unit]--;
+          cursor = earlier.plus(results);
+        }
       } else {
         cursor = highWater;
       }
@@ -17146,7 +18822,9 @@ function highOrderDiffs(cursor, later, units) {
 function diff_default(earlier, later, units, opts) {
   let [cursor, results, highWater, lowestOrder] = highOrderDiffs(earlier, later, units);
   const remainingMillis = later - cursor;
-  const lowerOrderUnits = units.filter((u) => ["hours", "minutes", "seconds", "milliseconds"].indexOf(u) >= 0);
+  const lowerOrderUnits = units.filter(
+    (u) => ["hours", "minutes", "seconds", "milliseconds"].indexOf(u) >= 0
+  );
   if (lowerOrderUnits.length === 0) {
     if (highWater < later) {
       highWater = cursor.plus({ [lowestOrder]: 1 });
@@ -17275,9 +18953,9 @@ function unitForToken(token, loc) {
     }
     switch (t.val) {
       case "G":
-        return oneOf(loc.eras("short", false), 0);
+        return oneOf(loc.eras("short"), 0);
       case "GG":
-        return oneOf(loc.eras("long", false), 0);
+        return oneOf(loc.eras("long"), 0);
       case "y":
         return intUnit(oneToSix);
       case "yy":
@@ -17293,17 +18971,17 @@ function unitForToken(token, loc) {
       case "MM":
         return intUnit(two);
       case "MMM":
-        return oneOf(loc.months("short", true, false), 1);
+        return oneOf(loc.months("short", true), 1);
       case "MMMM":
-        return oneOf(loc.months("long", true, false), 1);
+        return oneOf(loc.months("long", true), 1);
       case "L":
         return intUnit(oneOrTwo);
       case "LL":
         return intUnit(two);
       case "LLL":
-        return oneOf(loc.months("short", false, false), 1);
+        return oneOf(loc.months("short", false), 1);
       case "LLLL":
-        return oneOf(loc.months("long", false, false), 1);
+        return oneOf(loc.months("long", false), 1);
       case "d":
         return intUnit(oneOrTwo);
       case "dd":
@@ -17356,13 +19034,13 @@ function unitForToken(token, loc) {
       case "c":
         return intUnit(one);
       case "EEE":
-        return oneOf(loc.weekdays("short", false, false), 1);
+        return oneOf(loc.weekdays("short", false), 1);
       case "EEEE":
-        return oneOf(loc.weekdays("long", false, false), 1);
+        return oneOf(loc.weekdays("long", false), 1);
       case "ccc":
-        return oneOf(loc.weekdays("short", true, false), 1);
+        return oneOf(loc.weekdays("short", true), 1);
       case "cccc":
-        return oneOf(loc.weekdays("long", true, false), 1);
+        return oneOf(loc.weekdays("long", true), 1);
       case "Z":
       case "ZZ":
         return offset(new RegExp(`([+-]${oneOrTwo.source})(?::(${two.source}))?`), 2);
@@ -17403,9 +19081,13 @@ var partTypeStyleToTokenVal = {
   },
   dayperiod: "a",
   dayPeriod: "a",
-  hour: {
+  hour12: {
     numeric: "h",
     "2-digit": "hh"
+  },
+  hour24: {
+    numeric: "H",
+    "2-digit": "HH"
   },
   minute: {
     numeric: "m",
@@ -17420,7 +19102,7 @@ var partTypeStyleToTokenVal = {
     short: "ZZZ"
   }
 };
-function tokenForPart(part, formatOpts) {
+function tokenForPart(part, formatOpts, resolvedOpts) {
   const { type, value } = part;
   if (type === "literal") {
     const isSpace = /^\s+$/.test(value);
@@ -17430,7 +19112,21 @@ function tokenForPart(part, formatOpts) {
     };
   }
   const style = formatOpts[type];
-  let val = partTypeStyleToTokenVal[type];
+  let actualType = type;
+  if (type === "hour") {
+    if (formatOpts.hour12 != null) {
+      actualType = formatOpts.hour12 ? "hour12" : "hour24";
+    } else if (formatOpts.hourCycle != null) {
+      if (formatOpts.hourCycle === "h11" || formatOpts.hourCycle === "h12") {
+        actualType = "hour12";
+      } else {
+        actualType = "hour24";
+      }
+    } else {
+      actualType = resolvedOpts.hour12 ? "hour12" : "hour24";
+    }
+  }
+  let val = partTypeStyleToTokenVal[actualType];
   if (typeof val === "object") {
     val = val[style];
   }
@@ -17563,7 +19259,9 @@ function explainFromTokens(locale, input2, format) {
   } else {
     const [regexString, handlers] = buildRegex(units), regex = RegExp(regexString, "i"), [rawMatches, matches] = match(input2, regex, handlers), [result, zone, specificOffset] = matches ? dateTimeFromMatches(matches) : [null, null, void 0];
     if (hasOwnProperty(matches, "a") && hasOwnProperty(matches, "H")) {
-      throw new ConflictingSpecificationError("Can't include meridiem when specifying 24-hour format");
+      throw new ConflictingSpecificationError(
+        "Can't include meridiem when specifying 24-hour format"
+      );
     }
     return { input: input2, tokens, regex, rawMatches, matches, result, zone, specificOffset };
   }
@@ -17577,114 +19275,10 @@ function formatOptsToTokens(formatOpts, locale) {
     return null;
   }
   const formatter = Formatter.create(locale, formatOpts);
-  const parts = formatter.formatDateTimeParts(getDummyDateTime());
-  return parts.map((p) => tokenForPart(p, formatOpts));
-}
-
-// node_modules/luxon/src/impl/conversions.js
-var nonLeapLadder = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-var leapLadder = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
-function unitOutOfRange(unit, value) {
-  return new Invalid("unit out of range", `you specified ${value} (of type ${typeof value}) as a ${unit}, which is invalid`);
-}
-function dayOfWeek(year, month, day) {
-  const d = new Date(Date.UTC(year, month - 1, day));
-  if (year < 100 && year >= 0) {
-    d.setUTCFullYear(d.getUTCFullYear() - 1900);
-  }
-  const js = d.getUTCDay();
-  return js === 0 ? 7 : js;
-}
-function computeOrdinal(year, month, day) {
-  return day + (isLeapYear(year) ? leapLadder : nonLeapLadder)[month - 1];
-}
-function uncomputeOrdinal(year, ordinal) {
-  const table = isLeapYear(year) ? leapLadder : nonLeapLadder, month0 = table.findIndex((i2) => i2 < ordinal), day = ordinal - table[month0];
-  return { month: month0 + 1, day };
-}
-function gregorianToWeek(gregObj) {
-  const { year, month, day } = gregObj, ordinal = computeOrdinal(year, month, day), weekday = dayOfWeek(year, month, day);
-  let weekNumber = Math.floor((ordinal - weekday + 10) / 7), weekYear;
-  if (weekNumber < 1) {
-    weekYear = year - 1;
-    weekNumber = weeksInWeekYear(weekYear);
-  } else if (weekNumber > weeksInWeekYear(year)) {
-    weekYear = year + 1;
-    weekNumber = 1;
-  } else {
-    weekYear = year;
-  }
-  return __spreadValues({ weekYear, weekNumber, weekday }, timeObject(gregObj));
-}
-function weekToGregorian(weekData) {
-  const { weekYear, weekNumber, weekday } = weekData, weekdayOfJan4 = dayOfWeek(weekYear, 1, 4), yearInDays = daysInYear(weekYear);
-  let ordinal = weekNumber * 7 + weekday - weekdayOfJan4 - 3, year;
-  if (ordinal < 1) {
-    year = weekYear - 1;
-    ordinal += daysInYear(year);
-  } else if (ordinal > yearInDays) {
-    year = weekYear + 1;
-    ordinal -= daysInYear(weekYear);
-  } else {
-    year = weekYear;
-  }
-  const { month, day } = uncomputeOrdinal(year, ordinal);
-  return __spreadValues({ year, month, day }, timeObject(weekData));
-}
-function gregorianToOrdinal(gregData) {
-  const { year, month, day } = gregData;
-  const ordinal = computeOrdinal(year, month, day);
-  return __spreadValues({ year, ordinal }, timeObject(gregData));
-}
-function ordinalToGregorian(ordinalData) {
-  const { year, ordinal } = ordinalData;
-  const { month, day } = uncomputeOrdinal(year, ordinal);
-  return __spreadValues({ year, month, day }, timeObject(ordinalData));
-}
-function hasInvalidWeekData(obj) {
-  const validYear = isInteger(obj.weekYear), validWeek = integerBetween(obj.weekNumber, 1, weeksInWeekYear(obj.weekYear)), validWeekday = integerBetween(obj.weekday, 1, 7);
-  if (!validYear) {
-    return unitOutOfRange("weekYear", obj.weekYear);
-  } else if (!validWeek) {
-    return unitOutOfRange("week", obj.week);
-  } else if (!validWeekday) {
-    return unitOutOfRange("weekday", obj.weekday);
-  } else
-    return false;
-}
-function hasInvalidOrdinalData(obj) {
-  const validYear = isInteger(obj.year), validOrdinal = integerBetween(obj.ordinal, 1, daysInYear(obj.year));
-  if (!validYear) {
-    return unitOutOfRange("year", obj.year);
-  } else if (!validOrdinal) {
-    return unitOutOfRange("ordinal", obj.ordinal);
-  } else
-    return false;
-}
-function hasInvalidGregorianData(obj) {
-  const validYear = isInteger(obj.year), validMonth = integerBetween(obj.month, 1, 12), validDay = integerBetween(obj.day, 1, daysInMonth(obj.year, obj.month));
-  if (!validYear) {
-    return unitOutOfRange("year", obj.year);
-  } else if (!validMonth) {
-    return unitOutOfRange("month", obj.month);
-  } else if (!validDay) {
-    return unitOutOfRange("day", obj.day);
-  } else
-    return false;
-}
-function hasInvalidTimeData(obj) {
-  const { hour, minute, second, millisecond } = obj;
-  const validHour = integerBetween(hour, 0, 23) || hour === 24 && minute === 0 && second === 0 && millisecond === 0, validMinute = integerBetween(minute, 0, 59), validSecond = integerBetween(second, 0, 59), validMillisecond = integerBetween(millisecond, 0, 999);
-  if (!validHour) {
-    return unitOutOfRange("hour", hour);
-  } else if (!validMinute) {
-    return unitOutOfRange("minute", minute);
-  } else if (!validSecond) {
-    return unitOutOfRange("second", second);
-  } else if (!validMillisecond) {
-    return unitOutOfRange("millisecond", millisecond);
-  } else
-    return false;
+  const df = formatter.dtFormatter(getDummyDateTime());
+  const parts = df.formatToParts();
+  const resolvedOpts = df.resolvedOptions();
+  return parts.map((p) => tokenForPart(p, formatOpts, resolvedOpts));
 }
 
 // node_modules/luxon/src/datetime.js
@@ -17698,6 +19292,16 @@ function possiblyCachedWeekData(dt) {
     dt.weekData = gregorianToWeek(dt.c);
   }
   return dt.weekData;
+}
+function possiblyCachedLocalWeekData(dt) {
+  if (dt.localWeekData === null) {
+    dt.localWeekData = gregorianToWeek(
+      dt.c,
+      dt.loc.getMinDaysInFirstWeek(),
+      dt.loc.getStartOfWeek()
+    );
+  }
+  return dt.localWeekData;
 }
 function clone3(inst, alts) {
   const current = {
@@ -17771,7 +19375,9 @@ function parseDataToDateTime(parsed, parsedZone, opts, format, text, specificOff
     }));
     return setZone ? inst : inst.setZone(zone);
   } else {
-    return DateTime.invalid(new Invalid("unparsable", `the input "${text}" can't be parsed as ${format}`));
+    return DateTime.invalid(
+      new Invalid("unparsable", `the input "${text}" can't be parsed as ${format}`)
+    );
   }
 }
 function toTechFormat(dt, format, allowZ = true) {
@@ -17802,13 +19408,13 @@ function toISOTime(o, extended, suppressSeconds, suppressMilliseconds, includeOf
   if (extended) {
     c += ":";
     c += padStart(o.c.minute);
-    if (o.c.second !== 0 || !suppressSeconds) {
+    if (o.c.millisecond !== 0 || o.c.second !== 0 || !suppressSeconds) {
       c += ":";
     }
   } else {
     c += padStart(o.c.minute);
   }
-  if (o.c.second !== 0 || !suppressSeconds) {
+  if (o.c.millisecond !== 0 || o.c.second !== 0 || !suppressSeconds) {
     c += padStart(o.c.second);
     if (o.c.millisecond !== 0 || !suppressMilliseconds) {
       c += ".";
@@ -17900,6 +19506,21 @@ function normalizeUnit(unit) {
     throw new InvalidUnitError(unit);
   return normalized;
 }
+function normalizeUnitWithLocalWeeks(unit) {
+  switch (unit.toLowerCase()) {
+    case "localweekday":
+    case "localweekdays":
+      return "localWeekday";
+    case "localweeknumber":
+    case "localweeknumbers":
+      return "localWeekNumber";
+    case "localweekyear":
+    case "localweekyears":
+      return "localWeekYear";
+    default:
+      return normalizeUnit(unit);
+  }
+}
 function quickDT(obj, opts) {
   const zone = normalizeZone(opts.zone, Settings.defaultZone), loc = Locale.fromObject(opts), tsNow = Settings.now();
   let ts, o;
@@ -17957,6 +19578,9 @@ function lastOpts(argList) {
   return [opts, args];
 }
 var DateTime = class {
+  /**
+   * @access private
+   */
   constructor(config) {
     const zone = config.zone || Settings.defaultZone;
     let invalid = config.invalid || (Number.isNaN(config.ts) ? new Invalid("invalid input") : null) || (!zone.isValid ? unsupportedZone(zone) : null);
@@ -17978,22 +19602,83 @@ var DateTime = class {
     this.loc = config.loc || Locale.create();
     this.invalid = invalid;
     this.weekData = null;
+    this.localWeekData = null;
     this.c = c;
     this.o = o;
     this.isLuxonDateTime = true;
   }
+  // CONSTRUCT
+  /**
+   * Create a DateTime for the current instant, in the system's time zone.
+   *
+   * Use Settings to override these default values if needed.
+   * @example DateTime.now().toISO() //~> now in the ISO format
+   * @return {DateTime}
+   */
   static now() {
     return new DateTime({});
   }
+  /**
+   * Create a local DateTime
+   * @param {number} [year] - The calendar year. If omitted (as in, call `local()` with no arguments), the current time will be used
+   * @param {number} [month=1] - The month, 1-indexed
+   * @param {number} [day=1] - The day of the month, 1-indexed
+   * @param {number} [hour=0] - The hour of the day, in 24-hour time
+   * @param {number} [minute=0] - The minute of the hour, meaning a number between 0 and 59
+   * @param {number} [second=0] - The second of the minute, meaning a number between 0 and 59
+   * @param {number} [millisecond=0] - The millisecond of the second, meaning a number between 0 and 999
+   * @example DateTime.local()                                  //~> now
+   * @example DateTime.local({ zone: "America/New_York" })      //~> now, in US east coast time
+   * @example DateTime.local(2017)                              //~> 2017-01-01T00:00:00
+   * @example DateTime.local(2017, 3)                           //~> 2017-03-01T00:00:00
+   * @example DateTime.local(2017, 3, 12, { locale: "fr" })     //~> 2017-03-12T00:00:00, with a French locale
+   * @example DateTime.local(2017, 3, 12, 5)                    //~> 2017-03-12T05:00:00
+   * @example DateTime.local(2017, 3, 12, 5, { zone: "utc" })   //~> 2017-03-12T05:00:00, in UTC
+   * @example DateTime.local(2017, 3, 12, 5, 45)                //~> 2017-03-12T05:45:00
+   * @example DateTime.local(2017, 3, 12, 5, 45, 10)            //~> 2017-03-12T05:45:10
+   * @example DateTime.local(2017, 3, 12, 5, 45, 10, 765)       //~> 2017-03-12T05:45:10.765
+   * @return {DateTime}
+   */
   static local() {
     const [opts, args] = lastOpts(arguments), [year, month, day, hour, minute, second, millisecond] = args;
     return quickDT({ year, month, day, hour, minute, second, millisecond }, opts);
   }
+  /**
+   * Create a DateTime in UTC
+   * @param {number} [year] - The calendar year. If omitted (as in, call `utc()` with no arguments), the current time will be used
+   * @param {number} [month=1] - The month, 1-indexed
+   * @param {number} [day=1] - The day of the month
+   * @param {number} [hour=0] - The hour of the day, in 24-hour time
+   * @param {number} [minute=0] - The minute of the hour, meaning a number between 0 and 59
+   * @param {number} [second=0] - The second of the minute, meaning a number between 0 and 59
+   * @param {number} [millisecond=0] - The millisecond of the second, meaning a number between 0 and 999
+   * @param {Object} options - configuration options for the DateTime
+   * @param {string} [options.locale] - a locale to set on the resulting DateTime instance
+   * @param {string} [options.outputCalendar] - the output calendar to set on the resulting DateTime instance
+   * @param {string} [options.numberingSystem] - the numbering system to set on the resulting DateTime instance
+   * @example DateTime.utc()                                              //~> now
+   * @example DateTime.utc(2017)                                          //~> 2017-01-01T00:00:00Z
+   * @example DateTime.utc(2017, 3)                                       //~> 2017-03-01T00:00:00Z
+   * @example DateTime.utc(2017, 3, 12)                                   //~> 2017-03-12T00:00:00Z
+   * @example DateTime.utc(2017, 3, 12, 5)                                //~> 2017-03-12T05:00:00Z
+   * @example DateTime.utc(2017, 3, 12, 5, 45)                            //~> 2017-03-12T05:45:00Z
+   * @example DateTime.utc(2017, 3, 12, 5, 45, { locale: "fr" })          //~> 2017-03-12T05:45:00Z with a French locale
+   * @example DateTime.utc(2017, 3, 12, 5, 45, 10)                        //~> 2017-03-12T05:45:10Z
+   * @example DateTime.utc(2017, 3, 12, 5, 45, 10, 765, { locale: "fr" }) //~> 2017-03-12T05:45:10.765Z with a French locale
+   * @return {DateTime}
+   */
   static utc() {
     const [opts, args] = lastOpts(arguments), [year, month, day, hour, minute, second, millisecond] = args;
     opts.zone = FixedOffsetZone.utcInstance;
     return quickDT({ year, month, day, hour, minute, second, millisecond }, opts);
   }
+  /**
+   * Create a DateTime from a JavaScript Date object. Uses the default zone.
+   * @param {Date} date - a JavaScript Date object
+   * @param {Object} options - configuration options for the DateTime
+   * @param {string|Zone} [options.zone='local'] - the zone to place the DateTime into
+   * @return {DateTime}
+   */
   static fromJSDate(date2, options = {}) {
     const ts = isDate(date2) ? date2.valueOf() : NaN;
     if (Number.isNaN(ts)) {
@@ -18009,9 +19694,21 @@ var DateTime = class {
       loc: Locale.fromObject(options)
     });
   }
+  /**
+   * Create a DateTime from a number of milliseconds since the epoch (meaning since 1 January 1970 00:00:00 UTC). Uses the default zone.
+   * @param {number} milliseconds - a number of milliseconds since 1970 UTC
+   * @param {Object} options - configuration options for the DateTime
+   * @param {string|Zone} [options.zone='local'] - the zone to place the DateTime into
+   * @param {string} [options.locale] - a locale to set on the resulting DateTime instance
+   * @param {string} options.outputCalendar - the output calendar to set on the resulting DateTime instance
+   * @param {string} options.numberingSystem - the numbering system to set on the resulting DateTime instance
+   * @return {DateTime}
+   */
   static fromMillis(milliseconds, options = {}) {
     if (!isNumber2(milliseconds)) {
-      throw new InvalidArgumentError(`fromMillis requires a numerical input, but received a ${typeof milliseconds} with value ${milliseconds}`);
+      throw new InvalidArgumentError(
+        `fromMillis requires a numerical input, but received a ${typeof milliseconds} with value ${milliseconds}`
+      );
     } else if (milliseconds < -MAX_DATE || milliseconds > MAX_DATE) {
       return DateTime.invalid("Timestamp out of range");
     } else {
@@ -18022,6 +19719,16 @@ var DateTime = class {
       });
     }
   }
+  /**
+   * Create a DateTime from a number of seconds since the epoch (meaning since 1 January 1970 00:00:00 UTC). Uses the default zone.
+   * @param {number} seconds - a number of seconds since 1970 UTC
+   * @param {Object} options - configuration options for the DateTime
+   * @param {string|Zone} [options.zone='local'] - the zone to place the DateTime into
+   * @param {string} [options.locale] - a locale to set on the resulting DateTime instance
+   * @param {string} options.outputCalendar - the output calendar to set on the resulting DateTime instance
+   * @param {string} options.numberingSystem - the numbering system to set on the resulting DateTime instance
+   * @return {DateTime}
+   */
   static fromSeconds(seconds, options = {}) {
     if (!isNumber2(seconds)) {
       throw new InvalidArgumentError("fromSeconds requires a numerical input");
@@ -18033,15 +19740,52 @@ var DateTime = class {
       });
     }
   }
+  /**
+   * Create a DateTime from a JavaScript object with keys like 'year' and 'hour' with reasonable defaults.
+   * @param {Object} obj - the object to create the DateTime from
+   * @param {number} obj.year - a year, such as 1987
+   * @param {number} obj.month - a month, 1-12
+   * @param {number} obj.day - a day of the month, 1-31, depending on the month
+   * @param {number} obj.ordinal - day of the year, 1-365 or 366
+   * @param {number} obj.weekYear - an ISO week year
+   * @param {number} obj.weekNumber - an ISO week number, between 1 and 52 or 53, depending on the year
+   * @param {number} obj.weekday - an ISO weekday, 1-7, where 1 is Monday and 7 is Sunday
+   * @param {number} obj.localWeekYear - a week year, according to the locale
+   * @param {number} obj.localWeekNumber - a week number, between 1 and 52 or 53, depending on the year, according to the locale
+   * @param {number} obj.localWeekday - a weekday, 1-7, where 1 is the first and 7 is the last day of the week, according to the locale
+   * @param {number} obj.hour - hour of the day, 0-23
+   * @param {number} obj.minute - minute of the hour, 0-59
+   * @param {number} obj.second - second of the minute, 0-59
+   * @param {number} obj.millisecond - millisecond of the second, 0-999
+   * @param {Object} opts - options for creating this DateTime
+   * @param {string|Zone} [opts.zone='local'] - interpret the numbers in the context of a particular zone. Can take any value taken as the first argument to setZone()
+   * @param {string} [opts.locale='system\'s locale'] - a locale to set on the resulting DateTime instance
+   * @param {string} opts.outputCalendar - the output calendar to set on the resulting DateTime instance
+   * @param {string} opts.numberingSystem - the numbering system to set on the resulting DateTime instance
+   * @example DateTime.fromObject({ year: 1982, month: 5, day: 25}).toISODate() //=> '1982-05-25'
+   * @example DateTime.fromObject({ year: 1982 }).toISODate() //=> '1982-01-01'
+   * @example DateTime.fromObject({ hour: 10, minute: 26, second: 6 }) //~> today at 10:26:06
+   * @example DateTime.fromObject({ hour: 10, minute: 26, second: 6 }, { zone: 'utc' }),
+   * @example DateTime.fromObject({ hour: 10, minute: 26, second: 6 }, { zone: 'local' })
+   * @example DateTime.fromObject({ hour: 10, minute: 26, second: 6 }, { zone: 'America/New_York' })
+   * @example DateTime.fromObject({ weekYear: 2016, weekNumber: 2, weekday: 3 }).toISODate() //=> '2016-01-13'
+   * @example DateTime.fromObject({ localWeekYear: 2022, localWeekNumber: 1, localWeekday: 1 }, { locale: "en-US" }).toISODate() //=> '2021-12-26'
+   * @return {DateTime}
+   */
   static fromObject(obj, opts = {}) {
     obj = obj || {};
     const zoneToUse = normalizeZone(opts.zone, Settings.defaultZone);
     if (!zoneToUse.isValid) {
       return DateTime.invalid(unsupportedZone(zoneToUse));
     }
-    const tsNow = Settings.now(), offsetProvis = !isUndefined(opts.specificOffset) ? opts.specificOffset : zoneToUse.offset(tsNow), normalized = normalizeObject(obj, normalizeUnit), containsOrdinal = !isUndefined(normalized.ordinal), containsGregorYear = !isUndefined(normalized.year), containsGregorMD = !isUndefined(normalized.month) || !isUndefined(normalized.day), containsGregor = containsGregorYear || containsGregorMD, definiteWeekDef = normalized.weekYear || normalized.weekNumber, loc = Locale.fromObject(opts);
+    const loc = Locale.fromObject(opts);
+    const normalized = normalizeObject(obj, normalizeUnitWithLocalWeeks);
+    const { minDaysInFirstWeek, startOfWeek } = usesLocalWeekValues(normalized, loc);
+    const tsNow = Settings.now(), offsetProvis = !isUndefined(opts.specificOffset) ? opts.specificOffset : zoneToUse.offset(tsNow), containsOrdinal = !isUndefined(normalized.ordinal), containsGregorYear = !isUndefined(normalized.year), containsGregorMD = !isUndefined(normalized.month) || !isUndefined(normalized.day), containsGregor = containsGregorYear || containsGregorMD, definiteWeekDef = normalized.weekYear || normalized.weekNumber;
     if ((containsGregor || containsOrdinal) && definiteWeekDef) {
-      throw new ConflictingSpecificationError("Can't mix weekYear/weekNumber units with year/month/day or ordinals");
+      throw new ConflictingSpecificationError(
+        "Can't mix weekYear/weekNumber units with year/month/day or ordinals"
+      );
     }
     if (containsGregorMD && containsOrdinal) {
       throw new ConflictingSpecificationError("Can't mix ordinal dates with month/day");
@@ -18051,7 +19795,7 @@ var DateTime = class {
     if (useWeekData) {
       units = orderedWeekUnits;
       defaultValues = defaultWeekUnitValues;
-      objNow = gregorianToWeek(objNow);
+      objNow = gregorianToWeek(objNow, minDaysInFirstWeek, startOfWeek);
     } else if (containsOrdinal) {
       units = orderedOrdinalUnits;
       defaultValues = defaultOrdinalUnitValues;
@@ -18071,33 +19815,94 @@ var DateTime = class {
         normalized[u] = objNow[u];
       }
     }
-    const higherOrderInvalid = useWeekData ? hasInvalidWeekData(normalized) : containsOrdinal ? hasInvalidOrdinalData(normalized) : hasInvalidGregorianData(normalized), invalid = higherOrderInvalid || hasInvalidTimeData(normalized);
+    const higherOrderInvalid = useWeekData ? hasInvalidWeekData(normalized, minDaysInFirstWeek, startOfWeek) : containsOrdinal ? hasInvalidOrdinalData(normalized) : hasInvalidGregorianData(normalized), invalid = higherOrderInvalid || hasInvalidTimeData(normalized);
     if (invalid) {
       return DateTime.invalid(invalid);
     }
-    const gregorian = useWeekData ? weekToGregorian(normalized) : containsOrdinal ? ordinalToGregorian(normalized) : normalized, [tsFinal, offsetFinal] = objToTS(gregorian, offsetProvis, zoneToUse), inst = new DateTime({
+    const gregorian = useWeekData ? weekToGregorian(normalized, minDaysInFirstWeek, startOfWeek) : containsOrdinal ? ordinalToGregorian(normalized) : normalized, [tsFinal, offsetFinal] = objToTS(gregorian, offsetProvis, zoneToUse), inst = new DateTime({
       ts: tsFinal,
       zone: zoneToUse,
       o: offsetFinal,
       loc
     });
     if (normalized.weekday && containsGregor && obj.weekday !== inst.weekday) {
-      return DateTime.invalid("mismatched weekday", `you can't specify both a weekday of ${normalized.weekday} and a date of ${inst.toISO()}`);
+      return DateTime.invalid(
+        "mismatched weekday",
+        `you can't specify both a weekday of ${normalized.weekday} and a date of ${inst.toISO()}`
+      );
     }
     return inst;
   }
+  /**
+   * Create a DateTime from an ISO 8601 string
+   * @param {string} text - the ISO string
+   * @param {Object} opts - options to affect the creation
+   * @param {string|Zone} [opts.zone='local'] - use this zone if no offset is specified in the input string itself. Will also convert the time to this zone
+   * @param {boolean} [opts.setZone=false] - override the zone with a fixed-offset zone specified in the string itself, if it specifies one
+   * @param {string} [opts.locale='system's locale'] - a locale to set on the resulting DateTime instance
+   * @param {string} [opts.outputCalendar] - the output calendar to set on the resulting DateTime instance
+   * @param {string} [opts.numberingSystem] - the numbering system to set on the resulting DateTime instance
+   * @example DateTime.fromISO('2016-05-25T09:08:34.123')
+   * @example DateTime.fromISO('2016-05-25T09:08:34.123+06:00')
+   * @example DateTime.fromISO('2016-05-25T09:08:34.123+06:00', {setZone: true})
+   * @example DateTime.fromISO('2016-05-25T09:08:34.123', {zone: 'utc'})
+   * @example DateTime.fromISO('2016-W05-4')
+   * @return {DateTime}
+   */
   static fromISO(text, opts = {}) {
     const [vals, parsedZone] = parseISODate(text);
     return parseDataToDateTime(vals, parsedZone, opts, "ISO 8601", text);
   }
+  /**
+   * Create a DateTime from an RFC 2822 string
+   * @param {string} text - the RFC 2822 string
+   * @param {Object} opts - options to affect the creation
+   * @param {string|Zone} [opts.zone='local'] - convert the time to this zone. Since the offset is always specified in the string itself, this has no effect on the interpretation of string, merely the zone the resulting DateTime is expressed in.
+   * @param {boolean} [opts.setZone=false] - override the zone with a fixed-offset zone specified in the string itself, if it specifies one
+   * @param {string} [opts.locale='system's locale'] - a locale to set on the resulting DateTime instance
+   * @param {string} opts.outputCalendar - the output calendar to set on the resulting DateTime instance
+   * @param {string} opts.numberingSystem - the numbering system to set on the resulting DateTime instance
+   * @example DateTime.fromRFC2822('25 Nov 2016 13:23:12 GMT')
+   * @example DateTime.fromRFC2822('Fri, 25 Nov 2016 13:23:12 +0600')
+   * @example DateTime.fromRFC2822('25 Nov 2016 13:23 Z')
+   * @return {DateTime}
+   */
   static fromRFC2822(text, opts = {}) {
     const [vals, parsedZone] = parseRFC2822Date(text);
     return parseDataToDateTime(vals, parsedZone, opts, "RFC 2822", text);
   }
+  /**
+   * Create a DateTime from an HTTP header date
+   * @see https://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
+   * @param {string} text - the HTTP header date
+   * @param {Object} opts - options to affect the creation
+   * @param {string|Zone} [opts.zone='local'] - convert the time to this zone. Since HTTP dates are always in UTC, this has no effect on the interpretation of string, merely the zone the resulting DateTime is expressed in.
+   * @param {boolean} [opts.setZone=false] - override the zone with the fixed-offset zone specified in the string. For HTTP dates, this is always UTC, so this option is equivalent to setting the `zone` option to 'utc', but this option is included for consistency with similar methods.
+   * @param {string} [opts.locale='system's locale'] - a locale to set on the resulting DateTime instance
+   * @param {string} opts.outputCalendar - the output calendar to set on the resulting DateTime instance
+   * @param {string} opts.numberingSystem - the numbering system to set on the resulting DateTime instance
+   * @example DateTime.fromHTTP('Sun, 06 Nov 1994 08:49:37 GMT')
+   * @example DateTime.fromHTTP('Sunday, 06-Nov-94 08:49:37 GMT')
+   * @example DateTime.fromHTTP('Sun Nov  6 08:49:37 1994')
+   * @return {DateTime}
+   */
   static fromHTTP(text, opts = {}) {
     const [vals, parsedZone] = parseHTTPDate(text);
     return parseDataToDateTime(vals, parsedZone, opts, "HTTP", opts);
   }
+  /**
+   * Create a DateTime from an input string and format string.
+   * Defaults to en-US if no locale has been specified, regardless of the system's locale. For a table of tokens and their interpretations, see [here](https://moment.github.io/luxon/#/parsing?id=table-of-tokens).
+   * @param {string} text - the string to parse
+   * @param {string} fmt - the format the string is expected to be in (see the link below for the formats)
+   * @param {Object} opts - options to affect the creation
+   * @param {string|Zone} [opts.zone='local'] - use this zone if no offset is specified in the input string itself. Will also convert the DateTime to this zone
+   * @param {boolean} [opts.setZone=false] - override the zone with a zone specified in the string itself, if it specifies one
+   * @param {string} [opts.locale='en-US'] - a locale string to use when parsing. Will also set the DateTime to this locale
+   * @param {string} opts.numberingSystem - the numbering system to use when parsing. Will also set the resulting DateTime to this numbering system
+   * @param {string} opts.outputCalendar - the output calendar to set on the resulting DateTime instance
+   * @return {DateTime}
+   */
   static fromFormat(text, fmt, opts = {}) {
     if (isUndefined(text) || isUndefined(fmt)) {
       throw new InvalidArgumentError("fromFormat requires an input string and a format");
@@ -18113,13 +19918,42 @@ var DateTime = class {
       return parseDataToDateTime(vals, parsedZone, opts, `format ${fmt}`, text, specificOffset);
     }
   }
+  /**
+   * @deprecated use fromFormat instead
+   */
   static fromString(text, fmt, opts = {}) {
     return DateTime.fromFormat(text, fmt, opts);
   }
+  /**
+   * Create a DateTime from a SQL date, time, or datetime
+   * Defaults to en-US if no locale has been specified, regardless of the system's locale
+   * @param {string} text - the string to parse
+   * @param {Object} opts - options to affect the creation
+   * @param {string|Zone} [opts.zone='local'] - use this zone if no offset is specified in the input string itself. Will also convert the DateTime to this zone
+   * @param {boolean} [opts.setZone=false] - override the zone with a zone specified in the string itself, if it specifies one
+   * @param {string} [opts.locale='en-US'] - a locale string to use when parsing. Will also set the DateTime to this locale
+   * @param {string} opts.numberingSystem - the numbering system to use when parsing. Will also set the resulting DateTime to this numbering system
+   * @param {string} opts.outputCalendar - the output calendar to set on the resulting DateTime instance
+   * @example DateTime.fromSQL('2017-05-15')
+   * @example DateTime.fromSQL('2017-05-15 09:12:34')
+   * @example DateTime.fromSQL('2017-05-15 09:12:34.342')
+   * @example DateTime.fromSQL('2017-05-15 09:12:34.342+06:00')
+   * @example DateTime.fromSQL('2017-05-15 09:12:34.342 America/Los_Angeles')
+   * @example DateTime.fromSQL('2017-05-15 09:12:34.342 America/Los_Angeles', { setZone: true })
+   * @example DateTime.fromSQL('2017-05-15 09:12:34.342', { zone: 'America/Los_Angeles' })
+   * @example DateTime.fromSQL('09:12:34.342')
+   * @return {DateTime}
+   */
   static fromSQL(text, opts = {}) {
     const [vals, parsedZone] = parseSQL(text);
     return parseDataToDateTime(vals, parsedZone, opts, "SQL", text);
   }
+  /**
+   * Create an invalid DateTime.
+   * @param {string} reason - simple string of why this DateTime is invalid. Should not contain parameters or anything else data-dependent.
+   * @param {string} [explanation=null] - longer explanation, may include parameters and other useful debugging information
+   * @return {DateTime}
+   */
   static invalid(reason, explanation = null) {
     if (!reason) {
       throw new InvalidArgumentError("need to specify a reason the DateTime is invalid");
@@ -18131,95 +19965,290 @@ var DateTime = class {
       return new DateTime({ invalid });
     }
   }
+  /**
+   * Check if an object is an instance of DateTime. Works across context boundaries
+   * @param {object} o
+   * @return {boolean}
+   */
   static isDateTime(o) {
     return o && o.isLuxonDateTime || false;
   }
+  /**
+   * Produce the format string for a set of options
+   * @param formatOpts
+   * @param localeOpts
+   * @returns {string}
+   */
   static parseFormatForOpts(formatOpts, localeOpts = {}) {
     const tokenList = formatOptsToTokens(formatOpts, Locale.fromObject(localeOpts));
     return !tokenList ? null : tokenList.map((t) => t ? t.val : null).join("");
   }
+  /**
+   * Produce the the fully expanded format token for the locale
+   * Does NOT quote characters, so quoted tokens will not round trip correctly
+   * @param fmt
+   * @param localeOpts
+   * @returns {string}
+   */
   static expandFormat(fmt, localeOpts = {}) {
     const expanded = expandMacroTokens(Formatter.parseFormat(fmt), Locale.fromObject(localeOpts));
     return expanded.map((t) => t.val).join("");
   }
+  // INFO
+  /**
+   * Get the value of unit.
+   * @param {string} unit - a unit such as 'minute' or 'day'
+   * @example DateTime.local(2017, 7, 4).get('month'); //=> 7
+   * @example DateTime.local(2017, 7, 4).get('day'); //=> 4
+   * @return {number}
+   */
   get(unit) {
     return this[unit];
   }
+  /**
+   * Returns whether the DateTime is valid. Invalid DateTimes occur when:
+   * * The DateTime was created from invalid calendar information, such as the 13th month or February 30
+   * * The DateTime was created by an operation on another invalid date
+   * @type {boolean}
+   */
   get isValid() {
     return this.invalid === null;
   }
+  /**
+   * Returns an error code if this DateTime is invalid, or null if the DateTime is valid
+   * @type {string}
+   */
   get invalidReason() {
     return this.invalid ? this.invalid.reason : null;
   }
+  /**
+   * Returns an explanation of why this DateTime became invalid, or null if the DateTime is valid
+   * @type {string}
+   */
   get invalidExplanation() {
     return this.invalid ? this.invalid.explanation : null;
   }
+  /**
+   * Get the locale of a DateTime, such 'en-GB'. The locale is used when formatting the DateTime
+   *
+   * @type {string}
+   */
   get locale() {
     return this.isValid ? this.loc.locale : null;
   }
+  /**
+   * Get the numbering system of a DateTime, such 'beng'. The numbering system is used when formatting the DateTime
+   *
+   * @type {string}
+   */
   get numberingSystem() {
     return this.isValid ? this.loc.numberingSystem : null;
   }
+  /**
+   * Get the output calendar of a DateTime, such 'islamic'. The output calendar is used when formatting the DateTime
+   *
+   * @type {string}
+   */
   get outputCalendar() {
     return this.isValid ? this.loc.outputCalendar : null;
   }
+  /**
+   * Get the time zone associated with this DateTime.
+   * @type {Zone}
+   */
   get zone() {
     return this._zone;
   }
+  /**
+   * Get the name of the time zone.
+   * @type {string}
+   */
   get zoneName() {
     return this.isValid ? this.zone.name : null;
   }
+  /**
+   * Get the year
+   * @example DateTime.local(2017, 5, 25).year //=> 2017
+   * @type {number}
+   */
   get year() {
     return this.isValid ? this.c.year : NaN;
   }
+  /**
+   * Get the quarter
+   * @example DateTime.local(2017, 5, 25).quarter //=> 2
+   * @type {number}
+   */
   get quarter() {
     return this.isValid ? Math.ceil(this.c.month / 3) : NaN;
   }
+  /**
+   * Get the month (1-12).
+   * @example DateTime.local(2017, 5, 25).month //=> 5
+   * @type {number}
+   */
   get month() {
     return this.isValid ? this.c.month : NaN;
   }
+  /**
+   * Get the day of the month (1-30ish).
+   * @example DateTime.local(2017, 5, 25).day //=> 25
+   * @type {number}
+   */
   get day() {
     return this.isValid ? this.c.day : NaN;
   }
+  /**
+   * Get the hour of the day (0-23).
+   * @example DateTime.local(2017, 5, 25, 9).hour //=> 9
+   * @type {number}
+   */
   get hour() {
     return this.isValid ? this.c.hour : NaN;
   }
+  /**
+   * Get the minute of the hour (0-59).
+   * @example DateTime.local(2017, 5, 25, 9, 30).minute //=> 30
+   * @type {number}
+   */
   get minute() {
     return this.isValid ? this.c.minute : NaN;
   }
+  /**
+   * Get the second of the minute (0-59).
+   * @example DateTime.local(2017, 5, 25, 9, 30, 52).second //=> 52
+   * @type {number}
+   */
   get second() {
     return this.isValid ? this.c.second : NaN;
   }
+  /**
+   * Get the millisecond of the second (0-999).
+   * @example DateTime.local(2017, 5, 25, 9, 30, 52, 654).millisecond //=> 654
+   * @type {number}
+   */
   get millisecond() {
     return this.isValid ? this.c.millisecond : NaN;
   }
+  /**
+   * Get the week year
+   * @see https://en.wikipedia.org/wiki/ISO_week_date
+   * @example DateTime.local(2014, 12, 31).weekYear //=> 2015
+   * @type {number}
+   */
   get weekYear() {
     return this.isValid ? possiblyCachedWeekData(this).weekYear : NaN;
   }
+  /**
+   * Get the week number of the week year (1-52ish).
+   * @see https://en.wikipedia.org/wiki/ISO_week_date
+   * @example DateTime.local(2017, 5, 25).weekNumber //=> 21
+   * @type {number}
+   */
   get weekNumber() {
     return this.isValid ? possiblyCachedWeekData(this).weekNumber : NaN;
   }
+  /**
+   * Get the day of the week.
+   * 1 is Monday and 7 is Sunday
+   * @see https://en.wikipedia.org/wiki/ISO_week_date
+   * @example DateTime.local(2014, 11, 31).weekday //=> 4
+   * @type {number}
+   */
   get weekday() {
     return this.isValid ? possiblyCachedWeekData(this).weekday : NaN;
   }
+  /**
+   * Returns true if this date is on a weekend according to the locale, false otherwise
+   * @returns {boolean}
+   */
+  get isWeekend() {
+    return this.isValid && this.loc.getWeekendDays().includes(this.weekday);
+  }
+  /**
+   * Get the day of the week according to the locale.
+   * 1 is the first day of the week and 7 is the last day of the week.
+   * If the locale assigns Sunday as the first day of the week, then a date which is a Sunday will return 1,
+   * @returns {number}
+   */
+  get localWeekday() {
+    return this.isValid ? possiblyCachedLocalWeekData(this).weekday : NaN;
+  }
+  /**
+   * Get the week number of the week year according to the locale. Different locales assign week numbers differently,
+   * because the week can start on different days of the week (see localWeekday) and because a different number of days
+   * is required for a week to count as the first week of a year.
+   * @returns {number}
+   */
+  get localWeekNumber() {
+    return this.isValid ? possiblyCachedLocalWeekData(this).weekNumber : NaN;
+  }
+  /**
+   * Get the week year according to the locale. Different locales assign week numbers (and therefor week years)
+   * differently, see localWeekNumber.
+   * @returns {number}
+   */
+  get localWeekYear() {
+    return this.isValid ? possiblyCachedLocalWeekData(this).weekYear : NaN;
+  }
+  /**
+   * Get the ordinal (meaning the day of the year)
+   * @example DateTime.local(2017, 5, 25).ordinal //=> 145
+   * @type {number|DateTime}
+   */
   get ordinal() {
     return this.isValid ? gregorianToOrdinal(this.c).ordinal : NaN;
   }
+  /**
+   * Get the human readable short month name, such as 'Oct'.
+   * Defaults to the system's locale if no locale has been specified
+   * @example DateTime.local(2017, 10, 30).monthShort //=> Oct
+   * @type {string}
+   */
   get monthShort() {
     return this.isValid ? Info.months("short", { locObj: this.loc })[this.month - 1] : null;
   }
+  /**
+   * Get the human readable long month name, such as 'October'.
+   * Defaults to the system's locale if no locale has been specified
+   * @example DateTime.local(2017, 10, 30).monthLong //=> October
+   * @type {string}
+   */
   get monthLong() {
     return this.isValid ? Info.months("long", { locObj: this.loc })[this.month - 1] : null;
   }
+  /**
+   * Get the human readable short weekday, such as 'Mon'.
+   * Defaults to the system's locale if no locale has been specified
+   * @example DateTime.local(2017, 10, 30).weekdayShort //=> Mon
+   * @type {string}
+   */
   get weekdayShort() {
     return this.isValid ? Info.weekdays("short", { locObj: this.loc })[this.weekday - 1] : null;
   }
+  /**
+   * Get the human readable long weekday, such as 'Monday'.
+   * Defaults to the system's locale if no locale has been specified
+   * @example DateTime.local(2017, 10, 30).weekdayLong //=> Monday
+   * @type {string}
+   */
   get weekdayLong() {
     return this.isValid ? Info.weekdays("long", { locObj: this.loc })[this.weekday - 1] : null;
   }
+  /**
+   * Get the UTC offset of this DateTime in minutes
+   * @example DateTime.now().offset //=> -240
+   * @example DateTime.utc().offset //=> 0
+   * @type {number}
+   */
   get offset() {
     return this.isValid ? +this.o : NaN;
   }
+  /**
+   * Get the short human name for the zone's current offset, for example "EST" or "EDT".
+   * Defaults to the system's locale if no locale has been specified
+   * @type {string}
+   */
   get offsetNameShort() {
     if (this.isValid) {
       return this.zone.offsetName(this.ts, {
@@ -18230,6 +20259,11 @@ var DateTime = class {
       return null;
     }
   }
+  /**
+   * Get the long human name for the zone's current offset, for example "Eastern Standard Time" or "Eastern Daylight Time".
+   * Defaults to the system's locale if no locale has been specified
+   * @type {string}
+   */
   get offsetNameLong() {
     if (this.isValid) {
       return this.zone.offsetName(this.ts, {
@@ -18240,9 +20274,17 @@ var DateTime = class {
       return null;
     }
   }
+  /**
+   * Get whether this zone's offset ever changes, as in a DST.
+   * @type {boolean}
+   */
   get isOffsetFixed() {
     return this.isValid ? this.zone.isUniversal : null;
   }
+  /**
+   * Get whether the DateTime is in a DST.
+   * @type {boolean}
+   */
   get isInDST() {
     if (this.isOffsetFixed) {
       return false;
@@ -18250,28 +20292,129 @@ var DateTime = class {
       return this.offset > this.set({ month: 1, day: 1 }).offset || this.offset > this.set({ month: 5 }).offset;
     }
   }
+  /**
+   * Get those DateTimes which have the same local time as this DateTime, but a different offset from UTC
+   * in this DateTime's zone. During DST changes local time can be ambiguous, for example
+   * `2023-10-29T02:30:00` in `Europe/Berlin` can have offset `+01:00` or `+02:00`.
+   * This method will return both possible DateTimes if this DateTime's local time is ambiguous.
+   * @returns {DateTime[]}
+   */
+  getPossibleOffsets() {
+    if (!this.isValid || this.isOffsetFixed) {
+      return [this];
+    }
+    const dayMs = 864e5;
+    const minuteMs = 6e4;
+    const localTS = objToLocalTS(this.c);
+    const oEarlier = this.zone.offset(localTS - dayMs);
+    const oLater = this.zone.offset(localTS + dayMs);
+    const o1 = this.zone.offset(localTS - oEarlier * minuteMs);
+    const o2 = this.zone.offset(localTS - oLater * minuteMs);
+    if (o1 === o2) {
+      return [this];
+    }
+    const ts1 = localTS - o1 * minuteMs;
+    const ts2 = localTS - o2 * minuteMs;
+    const c1 = tsToObj(ts1, o1);
+    const c2 = tsToObj(ts2, o2);
+    if (c1.hour === c2.hour && c1.minute === c2.minute && c1.second === c2.second && c1.millisecond === c2.millisecond) {
+      return [clone3(this, { ts: ts1 }), clone3(this, { ts: ts2 })];
+    }
+    return [this];
+  }
+  /**
+   * Returns true if this DateTime is in a leap year, false otherwise
+   * @example DateTime.local(2016).isInLeapYear //=> true
+   * @example DateTime.local(2013).isInLeapYear //=> false
+   * @type {boolean}
+   */
   get isInLeapYear() {
     return isLeapYear(this.year);
   }
+  /**
+   * Returns the number of days in this DateTime's month
+   * @example DateTime.local(2016, 2).daysInMonth //=> 29
+   * @example DateTime.local(2016, 3).daysInMonth //=> 31
+   * @type {number}
+   */
   get daysInMonth() {
     return daysInMonth(this.year, this.month);
   }
+  /**
+   * Returns the number of days in this DateTime's year
+   * @example DateTime.local(2016).daysInYear //=> 366
+   * @example DateTime.local(2013).daysInYear //=> 365
+   * @type {number}
+   */
   get daysInYear() {
     return this.isValid ? daysInYear(this.year) : NaN;
   }
+  /**
+   * Returns the number of weeks in this DateTime's year
+   * @see https://en.wikipedia.org/wiki/ISO_week_date
+   * @example DateTime.local(2004).weeksInWeekYear //=> 53
+   * @example DateTime.local(2013).weeksInWeekYear //=> 52
+   * @type {number}
+   */
   get weeksInWeekYear() {
     return this.isValid ? weeksInWeekYear(this.weekYear) : NaN;
   }
+  /**
+   * Returns the number of weeks in this DateTime's local week year
+   * @example DateTime.local(2020, 6, {locale: 'en-US'}).weeksInLocalWeekYear //=> 52
+   * @example DateTime.local(2020, 6, {locale: 'de-DE'}).weeksInLocalWeekYear //=> 53
+   * @type {number}
+   */
+  get weeksInLocalWeekYear() {
+    return this.isValid ? weeksInWeekYear(
+      this.localWeekYear,
+      this.loc.getMinDaysInFirstWeek(),
+      this.loc.getStartOfWeek()
+    ) : NaN;
+  }
+  /**
+   * Returns the resolved Intl options for this DateTime.
+   * This is useful in understanding the behavior of formatting methods
+   * @param {Object} opts - the same options as toLocaleString
+   * @return {Object}
+   */
   resolvedLocaleOptions(opts = {}) {
-    const { locale, numberingSystem, calendar } = Formatter.create(this.loc.clone(opts), opts).resolvedOptions(this);
+    const { locale, numberingSystem, calendar } = Formatter.create(
+      this.loc.clone(opts),
+      opts
+    ).resolvedOptions(this);
     return { locale, numberingSystem, outputCalendar: calendar };
   }
+  // TRANSFORM
+  /**
+   * "Set" the DateTime's zone to UTC. Returns a newly-constructed DateTime.
+   *
+   * Equivalent to {@link DateTime#setZone}('utc')
+   * @param {number} [offset=0] - optionally, an offset from UTC in minutes
+   * @param {Object} [opts={}] - options to pass to `setZone()`
+   * @return {DateTime}
+   */
   toUTC(offset2 = 0, opts = {}) {
     return this.setZone(FixedOffsetZone.instance(offset2), opts);
   }
+  /**
+   * "Set" the DateTime's zone to the host's local zone. Returns a newly-constructed DateTime.
+   *
+   * Equivalent to `setZone('local')`
+   * @return {DateTime}
+   */
   toLocal() {
     return this.setZone(Settings.defaultZone);
   }
+  /**
+   * "Set" the DateTime's zone to specified zone. Returns a newly-constructed DateTime.
+   *
+   * By default, the setter keeps the underlying time the same (as in, the same timestamp), but the new instance will report different local times and consider DSTs when making computations, as with {@link DateTime#plus}. You may wish to use {@link DateTime#toLocal} and {@link DateTime#toUTC} which provide simple convenience wrappers for commonly used zones.
+   * @param {string|Zone} [zone='local'] - a zone identifier. As a string, that can be any IANA zone supported by the host environment, or a fixed-offset name of the form 'UTC+3', or the strings 'local' or 'utc'. You may also supply an instance of a {@link DateTime#Zone} class.
+   * @param {Object} opts - options
+   * @param {boolean} [opts.keepLocalTime=false] - If true, adjust the underlying time so that the local time stays the same, but in the target zone. You should rarely need this.
+   * @return {DateTime}
+   */
   setZone(zone, { keepLocalTime = false, keepCalendarTime = false } = {}) {
     zone = normalizeZone(zone, Settings.defaultZone);
     if (zone.equals(this.zone)) {
@@ -18288,26 +20431,59 @@ var DateTime = class {
       return clone3(this, { ts: newTS, zone });
     }
   }
+  /**
+   * "Set" the locale, numberingSystem, or outputCalendar. Returns a newly-constructed DateTime.
+   * @param {Object} properties - the properties to set
+   * @example DateTime.local(2017, 5, 25).reconfigure({ locale: 'en-GB' })
+   * @return {DateTime}
+   */
   reconfigure({ locale, numberingSystem, outputCalendar } = {}) {
     const loc = this.loc.clone({ locale, numberingSystem, outputCalendar });
     return clone3(this, { loc });
   }
+  /**
+   * "Set" the locale. Returns a newly-constructed DateTime.
+   * Just a convenient alias for reconfigure({ locale })
+   * @example DateTime.local(2017, 5, 25).setLocale('en-GB')
+   * @return {DateTime}
+   */
   setLocale(locale) {
     return this.reconfigure({ locale });
   }
+  /**
+   * "Set" the values of specified units. Returns a newly-constructed DateTime.
+   * You can only set units with this method; for "setting" metadata, see {@link DateTime#reconfigure} and {@link DateTime#setZone}.
+   *
+   * This method also supports setting locale-based week units, i.e. `localWeekday`, `localWeekNumber` and `localWeekYear`.
+   * They cannot be mixed with ISO-week units like `weekday`.
+   * @param {Object} values - a mapping of units to numbers
+   * @example dt.set({ year: 2017 })
+   * @example dt.set({ hour: 8, minute: 30 })
+   * @example dt.set({ weekday: 5 })
+   * @example dt.set({ year: 2005, ordinal: 234 })
+   * @return {DateTime}
+   */
   set(values2) {
     if (!this.isValid)
       return this;
-    const normalized = normalizeObject(values2, normalizeUnit), settingWeekStuff = !isUndefined(normalized.weekYear) || !isUndefined(normalized.weekNumber) || !isUndefined(normalized.weekday), containsOrdinal = !isUndefined(normalized.ordinal), containsGregorYear = !isUndefined(normalized.year), containsGregorMD = !isUndefined(normalized.month) || !isUndefined(normalized.day), containsGregor = containsGregorYear || containsGregorMD, definiteWeekDef = normalized.weekYear || normalized.weekNumber;
+    const normalized = normalizeObject(values2, normalizeUnitWithLocalWeeks);
+    const { minDaysInFirstWeek, startOfWeek } = usesLocalWeekValues(normalized, this.loc);
+    const settingWeekStuff = !isUndefined(normalized.weekYear) || !isUndefined(normalized.weekNumber) || !isUndefined(normalized.weekday), containsOrdinal = !isUndefined(normalized.ordinal), containsGregorYear = !isUndefined(normalized.year), containsGregorMD = !isUndefined(normalized.month) || !isUndefined(normalized.day), containsGregor = containsGregorYear || containsGregorMD, definiteWeekDef = normalized.weekYear || normalized.weekNumber;
     if ((containsGregor || containsOrdinal) && definiteWeekDef) {
-      throw new ConflictingSpecificationError("Can't mix weekYear/weekNumber units with year/month/day or ordinals");
+      throw new ConflictingSpecificationError(
+        "Can't mix weekYear/weekNumber units with year/month/day or ordinals"
+      );
     }
     if (containsGregorMD && containsOrdinal) {
       throw new ConflictingSpecificationError("Can't mix ordinal dates with month/day");
     }
     let mixed;
     if (settingWeekStuff) {
-      mixed = weekToGregorian(__spreadValues(__spreadValues({}, gregorianToWeek(this.c)), normalized));
+      mixed = weekToGregorian(
+        __spreadValues(__spreadValues({}, gregorianToWeek(this.c, minDaysInFirstWeek, startOfWeek)), normalized),
+        minDaysInFirstWeek,
+        startOfWeek
+      );
     } else if (!isUndefined(normalized.ordinal)) {
       mixed = ordinalToGregorian(__spreadValues(__spreadValues({}, gregorianToOrdinal(this.c)), normalized));
     } else {
@@ -18319,19 +20495,50 @@ var DateTime = class {
     const [ts, o] = objToTS(mixed, this.o, this.zone);
     return clone3(this, { ts, o });
   }
+  /**
+   * Add a period of time to this DateTime and return the resulting DateTime
+   *
+   * Adding hours, minutes, seconds, or milliseconds increases the timestamp by the right number of milliseconds. Adding days, months, or years shifts the calendar, accounting for DSTs and leap years along the way. Thus, `dt.plus({ hours: 24 })` may result in a different time than `dt.plus({ days: 1 })` if there's a DST shift in between.
+   * @param {Duration|Object|number} duration - The amount to add. Either a Luxon Duration, a number of milliseconds, the object argument to Duration.fromObject()
+   * @example DateTime.now().plus(123) //~> in 123 milliseconds
+   * @example DateTime.now().plus({ minutes: 15 }) //~> in 15 minutes
+   * @example DateTime.now().plus({ days: 1 }) //~> this time tomorrow
+   * @example DateTime.now().plus({ days: -1 }) //~> this time yesterday
+   * @example DateTime.now().plus({ hours: 3, minutes: 13 }) //~> in 3 hr, 13 min
+   * @example DateTime.now().plus(Duration.fromObject({ hours: 3, minutes: 13 })) //~> in 3 hr, 13 min
+   * @return {DateTime}
+   */
   plus(duration2) {
     if (!this.isValid)
       return this;
     const dur = Duration.fromDurationLike(duration2);
     return clone3(this, adjustTime(this, dur));
   }
+  /**
+   * Subtract a period of time to this DateTime and return the resulting DateTime
+   * See {@link DateTime#plus}
+   * @param {Duration|Object|number} duration - The amount to subtract. Either a Luxon Duration, a number of milliseconds, the object argument to Duration.fromObject()
+   @return {DateTime}
+   */
   minus(duration2) {
     if (!this.isValid)
       return this;
     const dur = Duration.fromDurationLike(duration2).negate();
     return clone3(this, adjustTime(this, dur));
   }
-  startOf(unit) {
+  /**
+   * "Set" this DateTime to the beginning of a unit of time.
+   * @param {string} unit - The unit to go to the beginning of. Can be 'year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second', or 'millisecond'.
+   * @param {Object} opts - options
+   * @param {boolean} [opts.useLocaleWeeks=false] - If true, use weeks based on the locale, i.e. use the locale-dependent start of the week
+   * @example DateTime.local(2014, 3, 3).startOf('month').toISODate(); //=> '2014-03-01'
+   * @example DateTime.local(2014, 3, 3).startOf('year').toISODate(); //=> '2014-01-01'
+   * @example DateTime.local(2014, 3, 3).startOf('week').toISODate(); //=> '2014-03-03', weeks always start on Mondays
+   * @example DateTime.local(2014, 3, 3, 5, 30).startOf('day').toISOTime(); //=> '00:00.000-05:00'
+   * @example DateTime.local(2014, 3, 3, 5, 30).startOf('hour').toISOTime(); //=> '05:00:00.000-05:00'
+   * @return {DateTime}
+   */
+  startOf(unit, { useLocaleWeeks = false } = {}) {
     if (!this.isValid)
       return this;
     const o = {}, normalizedUnit = Duration.normalizeUnit(unit);
@@ -18355,7 +20562,16 @@ var DateTime = class {
         break;
     }
     if (normalizedUnit === "weeks") {
-      o.weekday = 1;
+      if (useLocaleWeeks) {
+        const startOfWeek = this.loc.getStartOfWeek();
+        const { weekday } = this;
+        if (weekday < startOfWeek) {
+          o.weekNumber = this.weekNumber - 1;
+        }
+        o.weekday = startOfWeek;
+      } else {
+        o.weekday = 1;
+      }
     }
     if (normalizedUnit === "quarters") {
       const q = Math.ceil(this.month / 3);
@@ -18363,18 +20579,89 @@ var DateTime = class {
     }
     return this.set(o);
   }
-  endOf(unit) {
-    return this.isValid ? this.plus({ [unit]: 1 }).startOf(unit).minus(1) : this;
+  /**
+   * "Set" this DateTime to the end (meaning the last millisecond) of a unit of time
+   * @param {string} unit - The unit to go to the end of. Can be 'year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second', or 'millisecond'.
+   * @param {Object} opts - options
+   * @param {boolean} [opts.useLocaleWeeks=false] - If true, use weeks based on the locale, i.e. use the locale-dependent start of the week
+   * @example DateTime.local(2014, 3, 3).endOf('month').toISO(); //=> '2014-03-31T23:59:59.999-05:00'
+   * @example DateTime.local(2014, 3, 3).endOf('year').toISO(); //=> '2014-12-31T23:59:59.999-05:00'
+   * @example DateTime.local(2014, 3, 3).endOf('week').toISO(); // => '2014-03-09T23:59:59.999-05:00', weeks start on Mondays
+   * @example DateTime.local(2014, 3, 3, 5, 30).endOf('day').toISO(); //=> '2014-03-03T23:59:59.999-05:00'
+   * @example DateTime.local(2014, 3, 3, 5, 30).endOf('hour').toISO(); //=> '2014-03-03T05:59:59.999-05:00'
+   * @return {DateTime}
+   */
+  endOf(unit, opts) {
+    return this.isValid ? this.plus({ [unit]: 1 }).startOf(unit, opts).minus(1) : this;
   }
+  // OUTPUT
+  /**
+   * Returns a string representation of this DateTime formatted according to the specified format string.
+   * **You may not want this.** See {@link DateTime#toLocaleString} for a more flexible formatting tool. For a table of tokens and their interpretations, see [here](https://moment.github.io/luxon/#/formatting?id=table-of-tokens).
+   * Defaults to en-US if no locale has been specified, regardless of the system's locale.
+   * @param {string} fmt - the format string
+   * @param {Object} opts - opts to override the configuration options on this DateTime
+   * @example DateTime.now().toFormat('yyyy LLL dd') //=> '2017 Apr 22'
+   * @example DateTime.now().setLocale('fr').toFormat('yyyy LLL dd') //=> '2017 avr. 22'
+   * @example DateTime.now().toFormat('yyyy LLL dd', { locale: "fr" }) //=> '2017 avr. 22'
+   * @example DateTime.now().toFormat("HH 'hours and' mm 'minutes'") //=> '20 hours and 55 minutes'
+   * @return {string}
+   */
   toFormat(fmt, opts = {}) {
     return this.isValid ? Formatter.create(this.loc.redefaultToEN(opts)).formatDateTimeFromString(this, fmt) : INVALID3;
   }
+  /**
+   * Returns a localized string representing this date. Accepts the same options as the Intl.DateTimeFormat constructor and any presets defined by Luxon, such as `DateTime.DATE_FULL` or `DateTime.TIME_SIMPLE`.
+   * The exact behavior of this method is browser-specific, but in general it will return an appropriate representation
+   * of the DateTime in the assigned locale.
+   * Defaults to the system's locale if no locale has been specified
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat
+   * @param formatOpts {Object} - Intl.DateTimeFormat constructor options and configuration options
+   * @param {Object} opts - opts to override the configuration options on this DateTime
+   * @example DateTime.now().toLocaleString(); //=> 4/20/2017
+   * @example DateTime.now().setLocale('en-gb').toLocaleString(); //=> '20/04/2017'
+   * @example DateTime.now().toLocaleString(DateTime.DATE_FULL); //=> 'April 20, 2017'
+   * @example DateTime.now().toLocaleString(DateTime.DATE_FULL, { locale: 'fr' }); //=> '28 août 2022'
+   * @example DateTime.now().toLocaleString(DateTime.TIME_SIMPLE); //=> '11:32 AM'
+   * @example DateTime.now().toLocaleString(DateTime.DATETIME_SHORT); //=> '4/20/2017, 11:32 AM'
+   * @example DateTime.now().toLocaleString({ weekday: 'long', month: 'long', day: '2-digit' }); //=> 'Thursday, April 20'
+   * @example DateTime.now().toLocaleString({ weekday: 'short', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }); //=> 'Thu, Apr 20, 11:27 AM'
+   * @example DateTime.now().toLocaleString({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); //=> '11:32'
+   * @return {string}
+   */
   toLocaleString(formatOpts = DATE_SHORT, opts = {}) {
     return this.isValid ? Formatter.create(this.loc.clone(opts), formatOpts).formatDateTime(this) : INVALID3;
   }
+  /**
+   * Returns an array of format "parts", meaning individual tokens along with metadata. This is allows callers to post-process individual sections of the formatted output.
+   * Defaults to the system's locale if no locale has been specified
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/formatToParts
+   * @param opts {Object} - Intl.DateTimeFormat constructor options, same as `toLocaleString`.
+   * @example DateTime.now().toLocaleParts(); //=> [
+   *                                   //=>   { type: 'day', value: '25' },
+   *                                   //=>   { type: 'literal', value: '/' },
+   *                                   //=>   { type: 'month', value: '05' },
+   *                                   //=>   { type: 'literal', value: '/' },
+   *                                   //=>   { type: 'year', value: '1982' }
+   *                                   //=> ]
+   */
   toLocaleParts(opts = {}) {
     return this.isValid ? Formatter.create(this.loc.clone(opts), opts).formatDateTimeParts(this) : [];
   }
+  /**
+   * Returns an ISO 8601-compliant string representation of this DateTime
+   * @param {Object} opts - options
+   * @param {boolean} [opts.suppressMilliseconds=false] - exclude milliseconds from the format if they're 0
+   * @param {boolean} [opts.suppressSeconds=false] - exclude seconds from the format if they're 0
+   * @param {boolean} [opts.includeOffset=true] - include the offset, such as 'Z' or '-04:00'
+   * @param {boolean} [opts.extendedZone=false] - add the time zone format extension
+   * @param {string} [opts.format='extended'] - choose between the basic and extended format
+   * @example DateTime.utc(1983, 5, 25).toISO() //=> '1982-05-25T00:00:00.000Z'
+   * @example DateTime.now().toISO() //=> '2017-04-22T20:47:05.335-04:00'
+   * @example DateTime.now().toISO({ includeOffset: false }) //=> '2017-04-22T20:47:05.335'
+   * @example DateTime.now().toISO({ format: 'basic' }) //=> '20170422T204705.335-0400'
+   * @return {string}
+   */
   toISO({
     format = "extended",
     suppressSeconds = false,
@@ -18391,15 +20678,43 @@ var DateTime = class {
     c += toISOTime(this, ext, suppressSeconds, suppressMilliseconds, includeOffset, extendedZone);
     return c;
   }
+  /**
+   * Returns an ISO 8601-compliant string representation of this DateTime's date component
+   * @param {Object} opts - options
+   * @param {string} [opts.format='extended'] - choose between the basic and extended format
+   * @example DateTime.utc(1982, 5, 25).toISODate() //=> '1982-05-25'
+   * @example DateTime.utc(1982, 5, 25).toISODate({ format: 'basic' }) //=> '19820525'
+   * @return {string}
+   */
   toISODate({ format = "extended" } = {}) {
     if (!this.isValid) {
       return null;
     }
     return toISODate(this, format === "extended");
   }
+  /**
+   * Returns an ISO 8601-compliant string representation of this DateTime's week date
+   * @example DateTime.utc(1982, 5, 25).toISOWeekDate() //=> '1982-W21-2'
+   * @return {string}
+   */
   toISOWeekDate() {
     return toTechFormat(this, "kkkk-'W'WW-c");
   }
+  /**
+   * Returns an ISO 8601-compliant string representation of this DateTime's time component
+   * @param {Object} opts - options
+   * @param {boolean} [opts.suppressMilliseconds=false] - exclude milliseconds from the format if they're 0
+   * @param {boolean} [opts.suppressSeconds=false] - exclude seconds from the format if they're 0
+   * @param {boolean} [opts.includeOffset=true] - include the offset, such as 'Z' or '-04:00'
+   * @param {boolean} [opts.extendedZone=true] - add the time zone format extension
+   * @param {boolean} [opts.includePrefix=false] - include the `T` prefix
+   * @param {string} [opts.format='extended'] - choose between the basic and extended format
+   * @example DateTime.utc().set({ hour: 7, minute: 34 }).toISOTime() //=> '07:34:19.361Z'
+   * @example DateTime.utc().set({ hour: 7, minute: 34, seconds: 0, milliseconds: 0 }).toISOTime({ suppressSeconds: true }) //=> '07:34Z'
+   * @example DateTime.utc().set({ hour: 7, minute: 34 }).toISOTime({ format: 'basic' }) //=> '073419.361Z'
+   * @example DateTime.utc().set({ hour: 7, minute: 34 }).toISOTime({ includePrefix: true }) //=> 'T07:34:19.361Z'
+   * @return {string}
+   */
   toISOTime({
     suppressMilliseconds = false,
     suppressSeconds = false,
@@ -18412,20 +20727,58 @@ var DateTime = class {
       return null;
     }
     let c = includePrefix ? "T" : "";
-    return c + toISOTime(this, format === "extended", suppressSeconds, suppressMilliseconds, includeOffset, extendedZone);
+    return c + toISOTime(
+      this,
+      format === "extended",
+      suppressSeconds,
+      suppressMilliseconds,
+      includeOffset,
+      extendedZone
+    );
   }
+  /**
+   * Returns an RFC 2822-compatible string representation of this DateTime
+   * @example DateTime.utc(2014, 7, 13).toRFC2822() //=> 'Sun, 13 Jul 2014 00:00:00 +0000'
+   * @example DateTime.local(2014, 7, 13).toRFC2822() //=> 'Sun, 13 Jul 2014 00:00:00 -0400'
+   * @return {string}
+   */
   toRFC2822() {
     return toTechFormat(this, "EEE, dd LLL yyyy HH:mm:ss ZZZ", false);
   }
+  /**
+   * Returns a string representation of this DateTime appropriate for use in HTTP headers. The output is always expressed in GMT.
+   * Specifically, the string conforms to RFC 1123.
+   * @see https://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
+   * @example DateTime.utc(2014, 7, 13).toHTTP() //=> 'Sun, 13 Jul 2014 00:00:00 GMT'
+   * @example DateTime.utc(2014, 7, 13, 19).toHTTP() //=> 'Sun, 13 Jul 2014 19:00:00 GMT'
+   * @return {string}
+   */
   toHTTP() {
     return toTechFormat(this.toUTC(), "EEE, dd LLL yyyy HH:mm:ss 'GMT'");
   }
+  /**
+   * Returns a string representation of this DateTime appropriate for use in SQL Date
+   * @example DateTime.utc(2014, 7, 13).toSQLDate() //=> '2014-07-13'
+   * @return {string}
+   */
   toSQLDate() {
     if (!this.isValid) {
       return null;
     }
     return toISODate(this, true);
   }
+  /**
+   * Returns a string representation of this DateTime appropriate for use in SQL Time
+   * @param {Object} opts - options
+   * @param {boolean} [opts.includeZone=false] - include the zone, such as 'America/New_York'. Overrides includeOffset.
+   * @param {boolean} [opts.includeOffset=true] - include the offset, such as 'Z' or '-04:00'
+   * @param {boolean} [opts.includeOffsetSpace=true] - include the space between the time and the offset, such as '05:15:16.345 -04:00'
+   * @example DateTime.utc().toSQL() //=> '05:15:16.345'
+   * @example DateTime.now().toSQL() //=> '05:15:16.345 -04:00'
+   * @example DateTime.now().toSQL({ includeOffset: false }) //=> '05:15:16.345'
+   * @example DateTime.now().toSQL({ includeZone: false }) //=> '05:15:16.345 America/New_York'
+   * @return {string}
+   */
   toSQLTime({ includeOffset = true, includeZone = false, includeOffsetSpace = true } = {}) {
     let fmt = "HH:mm:ss.SSS";
     if (includeZone || includeOffset) {
@@ -18440,33 +20793,91 @@ var DateTime = class {
     }
     return toTechFormat(this, fmt, true);
   }
+  /**
+   * Returns a string representation of this DateTime appropriate for use in SQL DateTime
+   * @param {Object} opts - options
+   * @param {boolean} [opts.includeZone=false] - include the zone, such as 'America/New_York'. Overrides includeOffset.
+   * @param {boolean} [opts.includeOffset=true] - include the offset, such as 'Z' or '-04:00'
+   * @param {boolean} [opts.includeOffsetSpace=true] - include the space between the time and the offset, such as '05:15:16.345 -04:00'
+   * @example DateTime.utc(2014, 7, 13).toSQL() //=> '2014-07-13 00:00:00.000 Z'
+   * @example DateTime.local(2014, 7, 13).toSQL() //=> '2014-07-13 00:00:00.000 -04:00'
+   * @example DateTime.local(2014, 7, 13).toSQL({ includeOffset: false }) //=> '2014-07-13 00:00:00.000'
+   * @example DateTime.local(2014, 7, 13).toSQL({ includeZone: true }) //=> '2014-07-13 00:00:00.000 America/New_York'
+   * @return {string}
+   */
   toSQL(opts = {}) {
     if (!this.isValid) {
       return null;
     }
     return `${this.toSQLDate()} ${this.toSQLTime(opts)}`;
   }
+  /**
+   * Returns a string representation of this DateTime appropriate for debugging
+   * @return {string}
+   */
   toString() {
     return this.isValid ? this.toISO() : INVALID3;
   }
+  /**
+   * Returns a string representation of this DateTime appropriate for the REPL.
+   * @return {string}
+   */
+  [Symbol.for("nodejs.util.inspect.custom")]() {
+    if (this.isValid) {
+      return `DateTime { ts: ${this.toISO()}, zone: ${this.zone.name}, locale: ${this.locale} }`;
+    } else {
+      return `DateTime { Invalid, reason: ${this.invalidReason} }`;
+    }
+  }
+  /**
+   * Returns the epoch milliseconds of this DateTime. Alias of {@link DateTime#toMillis}
+   * @return {number}
+   */
   valueOf() {
     return this.toMillis();
   }
+  /**
+   * Returns the epoch milliseconds of this DateTime.
+   * @return {number}
+   */
   toMillis() {
     return this.isValid ? this.ts : NaN;
   }
+  /**
+   * Returns the epoch seconds of this DateTime.
+   * @return {number}
+   */
   toSeconds() {
     return this.isValid ? this.ts / 1e3 : NaN;
   }
+  /**
+   * Returns the epoch seconds (as a whole number) of this DateTime.
+   * @return {number}
+   */
   toUnixInteger() {
     return this.isValid ? Math.floor(this.ts / 1e3) : NaN;
   }
+  /**
+   * Returns an ISO 8601 representation of this DateTime appropriate for use in JSON.
+   * @return {string}
+   */
   toJSON() {
     return this.toISO();
   }
+  /**
+   * Returns a BSON serializable equivalent to this DateTime.
+   * @return {Date}
+   */
   toBSON() {
     return this.toJSDate();
   }
+  /**
+   * Returns a JavaScript object with this DateTime's year, month, day, and so on.
+   * @param opts - options for generating the object
+   * @param {boolean} [opts.includeConfig=false] - include configuration attributes in the output
+   * @example DateTime.now().toObject() //=> { year: 2017, month: 4, day: 22, hour: 20, minute: 49, second: 42, millisecond: 268 }
+   * @return {Object}
+   */
   toObject(opts = {}) {
     if (!this.isValid)
       return {};
@@ -18478,9 +20889,29 @@ var DateTime = class {
     }
     return base;
   }
+  /**
+   * Returns a JavaScript Date equivalent to this DateTime.
+   * @return {Date}
+   */
   toJSDate() {
     return new Date(this.isValid ? this.ts : NaN);
   }
+  // COMPARE
+  /**
+   * Return the difference between two DateTimes as a Duration.
+   * @param {DateTime} otherDateTime - the DateTime to compare this one to
+   * @param {string|string[]} [unit=['milliseconds']] - the unit or array of units (such as 'hours' or 'days') to include in the duration.
+   * @param {Object} opts - options that affect the creation of the Duration
+   * @param {string} [opts.conversionAccuracy='casual'] - the conversion system to use
+   * @example
+   * var i1 = DateTime.fromISO('1982-05-25T09:45'),
+   *     i2 = DateTime.fromISO('1983-10-14T10:30');
+   * i2.diff(i1).toObject() //=> { milliseconds: 43807500000 }
+   * i2.diff(i1, 'hours').toObject() //=> { hours: 12168.75 }
+   * i2.diff(i1, ['months', 'days']).toObject() //=> { months: 16, days: 19.03125 }
+   * i2.diff(i1, ['months', 'days', 'hours']).toObject() //=> { months: 16, days: 19, hours: 0.75 }
+   * @return {Duration}
+   */
   diff(otherDateTime, unit = "milliseconds", opts = {}) {
     if (!this.isValid || !otherDateTime.isValid) {
       return Duration.invalid("created by diffing an invalid DateTime");
@@ -18489,22 +20920,71 @@ var DateTime = class {
     const units = maybeArray(unit).map(Duration.normalizeUnit), otherIsLater = otherDateTime.valueOf() > this.valueOf(), earlier = otherIsLater ? this : otherDateTime, later = otherIsLater ? otherDateTime : this, diffed = diff_default(earlier, later, units, durOpts);
     return otherIsLater ? diffed.negate() : diffed;
   }
+  /**
+   * Return the difference between this DateTime and right now.
+   * See {@link DateTime#diff}
+   * @param {string|string[]} [unit=['milliseconds']] - the unit or units units (such as 'hours' or 'days') to include in the duration
+   * @param {Object} opts - options that affect the creation of the Duration
+   * @param {string} [opts.conversionAccuracy='casual'] - the conversion system to use
+   * @return {Duration}
+   */
   diffNow(unit = "milliseconds", opts = {}) {
     return this.diff(DateTime.now(), unit, opts);
   }
+  /**
+   * Return an Interval spanning between this DateTime and another DateTime
+   * @param {DateTime} otherDateTime - the other end point of the Interval
+   * @return {Interval}
+   */
   until(otherDateTime) {
     return this.isValid ? Interval.fromDateTimes(this, otherDateTime) : this;
   }
-  hasSame(otherDateTime, unit) {
+  /**
+   * Return whether this DateTime is in the same unit of time as another DateTime.
+   * Higher-order units must also be identical for this function to return `true`.
+   * Note that time zones are **ignored** in this comparison, which compares the **local** calendar time. Use {@link DateTime#setZone} to convert one of the dates if needed.
+   * @param {DateTime} otherDateTime - the other DateTime
+   * @param {string} unit - the unit of time to check sameness on
+   * @param {Object} opts - options
+   * @param {boolean} [opts.useLocaleWeeks=false] - If true, use weeks based on the locale, i.e. use the locale-dependent start of the week; only the locale of this DateTime is used
+   * @example DateTime.now().hasSame(otherDT, 'day'); //~> true if otherDT is in the same current calendar day
+   * @return {boolean}
+   */
+  hasSame(otherDateTime, unit, opts) {
     if (!this.isValid)
       return false;
     const inputMs = otherDateTime.valueOf();
     const adjustedToZone = this.setZone(otherDateTime.zone, { keepLocalTime: true });
-    return adjustedToZone.startOf(unit) <= inputMs && inputMs <= adjustedToZone.endOf(unit);
+    return adjustedToZone.startOf(unit, opts) <= inputMs && inputMs <= adjustedToZone.endOf(unit, opts);
   }
+  /**
+   * Equality check
+   * Two DateTimes are equal if and only if they represent the same millisecond, have the same zone and location, and are both valid.
+   * To compare just the millisecond values, use `+dt1 === +dt2`.
+   * @param {DateTime} other - the other DateTime
+   * @return {boolean}
+   */
   equals(other) {
     return this.isValid && other.isValid && this.valueOf() === other.valueOf() && this.zone.equals(other.zone) && this.loc.equals(other.loc);
   }
+  /**
+   * Returns a string representation of a this time relative to now, such as "in two days". Can only internationalize if your
+   * platform supports Intl.RelativeTimeFormat. Rounds down by default.
+   * @param {Object} options - options that affect the output
+   * @param {DateTime} [options.base=DateTime.now()] - the DateTime to use as the basis to which this time is compared. Defaults to now.
+   * @param {string} [options.style="long"] - the style of units, must be "long", "short", or "narrow"
+   * @param {string|string[]} options.unit - use a specific unit or array of units; if omitted, or an array, the method will pick the best unit. Use an array or one of "years", "quarters", "months", "weeks", "days", "hours", "minutes", or "seconds"
+   * @param {boolean} [options.round=true] - whether to round the numbers in the output.
+   * @param {number} [options.padding=0] - padding in milliseconds. This allows you to round up the result if it fits inside the threshold. Don't use in combination with {round: false} because the decimal output will include the padding.
+   * @param {string} options.locale - override the locale of this DateTime
+   * @param {string} options.numberingSystem - override the numberingSystem of this DateTime. The Intl system may choose not to honor this
+   * @example DateTime.now().plus({ days: 1 }).toRelative() //=> "in 1 day"
+   * @example DateTime.now().setLocale("es").toRelative({ days: 1 }) //=> "dentro de 1 día"
+   * @example DateTime.now().plus({ days: 1 }).toRelative({ locale: "fr" }) //=> "dans 23 heures"
+   * @example DateTime.now().minus({ days: 2 }).toRelative() //=> "2 days ago"
+   * @example DateTime.now().minus({ days: 2 }).toRelative({ unit: "hours" }) //=> "48 hours ago"
+   * @example DateTime.now().minus({ hours: 36 }).toRelative({ round: false }) //=> "1.5 days ago"
+   */
   toRelative(options = {}) {
     if (!this.isValid)
       return null;
@@ -18521,6 +21001,19 @@ var DateTime = class {
       unit
     }));
   }
+  /**
+   * Returns a string representation of this date relative to today, such as "yesterday" or "next month".
+   * Only internationalizes on platforms that supports Intl.RelativeTimeFormat.
+   * @param {Object} options - options that affect the output
+   * @param {DateTime} [options.base=DateTime.now()] - the DateTime to use as the basis to which this time is compared. Defaults to now.
+   * @param {string} options.locale - override the locale of this DateTime
+   * @param {string} options.unit - use a specific unit; if omitted, the method will pick the unit. Use one of "years", "quarters", "months", "weeks", or "days"
+   * @param {string} options.numberingSystem - override the numberingSystem of this DateTime. The Intl system may choose not to honor this
+   * @example DateTime.now().plus({ days: 1 }).toRelativeCalendar() //=> "tomorrow"
+   * @example DateTime.now().setLocale("es").plus({ days: 1 }).toRelative() //=> ""mañana"
+   * @example DateTime.now().plus({ days: 1 }).toRelativeCalendar({ locale: "fr" }) //=> "demain"
+   * @example DateTime.now().minus({ days: 2 }).toRelativeCalendar() //=> "2 days ago"
+   */
   toRelativeCalendar(options = {}) {
     if (!this.isValid)
       return null;
@@ -18530,18 +21023,36 @@ var DateTime = class {
       calendary: true
     }));
   }
+  /**
+   * Return the min of several date times
+   * @param {...DateTime} dateTimes - the DateTimes from which to choose the minimum
+   * @return {DateTime} the min DateTime, or undefined if called with no argument
+   */
   static min(...dateTimes) {
     if (!dateTimes.every(DateTime.isDateTime)) {
       throw new InvalidArgumentError("min requires all arguments be DateTimes");
     }
     return bestBy(dateTimes, (i2) => i2.valueOf(), Math.min);
   }
+  /**
+   * Return the max of several date times
+   * @param {...DateTime} dateTimes - the DateTimes from which to choose the maximum
+   * @return {DateTime} the max DateTime, or undefined if called with no argument
+   */
   static max(...dateTimes) {
     if (!dateTimes.every(DateTime.isDateTime)) {
       throw new InvalidArgumentError("max requires all arguments be DateTimes");
     }
     return bestBy(dateTimes, (i2) => i2.valueOf(), Math.max);
   }
+  // MISC
+  /**
+   * Explain how a string would be parsed by fromFormat()
+   * @param {string} text - the string to parse
+   * @param {string} fmt - the format the string is expected to be in (see description)
+   * @param {Object} options - options taken by fromFormat()
+   * @return {Object}
+   */
   static fromFormatExplain(text, fmt, options = {}) {
     const { locale = null, numberingSystem = null } = options, localeToUse = Locale.fromOpts({
       locale,
@@ -18550,72 +21061,164 @@ var DateTime = class {
     });
     return explainFromTokens(localeToUse, text, fmt);
   }
+  /**
+   * @deprecated use fromFormatExplain instead
+   */
   static fromStringExplain(text, fmt, options = {}) {
     return DateTime.fromFormatExplain(text, fmt, options);
   }
+  // FORMAT PRESETS
+  /**
+   * {@link DateTime#toLocaleString} format like 10/14/1983
+   * @type {Object}
+   */
   static get DATE_SHORT() {
     return DATE_SHORT;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'Oct 14, 1983'
+   * @type {Object}
+   */
   static get DATE_MED() {
     return DATE_MED;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'Fri, Oct 14, 1983'
+   * @type {Object}
+   */
   static get DATE_MED_WITH_WEEKDAY() {
     return DATE_MED_WITH_WEEKDAY;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'October 14, 1983'
+   * @type {Object}
+   */
   static get DATE_FULL() {
     return DATE_FULL;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'Tuesday, October 14, 1983'
+   * @type {Object}
+   */
   static get DATE_HUGE() {
     return DATE_HUGE;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '09:30 AM'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get TIME_SIMPLE() {
     return TIME_SIMPLE;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '09:30:23 AM'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get TIME_WITH_SECONDS() {
     return TIME_WITH_SECONDS;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '09:30:23 AM EDT'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get TIME_WITH_SHORT_OFFSET() {
     return TIME_WITH_SHORT_OFFSET;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '09:30:23 AM Eastern Daylight Time'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get TIME_WITH_LONG_OFFSET() {
     return TIME_WITH_LONG_OFFSET;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '09:30', always 24-hour.
+   * @type {Object}
+   */
   static get TIME_24_SIMPLE() {
     return TIME_24_SIMPLE;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '09:30:23', always 24-hour.
+   * @type {Object}
+   */
   static get TIME_24_WITH_SECONDS() {
     return TIME_24_WITH_SECONDS;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '09:30:23 EDT', always 24-hour.
+   * @type {Object}
+   */
   static get TIME_24_WITH_SHORT_OFFSET() {
     return TIME_24_WITH_SHORT_OFFSET;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '09:30:23 Eastern Daylight Time', always 24-hour.
+   * @type {Object}
+   */
   static get TIME_24_WITH_LONG_OFFSET() {
     return TIME_24_WITH_LONG_OFFSET;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '10/14/1983, 9:30 AM'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get DATETIME_SHORT() {
     return DATETIME_SHORT;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like '10/14/1983, 9:30:33 AM'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get DATETIME_SHORT_WITH_SECONDS() {
     return DATETIME_SHORT_WITH_SECONDS;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'Oct 14, 1983, 9:30 AM'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get DATETIME_MED() {
     return DATETIME_MED;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'Oct 14, 1983, 9:30:33 AM'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get DATETIME_MED_WITH_SECONDS() {
     return DATETIME_MED_WITH_SECONDS;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'Fri, 14 Oct 1983, 9:30 AM'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get DATETIME_MED_WITH_WEEKDAY() {
     return DATETIME_MED_WITH_WEEKDAY;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'October 14, 1983, 9:30 AM EDT'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get DATETIME_FULL() {
     return DATETIME_FULL;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'October 14, 1983, 9:30:33 AM EDT'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get DATETIME_FULL_WITH_SECONDS() {
     return DATETIME_FULL_WITH_SECONDS;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'Friday, October 14, 1983, 9:30 AM Eastern Daylight Time'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get DATETIME_HUGE() {
     return DATETIME_HUGE;
   }
+  /**
+   * {@link DateTime#toLocaleString} format like 'Friday, October 14, 1983, 9:30:33 AM Eastern Daylight Time'. Only 12-hour if the locale is.
+   * @type {Object}
+   */
   static get DATETIME_HUGE_WITH_SECONDS() {
     return DATETIME_HUGE_WITH_SECONDS;
   }
@@ -18628,7 +21231,9 @@ function friendlyDateTime(dateTimeish) {
   } else if (dateTimeish && typeof dateTimeish === "object") {
     return DateTime.fromObject(dateTimeish);
   } else {
-    throw new InvalidArgumentError(`Unknown datetime argument: ${dateTimeish}, of type ${typeof dateTimeish}`);
+    throw new InvalidArgumentError(
+      `Unknown datetime argument: ${dateTimeish}, of type ${typeof dateTimeish}`
+    );
   }
 }
 
@@ -18647,6 +21252,10 @@ var FORMATS = {
 };
 adapters._date.override({
   _id: "luxon",
+  // DEBUG
+  /**
+   * @private
+   */
   _create: function(time2) {
     return DateTime.fromMillis(time2, this.options);
   },
@@ -18705,7 +21314,7 @@ adapters._date.override({
 });
 
 // node_modules/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.esm.js
-var import_hammerjs = __toModule(require_hammer());
+var import_hammerjs = __toESM(require_hammer());
 var getModifierKey = (opts) => opts && opts.enabled && opts.modifierKey;
 var keyPressed = (key, event) => key && event[key + "Key"];
 var keyNotPressed = (key, event) => key && !event[key + "Key"];
@@ -18718,6 +21327,15 @@ function directionEnabled(mode, dir, chart) {
     return mode({ chart }).indexOf(dir) !== -1;
   }
   return false;
+}
+function directionsEnabled(mode, chart) {
+  if (typeof mode === "function") {
+    mode = mode({ chart });
+  }
+  if (typeof mode === "string") {
+    return { x: mode.indexOf("x") !== -1, y: mode.indexOf("y") !== -1 };
+  }
+  return { x: false, y: false };
 }
 function debounce2(fn, delay) {
   let timeout;
@@ -18738,20 +21356,32 @@ function getScaleUnderPoint({ x, y }, chart) {
   }
   return null;
 }
-function getEnabledScalesByPoint(mode, point, chart) {
+function getEnabledScalesByPoint(options, point, chart) {
+  const { mode = "xy", scaleMode, overScaleMode } = options || {};
   const scale = getScaleUnderPoint(point, chart);
-  if (scale && directionEnabled(mode, scale.axis, chart)) {
+  const enabled = directionsEnabled(mode, chart);
+  const scaleEnabled = directionsEnabled(scaleMode, chart);
+  if (overScaleMode) {
+    const overScaleEnabled = directionsEnabled(overScaleMode, chart);
+    for (const axis of ["x", "y"]) {
+      if (overScaleEnabled[axis]) {
+        scaleEnabled[axis] = enabled[axis];
+        enabled[axis] = false;
+      }
+    }
+  }
+  if (scale && scaleEnabled[scale.axis]) {
     return [scale];
   }
   const enabledScales = [];
   each(chart.scales, function(scaleItem) {
-    if (!directionEnabled(mode, scaleItem.axis, chart)) {
+    if (enabled[scaleItem.axis]) {
       enabledScales.push(scaleItem);
     }
   });
   return enabledScales;
 }
-var chartStates = new WeakMap();
+var chartStates = /* @__PURE__ */ new WeakMap();
 function getState(chart) {
   let state = chartStates.get(chart);
   if (!state) {
@@ -18772,7 +21402,10 @@ function zoomDelta(scale, zoom2, center) {
   const range2 = scale.max - scale.min;
   const newRange = range2 * (zoom2 - 1);
   const centerPoint = scale.isHorizontal() ? center.x : center.y;
-  const minPercent = Math.max(0, Math.min(1, (scale.getValueForPixel(centerPoint) - scale.min) / range2 || 0));
+  const minPercent = Math.max(0, Math.min(
+    1,
+    (scale.getValueForPixel(centerPoint) - scale.min) / range2 || 0
+  ));
   const maxPercent = 1 - minPercent;
   return {
     min: newRange * minPercent,
@@ -18787,6 +21420,14 @@ function getLimit(state, scale, scaleLimits, prop, fallback) {
   }
   return valueOrDefault(limit, fallback);
 }
+function getRange(scale, pixel0, pixel1) {
+  const v0 = scale.getValueForPixel(pixel0);
+  const v1 = scale.getValueForPixel(pixel1);
+  return {
+    min: Math.min(v0, v1),
+    max: Math.max(v0, v1)
+  };
+}
 function updateRange(scale, { min, max }, limits, zoom2 = false) {
   const state = getState(scale.chart);
   const { id, axis, options: scaleOpts } = scale;
@@ -18794,24 +21435,16 @@ function updateRange(scale, { min, max }, limits, zoom2 = false) {
   const { minRange = 0 } = scaleLimits;
   const minLimit = getLimit(state, scale, scaleLimits, "min", -Infinity);
   const maxLimit = getLimit(state, scale, scaleLimits, "max", Infinity);
-  const cmin = Math.max(min, minLimit);
-  const cmax = Math.min(max, maxLimit);
-  const range2 = zoom2 ? Math.max(cmax - cmin, minRange) : scale.max - scale.min;
-  if (cmax - cmin !== range2) {
-    if (minLimit > cmax - range2) {
-      min = cmin;
-      max = cmin + range2;
-    } else if (maxLimit < cmin + range2) {
-      max = cmax;
-      min = cmax - range2;
-    } else {
-      const offset2 = (range2 - cmax + cmin) / 2;
-      min = cmin - offset2;
-      max = cmax + offset2;
-    }
-  } else {
-    min = cmin;
-    max = cmax;
+  const range2 = zoom2 ? Math.max(max - min, minRange) : scale.max - scale.min;
+  const offset2 = (range2 - max + min) / 2;
+  min -= offset2;
+  max += offset2;
+  if (min < minLimit) {
+    min = minLimit;
+    max = Math.min(minLimit + range2, maxLimit);
+  } else if (max > maxLimit) {
+    max = maxLimit;
+    min = Math.max(maxLimit - range2, minLimit);
   }
   scaleOpts.min = min;
   scaleOpts.max = max;
@@ -18822,6 +21455,9 @@ function zoomNumericalScale(scale, zoom2, center, limits) {
   const delta = zoomDelta(scale, zoom2, center);
   const newRange = { min: scale.min + delta.min, max: scale.max - delta.max };
   return updateRange(scale, newRange, limits, true);
+}
+function zoomRectNumericalScale(scale, from2, to2, limits) {
+  updateRange(scale, getRange(scale, from2, to2), limits, true);
 }
 var integerChange = (v) => v === 0 || isNaN(v) ? 0 : v < 0 ? Math.min(Math.round(v), -1) : Math.max(Math.round(v), 1);
 function existCategoryFromMaxZoom(scale) {
@@ -18866,13 +21502,21 @@ function panCategoryScale(scale, delta, limits) {
 }
 var OFFSETS = {
   second: 500,
+  // 500 ms
   minute: 30 * 1e3,
+  // 30 s
   hour: 30 * 60 * 1e3,
+  // 30 m
   day: 12 * 60 * 60 * 1e3,
+  // 12 h
   week: 3.5 * 24 * 60 * 60 * 1e3,
+  // 3.5 d
   month: 15 * 24 * 60 * 60 * 1e3,
+  // 15 d
   quarter: 60 * 24 * 60 * 60 * 1e3,
+  // 60 d
   year: 182 * 24 * 60 * 60 * 1e3
+  // 182 d
 };
 function panNumericalScale(scale, delta, limits, canZoom = false) {
   const { min: prevStart, max: prevEnd, options } = scale;
@@ -18892,6 +21536,9 @@ function panNonLinearScale(scale, delta, limits) {
 var zoomFunctions = {
   category: zoomCategoryScale,
   default: zoomNumericalScale
+};
+var zoomRectFunctions = {
+  default: zoomRectNumericalScale
 };
 var panFunctions = {
   category: panCategoryScale,
@@ -18933,6 +21580,10 @@ function doZoom(scale, amount, center, limits) {
   const fn = zoomFunctions[scale.type] || zoomFunctions.default;
   callback(fn, [scale, amount, center, limits]);
 }
+function doZoomRect(scale, amount, from2, to2, limits) {
+  const fn = zoomRectFunctions[scale.type] || zoomRectFunctions.default;
+  callback(fn, [scale, amount, from2, to2, limits]);
+}
 function getCenter(chart) {
   const ca = chart.chartArea;
   return {
@@ -18944,11 +21595,10 @@ function zoom(chart, amount, transition = "none") {
   const { x = 1, y = 1, focalPoint = getCenter(chart) } = typeof amount === "number" ? { x: amount, y: amount } : amount;
   const state = getState(chart);
   const { options: { limits, zoom: zoomOptions } } = state;
-  const { mode = "xy", overScaleMode } = zoomOptions || {};
   storeOriginalScaleLimits(chart, state);
-  const xEnabled = x !== 1 && directionEnabled(mode, "x", chart);
-  const yEnabled = y !== 1 && directionEnabled(mode, "y", chart);
-  const enabledScales = overScaleMode && getEnabledScalesByPoint(overScaleMode, focalPoint, chart);
+  const xEnabled = x !== 1;
+  const yEnabled = y !== 1;
+  const enabledScales = getEnabledScalesByPoint(zoomOptions, focalPoint, chart);
   each(enabledScales || chart.scales, function(scale) {
     if (scale.isHorizontal() && xEnabled) {
       doZoom(scale, x, focalPoint, limits);
@@ -18959,14 +21609,6 @@ function zoom(chart, amount, transition = "none") {
   chart.update(transition);
   callback(zoomOptions.onZoom, [{ chart }]);
 }
-function getRange(scale, pixel0, pixel1) {
-  const v0 = scale.getValueForPixel(pixel0);
-  const v1 = scale.getValueForPixel(pixel1);
-  return {
-    min: Math.min(v0, v1),
-    max: Math.max(v0, v1)
-  };
-}
 function zoomRect(chart, p0, p1, transition = "none") {
   const state = getState(chart);
   const { options: { limits, zoom: zoomOptions } } = state;
@@ -18976,9 +21618,9 @@ function zoomRect(chart, p0, p1, transition = "none") {
   const yEnabled = directionEnabled(mode, "y", chart);
   each(chart.scales, function(scale) {
     if (scale.isHorizontal() && xEnabled) {
-      updateRange(scale, getRange(scale, p0.x, p1.x), limits, true);
+      doZoomRect(scale, p0.x, p1.x, limits);
     } else if (!scale.isHorizontal() && yEnabled) {
-      updateRange(scale, getRange(scale, p0.y, p1.y), limits, true);
+      doZoomRect(scale, p0.y, p1.y, limits);
     }
   });
   chart.update(transition);
@@ -19045,10 +21687,10 @@ function pan(chart, delta, enabledScales, transition = "none") {
   const { x = 0, y = 0 } = typeof delta === "number" ? { x: delta, y: delta } : delta;
   const state = getState(chart);
   const { options: { pan: panOptions, limits } } = state;
-  const { mode = "xy", onPan } = panOptions || {};
+  const { onPan } = panOptions || {};
   storeOriginalScaleLimits(chart, state);
-  const xEnabled = x !== 0 && directionEnabled(mode, "x", chart);
-  const yEnabled = y !== 0 && directionEnabled(mode, "y", chart);
+  const xEnabled = x !== 0;
+  const yEnabled = y !== 0;
   each(enabledScales || chart.scales, function(scale) {
     if (scale.isHorizontal() && xEnabled) {
       panScale(scale, x, limits, state);
@@ -19061,6 +21703,7 @@ function pan(chart, delta, enabledScales, transition = "none") {
 }
 function getInitialScaleBounds(chart) {
   const state = getState(chart);
+  storeOriginalScaleLimits(chart, state);
   const scaleBounds = {};
   for (const scaleId of Object.keys(chart.scales)) {
     const { min, max } = state.originalScaleLimits[scaleId] || { min: {}, max: {} };
@@ -19108,14 +21751,20 @@ function mouseMove(chart, event) {
     chart.update("none");
   }
 }
+function keyDown(chart, event) {
+  const state = getState(chart);
+  if (!state.dragStart || event.key !== "Escape") {
+    return;
+  }
+  removeHandler(chart, "keydown");
+  state.dragging = false;
+  state.dragStart = state.dragEnd = null;
+  chart.update("none");
+}
 function zoomStart(chart, event, zoomOptions) {
   const { onZoomStart, onZoomRejected } = zoomOptions;
   if (onZoomStart) {
-    const { left: offsetX, top: offsetY } = event.target.getBoundingClientRect();
-    const point = {
-      x: event.clientX - offsetX,
-      y: event.clientY - offsetY
-    };
+    const point = getRelativePosition(event, chart);
     if (callback(onZoomStart, [{ chart, event, point }]) === false) {
       callback(onZoomRejected, [{ chart, event }]);
       return false;
@@ -19125,7 +21774,7 @@ function zoomStart(chart, event, zoomOptions) {
 function mouseDown(chart, event) {
   const state = getState(chart);
   const { pan: panOptions, zoom: zoomOptions = {} } = state.options;
-  if (keyPressed(getModifierKey(panOptions), event) || keyNotPressed(getModifierKey(zoomOptions.drag), event)) {
+  if (event.button !== 0 || keyPressed(getModifierKey(panOptions), event) || keyNotPressed(getModifierKey(zoomOptions.drag), event)) {
     return callback(zoomOptions.onZoomRejected, [{ chart, event }]);
   }
   if (zoomStart(chart, event, zoomOptions) === false) {
@@ -19133,19 +21782,21 @@ function mouseDown(chart, event) {
   }
   state.dragStart = event;
   addHandler(chart, chart.canvas, "mousemove", mouseMove);
+  addHandler(chart, window.document, "keydown", keyDown);
 }
-function computeDragRect(chart, mode, beginPoint, endPoint) {
-  const { left: offsetX, top: offsetY } = beginPoint.target.getBoundingClientRect();
+function computeDragRect(chart, mode, beginPointEvent, endPointEvent) {
   const xEnabled = directionEnabled(mode, "x", chart);
   const yEnabled = directionEnabled(mode, "y", chart);
   let { top, left, right, bottom, width: chartWidth, height: chartHeight } = chart.chartArea;
+  const beginPoint = getRelativePosition(beginPointEvent, chart);
+  const endPoint = getRelativePosition(endPointEvent, chart);
   if (xEnabled) {
-    left = Math.min(beginPoint.clientX, endPoint.clientX) - offsetX;
-    right = Math.max(beginPoint.clientX, endPoint.clientX) - offsetX;
+    left = Math.min(beginPoint.x, endPoint.x);
+    right = Math.max(beginPoint.x, endPoint.x);
   }
   if (yEnabled) {
-    top = Math.min(beginPoint.clientY, endPoint.clientY) - offsetY;
-    bottom = Math.max(beginPoint.clientY, endPoint.clientY) - offsetY;
+    top = Math.min(beginPoint.y, endPoint.y);
+    bottom = Math.max(beginPoint.y, endPoint.y);
   }
   const width = right - left;
   const height = bottom - top;
@@ -19238,6 +21889,7 @@ function addListeners(chart, options) {
     removeHandler(chart, "mousedown");
     removeHandler(chart, "mousemove");
     removeHandler(chart, "mouseup");
+    removeHandler(chart, "keydown");
   }
 }
 function removeListeners(chart) {
@@ -19246,6 +21898,7 @@ function removeListeners(chart) {
   removeHandler(chart, "mouseup");
   removeHandler(chart, "wheel");
   removeHandler(chart, "click");
+  removeHandler(chart, "keydown");
 }
 function createEnabler(chart, state) {
   return function(recognizer, event) {
@@ -19318,7 +21971,7 @@ function handlePan(chart, state, e) {
   }
 }
 function startPan(chart, state, event) {
-  const { enabled, overScaleMode, onPanStart, onPanRejected } = state.options.pan;
+  const { enabled, onPanStart, onPanRejected } = state.options.pan;
   if (!enabled) {
     return;
   }
@@ -19330,7 +21983,7 @@ function startPan(chart, state, event) {
   if (callback(onPanStart, [{ chart, event, point }]) === false) {
     return callback(onPanRejected, [{ chart, event }]);
   }
-  state.panScales = overScaleMode && getEnabledScalesByPoint(overScaleMode, point, chart);
+  state.panScales = getEnabledScalesByPoint(state.options.pan, point, chart);
   state.delta = { x: 0, y: 0 };
   clearTimeout(state.panEndTimeout);
   handlePan(chart, state, event);
@@ -19342,7 +21995,7 @@ function endPan(chart, state) {
     callback(state.options.pan.onPanComplete, [{ chart }]);
   }
 }
-var hammers = new WeakMap();
+var hammers = /* @__PURE__ */ new WeakMap();
 function startHammer(chart, options) {
   const state = getState(chart);
   const canvas = chart.canvas;
@@ -19378,7 +22031,26 @@ function stopHammer(chart) {
     hammers.delete(chart);
   }
 }
-var version2 = "1.2.1";
+var version2 = "2.0.1";
+function draw2(chart, caller, options) {
+  const dragOptions = options.zoom.drag;
+  const { dragStart, dragEnd } = getState(chart);
+  if (dragOptions.drawTime !== caller || !dragEnd) {
+    return;
+  }
+  const { left, top, width, height } = computeDragRect(chart, options.zoom.mode, dragStart, dragEnd);
+  const ctx = chart.ctx;
+  ctx.save();
+  ctx.beginPath();
+  ctx.fillStyle = dragOptions.backgroundColor || "rgba(225,225,225,0.3)";
+  ctx.fillRect(left, top, width, height);
+  if (dragOptions.borderWidth > 0) {
+    ctx.lineWidth = dragOptions.borderWidth;
+    ctx.strokeStyle = dragOptions.borderColor || "rgba(225,225,225)";
+    ctx.strokeRect(left, top, width, height);
+  }
+  ctx.restore();
+}
 var plugin = {
   id: "zoom",
   version: version2,
@@ -19397,6 +22069,7 @@ var plugin = {
       },
       drag: {
         enabled: false,
+        drawTime: "beforeDatasetsDraw",
         modifierKey: null
       },
       pinch: {
@@ -19411,11 +22084,15 @@ var plugin = {
     if (Object.prototype.hasOwnProperty.call(options.zoom, "enabled")) {
       console.warn("The option `zoom.enabled` is no longer supported. Please use `zoom.wheel.enabled`, `zoom.drag.enabled`, or `zoom.pinch.enabled`.");
     }
+    if (Object.prototype.hasOwnProperty.call(options.zoom, "overScaleMode") || Object.prototype.hasOwnProperty.call(options.pan, "overScaleMode")) {
+      console.warn("The option `overScaleMode` is deprecated. Please use `scaleMode` instead (and update `mode` as desired).");
+    }
     if (import_hammerjs.default) {
       startHammer(chart, options);
     }
     chart.pan = (delta, panScales, transition) => pan(chart, delta, panScales, transition);
     chart.zoom = (args, transition) => zoom(chart, args, transition);
+    chart.zoomRect = (p0, p1, transition) => zoomRect(chart, p0, p1, transition);
     chart.zoomScale = (id, range2, transition) => zoomScale(chart, id, range2, transition);
     chart.resetZoom = (transition) => resetZoom(chart, transition);
     chart.getZoomLevel = () => getZoomLevel(chart);
@@ -19433,23 +22110,17 @@ var plugin = {
     state.options = options;
     addListeners(chart, options);
   },
-  beforeDatasetsDraw: function(chart, args, options) {
-    const { dragStart, dragEnd } = getState(chart);
-    if (dragEnd) {
-      const { left, top, width, height } = computeDragRect(chart, options.zoom.mode, dragStart, dragEnd);
-      const dragOptions = options.zoom.drag;
-      const ctx = chart.ctx;
-      ctx.save();
-      ctx.beginPath();
-      ctx.fillStyle = dragOptions.backgroundColor || "rgba(225,225,225,0.3)";
-      ctx.fillRect(left, top, width, height);
-      if (dragOptions.borderWidth > 0) {
-        ctx.lineWidth = dragOptions.borderWidth;
-        ctx.strokeStyle = dragOptions.borderColor || "rgba(225,225,225)";
-        ctx.strokeRect(left, top, width, height);
-      }
-      ctx.restore();
-    }
+  beforeDatasetsDraw(chart, _args, options) {
+    draw2(chart, "beforeDatasetsDraw", options);
+  },
+  afterDatasetsDraw(chart, _args, options) {
+    draw2(chart, "afterDatasetsDraw", options);
+  },
+  beforeDraw(chart, _args, options) {
+    draw2(chart, "beforeDraw", options);
+  },
+  afterDraw(chart, _args, options) {
+    draw2(chart, "afterDraw", options);
   },
   stop: function(chart) {
     removeListeners(chart);
@@ -19459,7 +22130,8 @@ var plugin = {
     removeState(chart);
   },
   panFunctions,
-  zoomFunctions
+  zoomFunctions,
+  zoomRectFunctions
 };
 
 // js/components/utils.js
@@ -19540,6 +22212,8 @@ function ChartJSHook() {
               major: {
                 enabled: true
               },
+              // Automatically adjusts the number of the ticks by increasing the padding between them,
+              // when autoSkip is enabled (it is by default)
               autoSkipPadding: 10,
               font: {
                 size: 12
@@ -19695,7 +22369,7 @@ function ChartJSHook() {
       labels = this.chart.data.datasets.map((dataset) => {
         return '"' + dataset.label + '"';
       });
-      rows = new Map();
+      rows = /* @__PURE__ */ new Map();
       n = this.chart.data.datasets.length;
       this.chart.data.datasets.forEach((dataset, idx) => {
         dataset.data.forEach((row2) => {
@@ -19729,7 +22403,9 @@ function ChartJSHook() {
           label: dataset.label,
           unit: dataset.attrs.unit,
           borderColor: colors2[idx % colors2.length] + "FF",
+          // full opaque
           backgroundColor: colors2[idx % colors2.length] + "40",
+          // 1/4 opaque
           borderWidth: 1,
           pointRadius: 1,
           fill: dataset.attrs.fill ? "origin" : false,
@@ -19762,9 +22438,15 @@ var CoreFeature = class {
   constructor(table) {
     this.table = table;
   }
+  //////////////////////////////////////////
+  /////////////// DataLoad /////////////////
+  //////////////////////////////////////////
   reloadData(data, silent, columnsChanged) {
     return this.table.dataLoader.load(data, void 0, void 0, void 0, silent, columnsChanged);
   }
+  //////////////////////////////////////////
+  ///////////// Localization ///////////////
+  //////////////////////////////////////////
   langText() {
     return this.table.modules.localize.getText(...arguments);
   }
@@ -19774,18 +22456,27 @@ var CoreFeature = class {
   langLocale() {
     return this.table.modules.localize.getLocale(...arguments);
   }
+  //////////////////////////////////////////
+  ////////// Inter Table Comms /////////////
+  //////////////////////////////////////////
   commsConnections() {
     return this.table.modules.comms.getConnections(...arguments);
   }
   commsSend() {
     return this.table.modules.comms.send(...arguments);
   }
+  //////////////////////////////////////////
+  //////////////// Layout  /////////////////
+  //////////////////////////////////////////
   layoutMode() {
     return this.table.modules.layout.getMode();
   }
   layoutRefresh(force) {
     return this.table.modules.layout.layout(force);
   }
+  //////////////////////////////////////////
+  /////////////// Event Bus ////////////////
+  //////////////////////////////////////////
   subscribe() {
     return this.table.eventBus.subscribe(...arguments);
   }
@@ -19816,6 +22507,9 @@ var CoreFeature = class {
   subscriptionChangeExternal() {
     return this.table.externalEvents.subscriptionChange(...arguments);
   }
+  //////////////////////////////////////////
+  //////////////// Options /////////////////
+  //////////////////////////////////////////
   options(key) {
     return this.table.options[key];
   }
@@ -19825,6 +22519,9 @@ var CoreFeature = class {
     }
     return this.table.options[key];
   }
+  //////////////////////////////////////////
+  /////////// Deprecation Checks ///////////
+  //////////////////////////////////////////
   deprecationCheck(oldOption, newOption) {
     return this.table.deprecationAdvisor.check(oldOption, newOption);
   }
@@ -19834,6 +22531,9 @@ var CoreFeature = class {
   deprecationMsg(msg) {
     return this.table.deprecationAdvisor.msg(msg);
   }
+  //////////////////////////////////////////
+  //////////////// Modules /////////////////
+  //////////////////////////////////////////
   module(key) {
     return this.table.module(key);
   }
@@ -19848,6 +22548,17 @@ var Helpers = class {
       top: box.top + window.pageYOffset - document.documentElement.clientTop,
       left: box.left + window.pageXOffset - document.documentElement.clientLeft
     };
+  }
+  static retrieveNestedData(separator, field, data) {
+    var structure = separator ? field.split(separator) : [field], length = structure.length, output;
+    for (let i2 = 0; i2 < length; i2++) {
+      data = data[structure[i2]];
+      output = data;
+      if (!data) {
+        break;
+      }
+    }
+    return output;
   }
   static deepClone(obj, clone4, list2 = []) {
     var objectProto = {}.__proto__, arrayProto = [].__proto__;
@@ -20104,12 +22815,18 @@ var Module = class extends CoreFeature {
   }
   initialize() {
   }
+  ///////////////////////////////////
+  ////// Options Registration ///////
+  ///////////////////////////////////
   registerTableOption(key, value) {
     this.table.optionsList.register(key, value);
   }
   registerColumnOption(key, value) {
     this.table.columnManager.optionsList.register(key, value);
   }
+  ///////////////////////////////////
+  /// Public Function Registration ///
+  ///////////////////////////////////
   registerTableFunction(name, func) {
     if (typeof this.table[name] === "undefined") {
       this.table[name] = (...args) => {
@@ -20123,6 +22840,9 @@ var Module = class extends CoreFeature {
   registerComponentFunction(component, func, handler) {
     return this.table.componentFunctionBinder.bind(component, func, handler);
   }
+  ///////////////////////////////////
+  ////////// Data Pipeline //////////
+  ///////////////////////////////////
   registerDataHandler(handler, priority) {
     this.table.rowManager.registerDataPipelineHandler(handler, priority);
     this._handler = handler;
@@ -20163,6 +22883,9 @@ var Module = class extends CoreFeature {
       this.table.rowManager.refreshActiveData(handler, false, renderInPosition);
     }
   }
+  ///////////////////////////////////
+  //////// Footer Management ////////
+  ///////////////////////////////////
   footerAppend(element) {
     return this.table.footerManager.append(element);
   }
@@ -20172,9 +22895,15 @@ var Module = class extends CoreFeature {
   footerRemove(element) {
     return this.table.footerManager.remove(element);
   }
+  ///////////////////////////////////
+  //////// Popups Management ////////
+  ///////////////////////////////////
   popup(menuEl, menuContainer) {
     return new Popup(this.table, menuEl, menuContainer);
   }
+  ///////////////////////////////////
+  //////// Alert Management ////////
+  ///////////////////////////////////
   alert(content, type) {
     return this.table.alertManager.alert(content, type);
   }
@@ -20204,6 +22933,7 @@ var Accessor = class extends Module {
     this.subscribe("column-layout", this.initializeColumn.bind(this));
     this.subscribe("row-data-retrieve", this.transformRow.bind(this));
   }
+  //initialize column accessor
   initializeColumn(column) {
     var match2 = false, config = {};
     this.allowedTypes.forEach((type) => {
@@ -20239,6 +22969,7 @@ var Accessor = class extends Module {
     }
     return accessor;
   }
+  //apply accessor to row
   transformRow(row2, type) {
     var key = "accessor" + (type.charAt(0).toUpperCase() + type.slice(1)), rowComponent = row2.getComponent();
     var data = Helpers.deepClone(row2.data || {});
@@ -20420,6 +23151,7 @@ var Ajax = class extends Module {
     this.registerTableOption("ajaxResponse", false);
     this.contentTypeFormatters = Ajax.contentTypeFormatters;
   }
+  //initialize setup options
   initialize() {
     this.loaderPromise = this.table.options.ajaxRequestFunc || Ajax.defaultLoaderPromise;
     this.urlGenerator = this.table.options.ajaxURLGenerator || Ajax.defaultURLGenerator;
@@ -20438,7 +23170,7 @@ var Ajax = class extends Module {
       if (typeof ajaxParams === "function") {
         ajaxParams = ajaxParams.call(this.table);
       }
-      params = Object.assign(params, ajaxParams);
+      params = Object.assign(Object.assign({}, ajaxParams), params);
     }
     return params;
   }
@@ -20465,6 +23197,7 @@ var Ajax = class extends Module {
       Object.assign(this.config, config);
     }
   }
+  //load config object
   generateConfig(config = {}) {
     var ajaxConfig = Object.assign({}, this.config);
     if (typeof config == "string") {
@@ -20474,12 +23207,15 @@ var Ajax = class extends Module {
     }
     return ajaxConfig;
   }
+  //set request url
   setUrl(url2) {
     this.url = url2;
   }
+  //get request url
   getUrl() {
     return this.url;
   }
+  //send ajax request
   sendRequest(url2, params, config) {
     if (this.table.options.ajaxRequesting.call(this.table, url2, params) !== false) {
       return this.loaderPromise(url2, config, params).then((data) => {
@@ -20693,6 +23429,7 @@ var Clipboard = class extends Module {
       }
     }
   }
+  //PASTE EVENT HANDLING
   setPasteAction(action) {
     switch (typeof action) {
       case "string":
@@ -20834,8 +23571,11 @@ var CellComponent = class {
   getRow() {
     return this._cell.row.getComponent();
   }
-  getData() {
-    return this._cell.row.getData();
+  getData(transform) {
+    return this._cell.row.getData(transform);
+  }
+  getType() {
+    return "cell";
   }
   getField() {
     return this._cell.column.getField();
@@ -20883,6 +23623,8 @@ var Cell = class extends CoreFeature {
     this.loaded = false;
     this.build();
   }
+  //////////////// Setup Functions /////////////////
+  //generate element
   build() {
     this.generateElement();
     this.setWidth();
@@ -20927,6 +23669,7 @@ var Cell = class extends CoreFeature {
       this.hide();
     }
   }
+  //generate cell contents
   _generateContents() {
     var val;
     val = this.chain("cell-format", this, null, () => {
@@ -20955,6 +23698,7 @@ var Cell = class extends CoreFeature {
   cellRendered() {
     this.dispatch("cell-rendered", this);
   }
+  //////////////////// Getters ////////////////////
   getElement(containerOnly) {
     if (!this.loaded) {
       this.loaded = true;
@@ -20970,6 +23714,7 @@ var Cell = class extends CoreFeature {
   getOldValue() {
     return this.oldValue;
   }
+  //////////////////// Actions ////////////////////
   setValue(value, mutate, force) {
     var changed = this.setValueProcessData(value, mutate, force);
     if (changed) {
@@ -21066,6 +23811,7 @@ var Cell = class extends CoreFeature {
   getIndex() {
     return this.row.getCellIndex(this);
   }
+  //////////////// Object Generation /////////////////
   getComponent() {
     if (!this.component) {
       this.component = new CellComponent(this);
@@ -21152,8 +23898,8 @@ var ColumnComponent = class {
   _getSelf() {
     return this._column;
   }
-  scrollTo() {
-    return this._column.table.columnManager.scrollToColumn(this._column);
+  scrollTo(position, ifVisible) {
+    return this._column.table.columnManager.scrollToColumn(this._column, position, ifVisible);
   }
   getTable() {
     return this._column.table;
@@ -21300,12 +24046,15 @@ var Column = class extends CoreFeature {
     this.getFieldValue = this.fieldStructure.length > 1 ? this._getNestedData : this._getFlatData;
     this.setFieldValue = this.fieldStructure.length > 1 ? this._setNestedData : this._setFlatData;
   }
+  //register column position with column manager
   registerColumnPosition(column) {
     this.parent.registerColumnPosition(column);
   }
+  //register column position with column manager
   registerColumnField(column) {
     this.parent.registerColumnField(column);
   }
+  //trigger position registration
   reRegisterPosition() {
     if (this.isGroup) {
       this.columns.forEach(function(column) {
@@ -21315,6 +24064,7 @@ var Column = class extends CoreFeature {
       this.registerColumnPosition(this);
     }
   }
+  //build header element
   _initialize() {
     var def = this.definition;
     while (this.element.firstChild)
@@ -21334,6 +24084,7 @@ var Column = class extends CoreFeature {
     }
     this.dispatch("column-init", this);
   }
+  //build header element for header
   _buildColumnHeader() {
     var def = this.definition;
     this.dispatch("column-layout", this);
@@ -21375,6 +24126,7 @@ var Column = class extends CoreFeature {
     this.titleHolderElement.appendChild(this.titleElement);
     return contentElement;
   }
+  //build title element of column
   _buildColumnHeaderTitle() {
     var def = this.definition;
     var titleHolderElement = document.createElement("div");
@@ -21432,6 +24184,7 @@ var Column = class extends CoreFeature {
         el.innerHTML = contents;
     }
   }
+  //build header element for column group
   _buildGroupHeader() {
     this.element.classList.add("tabulator-col-group");
     this.element.setAttribute("role", "columngroup");
@@ -21445,9 +24198,11 @@ var Column = class extends CoreFeature {
     this.titleElement.style.textAlign = this.definition.headerHozAlign;
     this.element.appendChild(this.groupElement);
   }
+  //flat field lookup
   _getFlatData(data) {
     return data[this.field];
   }
+  //nested field lookup
   _getNestedData(data) {
     var dataObj = data, structure = this.fieldStructure, length = structure.length, output;
     for (let i2 = 0; i2 < length; i2++) {
@@ -21459,11 +24214,13 @@ var Column = class extends CoreFeature {
     }
     return output;
   }
+  //flat field set
   _setFlatData(data, value) {
     if (this.field) {
       data[this.field] = value;
     }
   }
+  //nested field set
   _setNestedData(data, value) {
     var dataObj = data, structure = this.fieldStructure, length = structure.length;
     for (let i2 = 0; i2 < length; i2++) {
@@ -21481,6 +24238,7 @@ var Column = class extends CoreFeature {
       }
     }
   }
+  //attach column to this group
   attachColumn(column) {
     if (this.groupElement) {
       this.columns.push(column);
@@ -21490,6 +24248,7 @@ var Column = class extends CoreFeature {
       console.warn("Column Warning - Column being attached to another column instead of column group");
     }
   }
+  //vertically align header in column
   verticalAlign(alignment, height) {
     var parentHeight = this.parent.isGroup ? this.parent.getGroupElement().clientHeight : height || this.parent.getHeadersElement().clientHeight;
     this.element.style.height = parentHeight + "px";
@@ -21501,6 +24260,7 @@ var Column = class extends CoreFeature {
       column.verticalAlign(alignment);
     });
   }
+  //clear vertical alignment
   clearVerticalAlign() {
     this.element.style.paddingTop = "";
     this.element.style.height = "";
@@ -21511,18 +24271,23 @@ var Column = class extends CoreFeature {
     });
     this.dispatch("column-height", this, "");
   }
+  //// Retrieve Column Information ////
+  //return column header element
   getElement() {
     return this.element;
   }
+  //return column group element
   getGroupElement() {
     return this.groupElement;
   }
+  //return field name
   getField() {
     return this.field;
   }
   getTitleDownload() {
     return this.titleDownload;
   }
+  //return the first column in a group
   getFirstColumn() {
     if (!this.isGroup) {
       return this;
@@ -21534,6 +24299,7 @@ var Column = class extends CoreFeature {
       }
     }
   }
+  //return the last column in a group
   getLastColumn() {
     if (!this.isGroup) {
       return this;
@@ -21545,6 +24311,7 @@ var Column = class extends CoreFeature {
       }
     }
   }
+  //return all columns in a group
   getColumns(traverse) {
     var columns = [];
     if (traverse) {
@@ -21557,9 +24324,11 @@ var Column = class extends CoreFeature {
     }
     return columns;
   }
+  //return all columns in a group
   getCells() {
     return this.cells;
   }
+  //retrieve the top column in a group of columns
   getTopColumn() {
     if (this.parent.isGroup) {
       return this.parent.getTopColumn();
@@ -21567,6 +24336,7 @@ var Column = class extends CoreFeature {
       return this;
     }
   }
+  //return column definition object
   getDefinition(updateBranches) {
     var colDefs = [];
     if (this.isGroup && updateBranches) {
@@ -21577,6 +24347,7 @@ var Column = class extends CoreFeature {
     }
     return this.definition;
   }
+  //////////////////// Actions ////////////////////
   checkColumnVisibility() {
     var visible = false;
     this.columns.forEach(function(column) {
@@ -21591,6 +24362,7 @@ var Column = class extends CoreFeature {
       this.hide();
     }
   }
+  //show column
   show(silent, responsiveToggle) {
     if (!this.visible) {
       this.visible = true;
@@ -21617,6 +24389,7 @@ var Column = class extends CoreFeature {
       }
     }
   }
+  //hide column
   hide(silent, responsiveToggle) {
     if (this.visible) {
       this.visible = false;
@@ -21787,6 +24560,8 @@ var Column = class extends CoreFeature {
     }
     this.dispatch("column-rendered", this);
   }
+  //////////////// Cell Management /////////////////
+  //generate cell for this column
   generateCell(row2) {
     var cell = new Cell(this, row2);
     this.cells.push(cell);
@@ -21817,6 +24592,7 @@ var Column = class extends CoreFeature {
     this.fitToData(force);
     this.dispatch("column-width-fit-after", this);
   }
+  //set column width to maximum cell width for non group columns
   fitToData(force) {
     if (this.isGroup) {
       return;
@@ -21873,6 +24649,7 @@ var Column = class extends CoreFeature {
       this.cells.splice(index2, 1);
     }
   }
+  //////////////// Object Generation /////////////////
   getComponent() {
     if (!this.component) {
       this.component = new ColumnComponent(this);
@@ -21923,8 +24700,8 @@ var RowComponent = class {
   delete() {
     return this._row.delete();
   }
-  scrollTo() {
-    return this._row.table.rowManager.scrollToRow(this._row);
+  scrollTo(position, ifVisible) {
+    return this._row.table.rowManager.scrollToRow(this._row, position, ifVisible);
   }
   move(to2, after) {
     this._row.moveToRow(to2, after);
@@ -22002,7 +24779,8 @@ var Row = class extends CoreFeature {
   generateCells() {
     this.cells = this.table.columnManager.generateCells(this);
   }
-  initialize(force) {
+  //functions to setup on first render
+  initialize(force, inFragment) {
     this.create();
     if (!this.initialized || force) {
       this.deleteCells();
@@ -22011,7 +24789,7 @@ var Row = class extends CoreFeature {
       this.dispatch("row-layout-before", this);
       this.generateCells();
       this.initialized = true;
-      this.table.columnManager.renderer.renderRowCells(this);
+      this.table.columnManager.renderer.renderRowCells(this, inFragment);
       if (force) {
         this.normalizeHeight();
       }
@@ -22021,8 +24799,13 @@ var Row = class extends CoreFeature {
       }
       this.dispatch("row-layout-after", this);
     } else {
-      this.table.columnManager.renderer.rerenderRowCells(this);
+      this.table.columnManager.renderer.rerenderRowCells(this, inFragment);
     }
+  }
+  rendered() {
+    this.cells.forEach((cell) => {
+      cell.cellRendered();
+    });
   }
   reinitializeHeight() {
     this.heightInitialized = false;
@@ -22048,6 +24831,7 @@ var Row = class extends CoreFeature {
     }
     this.dispatch("row-relayout", this);
   }
+  //get heights when doing bulk row style calcs in virtual DOM
   calcHeight(force) {
     var maxHeight = 0, minHeight;
     if (this.table.options.rowHeight) {
@@ -22069,6 +24853,7 @@ var Row = class extends CoreFeature {
     this.heightStyled = this.height ? this.height + "px" : "";
     this.outerHeight = this.element.offsetHeight;
   }
+  //set of cells
   setCellHeight() {
     this.cells.forEach(function(cell) {
       cell.setHeight();
@@ -22080,6 +24865,7 @@ var Row = class extends CoreFeature {
       cell.clearHeight();
     });
   }
+  //normalize the height of elements in the row
   normalizeHeight(force) {
     if (force && !this.table.options.rowHeight) {
       this.clearCellHeight();
@@ -22087,6 +24873,7 @@ var Row = class extends CoreFeature {
     this.calcHeight(force);
     this.setCellHeight();
   }
+  //set height of rows
   setHeight(height, force) {
     if (this.height != height || force) {
       this.manualHeight = true;
@@ -22096,22 +24883,27 @@ var Row = class extends CoreFeature {
       this.outerHeight = this.element.offsetHeight;
     }
   }
+  //return rows outer height
   getHeight() {
     return this.outerHeight;
   }
+  //return rows outer Width
   getWidth() {
     return this.element.offsetWidth;
   }
+  //////////////// Cell Management /////////////////
   deleteCell(cell) {
     var index2 = this.cells.indexOf(cell);
     if (index2 > -1) {
       this.cells.splice(index2, 1);
     }
   }
+  //////////////// Data Management /////////////////
   setData(data) {
     this.data = this.chain("row-data-init-before", [this, data], void 0, data);
     this.dispatch("row-data-init-after", this);
   }
+  //update the rows data
   updateData(updatedData) {
     var visible = this.element && Helpers.elVisible(this.element), tempData = {}, newRowData;
     return new Promise((resolve2, reject) => {
@@ -22170,7 +24962,7 @@ var Row = class extends CoreFeature {
   getCell(column) {
     var match2 = false;
     column = this.table.columnManager.findColumn(column);
-    if (!this.initialized) {
+    if (!this.initialized && this.cells.length === 0) {
       this.generateCells();
     }
     match2 = this.cells.find(function(cell) {
@@ -22189,7 +24981,7 @@ var Row = class extends CoreFeature {
     });
   }
   getCells() {
-    if (!this.initialized) {
+    if (!this.initialized && this.cells.length === 0) {
       this.generateCells();
     }
     return this.cells;
@@ -22211,6 +25003,7 @@ var Row = class extends CoreFeature {
       console.warn("Move Error - No matching row found:", to2);
     }
   }
+  ///////////////////// Actions  /////////////////////
   delete() {
     this.dispatch("row-delete", this);
     this.deleteActual();
@@ -22268,6 +25061,7 @@ var Row = class extends CoreFeature {
   getGroup() {
     return this.modules.group || false;
   }
+  //////////////// Object Generation /////////////////
   getComponent() {
     if (!this.component) {
       this.component = new RowComponent(this);
@@ -22336,6 +25130,12 @@ var defaultCalculations = {
       });
     }
     return output;
+  },
+  "unique": function(values2, data, calcParams) {
+    var unique = values2.filter((value, index2) => {
+      return (values2 || value === 0) && values2.indexOf(value) === index2;
+    });
+    return unique.length;
   }
 };
 var ColumnCalcs = class extends Module {
@@ -22382,8 +25182,16 @@ var ColumnCalcs = class extends Module {
     this.subscribe("scrollbar-vertical", this.adjustForScrollbar.bind(this));
     this.subscribe("redraw-blocked", this.blockRedraw.bind(this));
     this.subscribe("redraw-restored", this.restoreRedraw.bind(this));
+    this.subscribe("table-redrawing", this.resizeHolderWidth.bind(this));
+    this.subscribe("column-resized", this.resizeHolderWidth.bind(this));
+    this.subscribe("column-show", this.resizeHolderWidth.bind(this));
+    this.subscribe("column-hide", this.resizeHolderWidth.bind(this));
     this.registerTableFunction("getCalcResults", this.getResults.bind(this));
     this.registerTableFunction("recalc", this.userRecalc.bind(this));
+    this.resizeHolderWidth();
+  }
+  resizeHolderWidth() {
+    this.topElement.style.minWidth = this.table.columnManager.headersElement.offsetWidth + "px";
   }
   tableRedraw(force) {
     this.recalc(this.table.rowManager.activeRows);
@@ -22402,9 +25210,15 @@ var ColumnCalcs = class extends Module {
       this.recalcActiveRowsRefresh();
     }
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
   userRecalc() {
     this.recalc(this.table.rowManager.activeRows);
   }
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
   blockCheck() {
     if (this.blocked) {
       this.recalcAfterBlock = true;
@@ -22456,6 +25270,7 @@ var ColumnCalcs = class extends Module {
       this.initializeColumn(column);
     }
   }
+  //initialize column calcs
   initializeColumn(column) {
     var def = column.definition;
     var config = {
@@ -22505,6 +25320,7 @@ var ColumnCalcs = class extends Module {
       }
     }
   }
+  //dummy functions to handle being mock column manager
   registerColumnField() {
   }
   removeCalcs() {
@@ -22619,9 +25435,11 @@ var ColumnCalcs = class extends Module {
       }
     }
   }
+  //generate top stats row
   generateTopRow(rows3) {
     return this.generateRow("top", this.rowsToData(rows3));
   }
+  //generate bottom stats row
   generateBottomRow(rows3) {
     return this.generateRow("bottom", this.rowsToData(rows3));
   }
@@ -22638,6 +25456,7 @@ var ColumnCalcs = class extends Module {
     });
     return data;
   }
+  //generate stats row
   generateRow(pos, data) {
     var rowData = this.generateRowData(pos, data), row2;
     if (this.table.modExists("mutator")) {
@@ -22686,6 +25505,7 @@ var ColumnCalcs = class extends Module {
     };
     return row2;
   }
+  //generate stats row
   generateRowData(pos, data) {
     var rowData = {}, calcs = pos == "top" ? this.topCalcs : this.botCalcs, type = pos == "top" ? "topCalc" : "botCalc", params, paramKey;
     calcs.forEach(function(column) {
@@ -22707,6 +25527,7 @@ var ColumnCalcs = class extends Module {
   hasBottomCalcs() {
     return !!this.botCalcs.length;
   }
+  //handle table redraw
   redraw() {
     if (this.topRow) {
       this.topRow.normalizeHeight(true);
@@ -22715,6 +25536,7 @@ var ColumnCalcs = class extends Module {
       this.botRow.normalizeHeight(true);
     }
   }
+  //return the calculated
   getResults() {
     var results = {}, groups;
     if (this.table.options.groupBy && this.table.modExists("groupRows")) {
@@ -22730,6 +25552,7 @@ var ColumnCalcs = class extends Module {
     }
     return results;
   }
+  //get results from a group
   getGroupResults(group) {
     var groupObj = group._getSelf(), subGroups = group.getSubGroups(), subGroupResults = {}, results = {};
     subGroups.forEach((subgroup) => {
@@ -22806,6 +25629,9 @@ var DataTree = class extends Module {
             this.branchEl = options.dataTreeBranchElement;
           }
         }
+      } else {
+        this.branchEl = document.createElement("div");
+        this.branchEl.classList.add("tabulator-data-tree-branch-empty");
       }
       if (options.dataTreeCollapseElement) {
         if (typeof options.dataTreeCollapseElement === "string") {
@@ -22993,7 +25819,7 @@ var DataTree = class extends Module {
       output.push(row2);
       if (row2 instanceof Row) {
         row2.create();
-        config = row2.modules.dataTree.children;
+        config = row2.modules.dataTree;
         if (!config.index && config.children !== false) {
           children = this.getChildren(row2);
           children.forEach((child) => {
@@ -23182,7 +26008,7 @@ var DataTree = class extends Module {
   }
   getTreeChildren(row2, component, recurse) {
     var config = row2.modules.dataTree, output = [];
-    if (config.children) {
+    if (config && config.children) {
       if (!Array.isArray(config.children)) {
         config.children = this.generateChildren(row2);
       }
@@ -23358,7 +26184,8 @@ function pdf(list2, options = {}, setFileContents) {
   setFileContents(doc.output("arraybuffer"), "application/pdf");
 }
 function xlsx(list2, options, setFileContents) {
-  var self2 = this, sheetName = options.sheetName || "Sheet1", workbook = XLSX.utils.book_new(), tableFeatures = new CoreFeature(this), compression = "compress" in options ? options.compress : true, output;
+  var self2 = this, sheetName = options.sheetName || "Sheet1", workbook = XLSX.utils.book_new(), tableFeatures = new CoreFeature(this), compression = "compress" in options ? options.compress : true, writeOptions = options.writeOptions || { bookType: "xlsx", bookSST: true, compression }, output;
+  writeOptions.type = "binary";
   workbook.SheetNames = [];
   workbook.Sheets = {};
   function generateSheet() {
@@ -23421,7 +26248,7 @@ function xlsx(list2, options, setFileContents) {
       view[i2] = s2.charCodeAt(i2) & 255;
     return buf;
   }
-  output = XLSX.write(workbook, { bookType: "xlsx", bookSST: true, type: "binary", compression });
+  output = XLSX.write(workbook, writeOptions);
   setFileContents(s2ab(output), "application/octet-stream");
 }
 function html(list2, options, setFileContents) {
@@ -23482,9 +26309,16 @@ var Download = class extends Module {
   deprecatedOptionsCheck() {
     this.deprecationCheck("downloadReady", "downloadEncoder");
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
   downloadToTab(type, filename, options, active) {
     this.download(type, filename, options, active, true);
   }
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
+  //trigger file download
   download(type, filename, options, range2, interceptCallback) {
     var downloadFunc = false;
     function buildLink(data, mime) {
@@ -23637,10 +26471,12 @@ function input(cell, onRendered, success, cancel, editorParams) {
   }
   input2.value = typeof cellValue !== "undefined" ? cellValue : "";
   onRendered(function() {
-    input2.focus({ preventScroll: true });
-    input2.style.height = "100%";
-    if (editorParams.selectContents) {
-      input2.select();
+    if (cell.getType() === "cell") {
+      input2.focus({ preventScroll: true });
+      input2.style.height = "100%";
+      if (editorParams.selectContents) {
+        input2.select();
+      }
     }
   });
   function onChange(e) {
@@ -23694,13 +26530,15 @@ function textarea(cell, onRendered, success, cancel, editorParams) {
   }
   input2.value = value;
   onRendered(function() {
-    input2.focus({ preventScroll: true });
-    input2.style.height = "100%";
-    input2.scrollHeight;
-    input2.style.height = input2.scrollHeight + "px";
-    cell.getRow().normalizeHeight();
-    if (editorParams.selectContents) {
-      input2.select();
+    if (cell.getType() === "cell") {
+      input2.focus({ preventScroll: true });
+      input2.style.height = "100%";
+      input2.scrollHeight;
+      input2.style.height = input2.scrollHeight + "px";
+      cell.getRow().normalizeHeight();
+      if (editorParams.selectContents) {
+        input2.select();
+      }
     }
   });
   function onChange(e) {
@@ -23789,12 +26627,14 @@ function number(cell, onRendered, success, cancel, editorParams) {
     onChange();
   };
   onRendered(function() {
-    input2.removeEventListener("blur", blurFunc);
-    input2.focus({ preventScroll: true });
-    input2.style.height = "100%";
-    input2.addEventListener("blur", blurFunc);
-    if (editorParams.selectContents) {
-      input2.select();
+    if (cell.getType() === "cell") {
+      input2.removeEventListener("blur", blurFunc);
+      input2.focus({ preventScroll: true });
+      input2.style.height = "100%";
+      input2.addEventListener("blur", blurFunc);
+      if (editorParams.selectContents) {
+        input2.select();
+      }
     }
   });
   function onChange() {
@@ -23863,8 +26703,10 @@ function range(cell, onRendered, success, cancel, editorParams) {
   }
   input2.value = cellValue;
   onRendered(function() {
-    input2.focus({ preventScroll: true });
-    input2.style.height = "100%";
+    if (cell.getType() === "cell") {
+      input2.focus({ preventScroll: true });
+      input2.style.height = "100%";
+    }
   });
   function onChange() {
     var value = input2.value;
@@ -23895,7 +26737,7 @@ function range(cell, onRendered, success, cancel, editorParams) {
   return input2;
 }
 function date(cell, onRendered, success, cancel, editorParams) {
-  var inputFormat = editorParams.format, DT = inputFormat ? window.DateTime || luxon.DateTime : null;
+  var inputFormat = editorParams.format, vertNav = editorParams.verticalNavigation || "editor", DT = inputFormat ? window.DateTime || luxon.DateTime : null;
   var cellValue = cell.getValue(), input2 = document.createElement("input");
   function convertDate(value) {
     var newDatetime;
@@ -23933,22 +26775,34 @@ function date(cell, onRendered, success, cancel, editorParams) {
     if (DT) {
       cellValue = convertDate(cellValue);
     } else {
-      console.error("Editor Error - 'date' editor 'inputFormat' param is dependant on luxon.js");
+      console.error("Editor Error - 'date' editor 'format' param is dependant on luxon.js");
     }
   }
   input2.value = cellValue;
   onRendered(function() {
-    input2.focus({ preventScroll: true });
-    input2.style.height = "100%";
-    if (editorParams.selectContents) {
-      input2.select();
+    if (cell.getType() === "cell") {
+      input2.focus({ preventScroll: true });
+      input2.style.height = "100%";
+      if (editorParams.selectContents) {
+        input2.select();
+      }
     }
   });
-  function onChange(e) {
-    var value = input2.value;
+  function onChange() {
+    var value = input2.value, luxDate;
     if ((cellValue === null || typeof cellValue === "undefined") && value !== "" || value !== cellValue) {
       if (value && inputFormat) {
-        value = DT.fromFormat(String(value), "yyyy-MM-dd").toFormat(inputFormat);
+        luxDate = DT.fromFormat(String(value), "yyyy-MM-dd");
+        switch (inputFormat) {
+          case true:
+            value = luxDate;
+            break;
+          case "iso":
+            value = luxDate.toISO();
+            break;
+          default:
+            value = luxDate.toFormat(inputFormat);
+        }
       }
       if (success(value)) {
         cellValue = input2.value;
@@ -23957,8 +26811,11 @@ function date(cell, onRendered, success, cancel, editorParams) {
       cancel();
     }
   }
-  input2.addEventListener("change", onChange);
-  input2.addEventListener("blur", onChange);
+  input2.addEventListener("blur", function(e) {
+    if (e.relatedTarget || e.rangeParent || e.explicitOriginalTarget !== input2) {
+      onChange();
+    }
+  });
   input2.addEventListener("keydown", function(e) {
     switch (e.keyCode) {
       case 13:
@@ -23971,12 +26828,19 @@ function date(cell, onRendered, success, cancel, editorParams) {
       case 36:
         e.stopPropagation();
         break;
+      case 38:
+      case 40:
+        if (vertNav == "editor") {
+          e.stopImmediatePropagation();
+          e.stopPropagation();
+        }
+        break;
     }
   });
   return input2;
 }
 function time(cell, onRendered, success, cancel, editorParams) {
-  var inputFormat = editorParams.format, DT = inputFormat ? window.DateTime || luxon.DateTime : null, newDatetime;
+  var inputFormat = editorParams.format, vertNav = editorParams.verticalNavigation || "editor", DT = inputFormat ? window.DateTime || luxon.DateTime : null, newDatetime;
   var cellValue = cell.getValue(), input2 = document.createElement("input");
   input2.type = "time";
   input2.style.padding = "4px";
@@ -24004,22 +26868,34 @@ function time(cell, onRendered, success, cancel, editorParams) {
       }
       cellValue = newDatetime.toFormat("hh:mm");
     } else {
-      console.error("Editor Error - 'date' editor 'inputFormat' param is dependant on luxon.js");
+      console.error("Editor Error - 'date' editor 'format' param is dependant on luxon.js");
     }
   }
   input2.value = cellValue;
   onRendered(function() {
-    input2.focus({ preventScroll: true });
-    input2.style.height = "100%";
-    if (editorParams.selectContents) {
-      input2.select();
+    if (cell.getType() == "cell") {
+      input2.focus({ preventScroll: true });
+      input2.style.height = "100%";
+      if (editorParams.selectContents) {
+        input2.select();
+      }
     }
   });
-  function onChange(e) {
-    var value = input2.value;
+  function onChange() {
+    var value = input2.value, luxTime;
     if ((cellValue === null || typeof cellValue === "undefined") && value !== "" || value !== cellValue) {
       if (value && inputFormat) {
-        value = DT.fromFormat(String(value), "hh:mm").toFormat(inputFormat);
+        luxTime = DT.fromFormat(String(value), "hh:mm");
+        switch (inputFormat) {
+          case true:
+            value = luxTime;
+            break;
+          case "iso":
+            value = luxTime.toISO();
+            break;
+          default:
+            value = luxTime.toFormat(inputFormat);
+        }
       }
       if (success(value)) {
         cellValue = input2.value;
@@ -24028,8 +26904,11 @@ function time(cell, onRendered, success, cancel, editorParams) {
       cancel();
     }
   }
-  input2.addEventListener("change", onChange);
-  input2.addEventListener("blur", onChange);
+  input2.addEventListener("blur", function(e) {
+    if (e.relatedTarget || e.rangeParent || e.explicitOriginalTarget !== input2) {
+      onChange();
+    }
+  });
   input2.addEventListener("keydown", function(e) {
     switch (e.keyCode) {
       case 13:
@@ -24042,12 +26921,19 @@ function time(cell, onRendered, success, cancel, editorParams) {
       case 36:
         e.stopPropagation();
         break;
+      case 38:
+      case 40:
+        if (vertNav == "editor") {
+          e.stopImmediatePropagation();
+          e.stopPropagation();
+        }
+        break;
     }
   });
   return input2;
 }
 function datetime(cell, onRendered, success, cancel, editorParams) {
-  var inputFormat = editorParams.format, DT = inputFormat ? window.DateTime || luxon.DateTime : null, newDatetime;
+  var inputFormat = editorParams.format, vertNav = editorParams.verticalNavigation || "editor", DT = inputFormat ? window.DateTime || luxon.DateTime : null, newDatetime;
   var cellValue = cell.getValue(), input2 = document.createElement("input");
   input2.type = "datetime-local";
   input2.style.padding = "4px";
@@ -24075,22 +26961,34 @@ function datetime(cell, onRendered, success, cancel, editorParams) {
       }
       cellValue = newDatetime.toFormat("yyyy-MM-dd") + "T" + newDatetime.toFormat("hh:mm");
     } else {
-      console.error("Editor Error - 'date' editor 'inputFormat' param is dependant on luxon.js");
+      console.error("Editor Error - 'date' editor 'format' param is dependant on luxon.js");
     }
   }
   input2.value = cellValue;
   onRendered(function() {
-    input2.focus({ preventScroll: true });
-    input2.style.height = "100%";
-    if (editorParams.selectContents) {
-      input2.select();
+    if (cell.getType() === "cell") {
+      input2.focus({ preventScroll: true });
+      input2.style.height = "100%";
+      if (editorParams.selectContents) {
+        input2.select();
+      }
     }
   });
-  function onChange(e) {
-    var value = input2.value;
+  function onChange() {
+    var value = input2.value, luxDateTime;
     if ((cellValue === null || typeof cellValue === "undefined") && value !== "" || value !== cellValue) {
       if (value && inputFormat) {
-        value = DT.fromISO(String(value)).toFormat(inputFormat);
+        luxDateTime = DT.fromISO(String(value));
+        switch (inputFormat) {
+          case true:
+            value = luxDateTime;
+            break;
+          case "iso":
+            value = luxDateTime.toISO();
+            break;
+          default:
+            value = luxDateTime.toFormat(inputFormat);
+        }
       }
       if (success(value)) {
         cellValue = input2.value;
@@ -24099,8 +26997,11 @@ function datetime(cell, onRendered, success, cancel, editorParams) {
       cancel();
     }
   }
-  input2.addEventListener("change", onChange);
-  input2.addEventListener("blur", onChange);
+  input2.addEventListener("blur", function(e) {
+    if (e.relatedTarget || e.rangeParent || e.explicitOriginalTarget !== input2) {
+      onChange();
+    }
+  });
   input2.addEventListener("keydown", function(e) {
     switch (e.keyCode) {
       case 13:
@@ -24112,6 +27013,13 @@ function datetime(cell, onRendered, success, cancel, editorParams) {
       case 35:
       case 36:
         e.stopPropagation();
+        break;
+      case 38:
+      case 40:
+        if (vertNav == "editor") {
+          e.stopImmediatePropagation();
+          e.stopPropagation();
+        }
         break;
     }
   });
@@ -24130,7 +27038,7 @@ var Edit = class {
     this.input = this._createInputElement();
     this.listEl = this._createListElement();
     this.initialValues = null;
-    this.isFilter = !cell._getSelf;
+    this.isFilter = cell.getType() === "header";
     this.filterTimeout = null;
     this.filtered = false;
     this.typing = false;
@@ -24178,8 +27086,10 @@ var Edit = class {
     function clickStop(e) {
       e.stopPropagation();
     }
-    this.input.style.height = "100%";
-    this.input.focus({ preventScroll: true });
+    if (!this.isFilter) {
+      this.input.style.height = "100%";
+      this.input.focus({ preventScroll: true });
+    }
     cellEl.addEventListener("click", clickStop);
     setTimeout(() => {
       cellEl.removeEventListener("click", clickStop);
@@ -24284,6 +27194,9 @@ var Edit = class {
     }
     return params;
   }
+  //////////////////////////////////////
+  ////////// Event Handling ////////////
+  //////////////////////////////////////
   _bindInputEvents(input2) {
     input2.addEventListener("focus", this._inputFocus.bind(this));
     input2.addEventListener("click", this._inputClick.bind(this));
@@ -24345,6 +27258,7 @@ var Edit = class {
         this._keyHomeEnd(e);
         break;
       case 9:
+        this._keyTab(e);
         break;
       default:
         this._keySelectLetter(e);
@@ -24379,6 +27293,18 @@ var Edit = class {
       this.blurable = true;
     }, 10);
   }
+  //////////////////////////////////////
+  //////// Keyboard Navigation /////////
+  //////////////////////////////////////
+  _keyTab(e) {
+    if (this.params.autocomplete && this.lastAction === "typing") {
+      this._resolveValue(true);
+    } else {
+      if (this.focusedItem) {
+        this._chooseItem(this.focusedItem, true);
+      }
+    }
+  }
   _keyUp(e) {
     var index2 = this.displayItems.indexOf(this.focusedItem);
     if (this.params.verticalNavigation == "editor" || this.params.verticalNavigation == "hybrid" && index2) {
@@ -24406,9 +27332,11 @@ var Edit = class {
     }
   }
   _keySide(e) {
-    e.stopImmediatePropagation();
-    e.stopPropagation();
-    e.preventDefault();
+    if (!this.params.autocomplete) {
+      e.stopImmediatePropagation();
+      e.stopPropagation();
+      e.preventDefault();
+    }
   }
   _keyEnter(e) {
     if (this.params.autocomplete && this.lastAction === "typing") {
@@ -24465,6 +27393,9 @@ var Edit = class {
       item.element.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
     }
   }
+  //////////////////////////////////////
+  /////// Data List Generation /////////
+  //////////////////////////////////////
   headerFilterInitialListGen() {
     this._generateOptions(true);
   }
@@ -24723,6 +27654,9 @@ var Edit = class {
     }
     return false;
   }
+  //////////////////////////////////////
+  /////////// Display List /////////////
+  //////////////////////////////////////
   _clearList() {
     while (this.listEl.firstChild)
       this.listEl.removeChild(this.listEl.firstChild);
@@ -24814,6 +27748,9 @@ var Edit = class {
       }
     }
   }
+  //////////////////////////////////////
+  ///////// User Interaction ///////////
+  //////////////////////////////////////
   _itemClick(item, e) {
     e.stopPropagation();
     this._chooseItem(item);
@@ -24821,6 +27758,9 @@ var Edit = class {
   _groupClick(item, e) {
     e.stopPropagation();
   }
+  //////////////////////////////////////
+  ////// Current Item Management ///////
+  //////////////////////////////////////
   _cancel() {
     this.popup.hide(true);
     this.actions.cancel();
@@ -25116,15 +28056,14 @@ function tickCross(cell, onRendered, success, cancel, editorParams) {
     indetermState = true;
     input2.indeterminate = true;
   }
-  if (this.table.browser != "firefox") {
+  if (this.table.browser != "firefox" && this.table.browser != "safari") {
     onRendered(function() {
-      input2.focus({ preventScroll: true });
+      if (cell.getType() === "cell") {
+        input2.focus({ preventScroll: true });
+      }
     });
   }
   input2.checked = trueValueSet ? value === editorParams.trueValue : value === true || value === "true" || value === "True" || value === 1;
-  onRendered(function() {
-    input2.focus();
-  });
   function setValue(blur) {
     var checkedValue = input2.checked;
     if (trueValueSet && checkedValue) {
@@ -25235,30 +28174,38 @@ var Edit$1 = class extends Module {
     this.subscribe("keybinding-nav-up", this.navigateUp.bind(this, void 0));
     this.subscribe("keybinding-nav-down", this.navigateDown.bind(this, void 0));
   }
+  ///////////////////////////////////
+  ////// Keybinding Functions ///////
+  ///////////////////////////////////
   keybindingNavigateNext(e) {
     var cell = this.currentCell, newRow = this.options("tabEndNewRow");
     if (cell) {
       if (!this.navigateNext(cell, e)) {
         if (newRow) {
           cell.getElement().firstChild.blur();
-          if (newRow === true) {
-            newRow = this.table.addRow({});
-          } else {
-            if (typeof newRow == "function") {
-              newRow = this.table.addRow(newRow(cell.row.getComponent()));
+          if (!this.invalidEdit) {
+            if (newRow === true) {
+              newRow = this.table.addRow({});
             } else {
-              newRow = this.table.addRow(Object.assign({}, newRow));
+              if (typeof newRow == "function") {
+                newRow = this.table.addRow(newRow(cell.row.getComponent()));
+              } else {
+                newRow = this.table.addRow(Object.assign({}, newRow));
+              }
             }
-          }
-          newRow.then(() => {
-            setTimeout(() => {
-              cell.getComponent().navigateNext();
+            newRow.then(() => {
+              setTimeout(() => {
+                cell.getComponent().navigateNext();
+              });
             });
-          });
+          }
         }
       }
     }
   }
+  ///////////////////////////////////
+  ///////// Cell Functions //////////
+  ///////////////////////////////////
   cellIsEdited(cell) {
     return !!cell.modules.edit && cell.modules.edit.edited;
   }
@@ -25269,6 +28216,9 @@ var Edit$1 = class extends Module {
       console.warn("Cancel Editor Error - This cell is not currently being edited ");
     }
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
   updateCellClass(cell) {
     if (this.allowEdit(cell)) {
       cell.getElement().classList.add("tabulator-editable");
@@ -25423,6 +28373,9 @@ var Edit$1 = class extends Module {
     }
     return prevCell;
   }
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
   initializeColumnCheck(column) {
     if (typeof column.definition.editor !== "undefined") {
       this.initializeColumn(column);
@@ -25445,6 +28398,7 @@ var Edit$1 = class extends Module {
       }
     });
   }
+  //initialize column editor
   initializeColumn(column) {
     var config = {
       editor: false,
@@ -25515,6 +28469,7 @@ var Edit$1 = class extends Module {
       this.dispatchExternal("cellEditCancelled", component);
     }
   }
+  //return a formatted value for a cell
   bindEditor(cell) {
     if (cell.column.modules.edit) {
       var self2 = this, element = cell.getElement(true);
@@ -25562,8 +28517,8 @@ var Edit$1 = class extends Module {
       }
       var leftEdge = this.table.rowManager.element.scrollLeft, rightEdge = this.table.rowManager.element.clientWidth + this.table.rowManager.element.scrollLeft, cellEl = cell.getElement();
       if (this.table.modExists("frozenColumns")) {
-        leftEdge += parseInt(this.table.modules.frozenColumns.leftMargin);
-        rightEdge -= parseInt(this.table.modules.frozenColumns.rightMargin);
+        leftEdge += parseInt(this.table.modules.frozenColumns.leftMargin || 0);
+        rightEdge -= parseInt(this.table.modules.frozenColumns.rightMargin || 0);
       }
       if (this.table.options.renderHorizontal === "virtual") {
         leftEdge -= parseInt(this.table.columnManager.renderer.vDomPadLeft);
@@ -25601,7 +28556,7 @@ var Edit$1 = class extends Module {
     var self2 = this, allowEdit = true, rendered = function() {
     }, element = cell.getElement(), cellEditor, component, params;
     if (this.currentCell) {
-      if (!this.invalidEdit) {
+      if (!this.invalidEdit && this.currentCell !== cell) {
         this.cancelEdit();
       }
       return;
@@ -25659,7 +28614,7 @@ var Edit$1 = class extends Module {
         this.dispatchExternal("cellEditing", component);
         params = typeof cell.column.modules.edit.params === "function" ? cell.column.modules.edit.params(component) : cell.column.modules.edit.params;
         cellEditor = cell.column.modules.edit.editor.call(self2, component, onRendered, success, cancel, params);
-        if (cellEditor !== false) {
+        if (this.currentCell && cellEditor !== false) {
           if (cellEditor instanceof Node) {
             element.classList.add("tabulator-editing");
             cell.row.getElement().classList.add("tabulator-editing");
@@ -25746,6 +28701,12 @@ var Export = class extends Module {
   initialize() {
     this.registerTableFunction("getHtml", this.getHtml.bind(this));
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
   generateExportList(config, style, range2, colVisProp) {
     this.cloneTableStyle = style;
     this.config = config || {};
@@ -26075,6 +29036,9 @@ var Export = class extends Module {
           getElement: function() {
             return cellEl;
           },
+          getType: function() {
+            return "cell";
+          },
           getColumn: function() {
             return column.getComponent();
           },
@@ -26183,21 +29147,27 @@ var Export = class extends Module {
 };
 Export.moduleName = "export";
 var defaultFilters = {
+  //equal to
   "=": function(filterVal, rowVal, rowData, filterParams) {
     return rowVal == filterVal ? true : false;
   },
+  //less than
   "<": function(filterVal, rowVal, rowData, filterParams) {
     return rowVal < filterVal ? true : false;
   },
+  //less than or equal to
   "<=": function(filterVal, rowVal, rowData, filterParams) {
     return rowVal <= filterVal ? true : false;
   },
+  //greater than
   ">": function(filterVal, rowVal, rowData, filterParams) {
     return rowVal > filterVal ? true : false;
   },
+  //greater than or equal to
   ">=": function(filterVal, rowVal, rowData, filterParams) {
     return rowVal >= filterVal ? true : false;
   },
+  //not equal to
   "!=": function(filterVal, rowVal, rowData, filterParams) {
     return rowVal != filterVal ? true : false;
   },
@@ -26207,6 +29177,7 @@ var defaultFilters = {
     }
     return filterVal.test(rowVal);
   },
+  //contains the string
   "like": function(filterVal, rowVal, rowData, filterParams) {
     if (filterVal === null || typeof filterVal === "undefined") {
       return rowVal === filterVal ? true : false;
@@ -26218,6 +29189,7 @@ var defaultFilters = {
       }
     }
   },
+  //contains the keywords
   "keywords": function(filterVal, rowVal, rowData, filterParams) {
     var keywords = filterVal.toLowerCase().split(typeof filterParams.separator === "undefined" ? " " : filterParams.separator), value = String(rowVal === null || typeof rowVal === "undefined" ? "" : rowVal).toLowerCase(), matches = [];
     keywords.forEach((keyword) => {
@@ -26227,6 +29199,7 @@ var defaultFilters = {
     });
     return filterParams.matchAll ? matches.length === keywords.length : !!matches.length;
   },
+  //starts with the string
   "starts": function(filterVal, rowVal, rowData, filterParams) {
     if (filterVal === null || typeof filterVal === "undefined") {
       return rowVal === filterVal ? true : false;
@@ -26238,6 +29211,7 @@ var defaultFilters = {
       }
     }
   },
+  //ends with the string
   "ends": function(filterVal, rowVal, rowData, filterParams) {
     if (filterVal === null || typeof filterVal === "undefined") {
       return rowVal === filterVal ? true : false;
@@ -26249,6 +29223,7 @@ var defaultFilters = {
       }
     }
   },
+  //in array
   "in": function(filterVal, rowVal, rowData, filterParams) {
     if (Array.isArray(filterVal)) {
       return filterVal.length ? filterVal.indexOf(rowVal) > -1 : true;
@@ -26272,6 +29247,7 @@ var Filter = class extends Module {
     this.registerTableOption("initialFilter", false);
     this.registerTableOption("initialHeaderFilter", false);
     this.registerTableOption("headerFilterLiveFilterDelay", 300);
+    this.registerTableOption("placeholderHeaderFilter", false);
     this.registerColumnOption("headerFilter");
     this.registerColumnOption("headerFilterPlaceholder");
     this.registerColumnOption("headerFilterParams");
@@ -26302,6 +29278,7 @@ var Filter = class extends Module {
     this.subscribe("column-width-fit-before", this.hideHeaderFilterElements.bind(this));
     this.subscribe("column-width-fit-after", this.showHeaderFilterElements.bind(this));
     this.subscribe("table-built", this.tableBuilt.bind(this));
+    this.subscribe("placeholder", this.generatePlaceholder.bind(this));
     if (this.table.options.filterMode === "remote") {
       this.subscribe("data-params", this.remoteFilterParams.bind(this));
     }
@@ -26328,13 +29305,24 @@ var Filter = class extends Module {
     params.filter = this.getFilters(true, true);
     return params;
   }
+  generatePlaceholder(text) {
+    if (this.table.options.placeholderHeaderFilter && Object.keys(this.headerFilters).length) {
+      return this.table.options.placeholderHeaderFilter;
+    }
+  }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
+  //set standard filters
   userSetFilter(field, type, value, params) {
     this.setFilter(field, type, value, params);
     this.refreshFilter();
   }
+  //set standard filters
   userRefreshFilter() {
     this.refreshFilter();
   }
+  //add filter to array
   userAddFilter(field, type, value, params) {
     this.addFilter(field, type, value, params);
     this.refreshFilter();
@@ -26365,30 +29353,39 @@ var Filter = class extends Module {
       return false;
     }
   }
+  //remove filter from array
   userRemoveFilter(field, type, value) {
     this.removeFilter(field, type, value);
     this.refreshFilter();
   }
+  //clear filters
   userClearFilter(all) {
     this.clearFilter(all);
     this.refreshFilter();
   }
+  //clear header filters
   userClearHeaderFilter() {
     this.clearHeaderFilter();
     this.refreshFilter();
   }
+  //search for specific row components
   searchRows(field, type, value) {
     return this.search("rows", field, type, value);
   }
+  //search for specific data
   searchData(field, type, value) {
     return this.search("data", field, type, value);
   }
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
   initializeColumnHeaderFilter(column) {
     var def = column.definition;
     if (def.headerFilter) {
       this.initializeColumn(column);
     }
   }
+  //initialize column header filter
   initializeColumn(column, value) {
     var self2 = this, field = column.getField();
     function success(value2) {
@@ -26530,6 +29527,9 @@ var Filter = class extends Module {
           getTable: () => {
             return this.table;
           },
+          getType: () => {
+            return "header";
+          },
           getRow: function() {
             return {
               normalizeHeight: function() {
@@ -26607,6 +29607,7 @@ var Filter = class extends Module {
       console.warn("Filter Error - Cannot add header filter, column has no field set:", column.definition.title);
     }
   }
+  //hide all header filter elements (used to ensure correct column widths in "fitData" layout mode)
   hideHeaderFilterElements() {
     this.headerFilterColumns.forEach(function(column) {
       if (column.modules.filter && column.modules.filter.headerElement) {
@@ -26614,6 +29615,7 @@ var Filter = class extends Module {
       }
     });
   }
+  //show all header filter elements (used to ensure correct column widths in "fitData" layout mode)
   showHeaderFilterElements() {
     this.headerFilterColumns.forEach(function(column) {
       if (column.modules.filter && column.modules.filter.headerElement) {
@@ -26621,6 +29623,7 @@ var Filter = class extends Module {
       }
     });
   }
+  //programmatically set focus of header filter
   setHeaderFilterFocus(column) {
     if (column.modules.filter && column.modules.filter.headerElement) {
       column.modules.filter.headerElement.focus();
@@ -26628,6 +29631,7 @@ var Filter = class extends Module {
       console.warn("Column Filter Focus Error - No header filter set on column:", column.getField());
     }
   }
+  //programmatically get value of header filter
   getHeaderFilterValue(column) {
     if (column.modules.filter && column.modules.filter.headerElement) {
       return column.modules.filter.value;
@@ -26635,6 +29639,7 @@ var Filter = class extends Module {
       console.warn("Column Filter Error - No header filter set on column:", column.getField());
     }
   }
+  //programmatically set value of header filter
   setHeaderFilterValue(column, value) {
     if (column) {
       if (column.modules.filter && column.modules.filter.headerElement) {
@@ -26663,15 +29668,18 @@ var Filter = class extends Module {
       }
     }
   }
+  //check if the filters has changed since last use
   trackChanges() {
     this.changed = true;
     this.dispatch("filter-changed");
   }
+  //check if the filters has changed since last use
   hasChanged() {
     var changed = this.changed;
     this.changed = false;
     return changed;
   }
+  //set standard filters
   setFilter(field, type, value, params) {
     this.filterList = [];
     if (!Array.isArray(field)) {
@@ -26679,6 +29687,7 @@ var Filter = class extends Module {
     }
     this.addFilter(field);
   }
+  //add filter to array
   addFilter(field, type, value, params) {
     var changed = false;
     if (!Array.isArray(field)) {
@@ -26734,6 +29743,7 @@ var Filter = class extends Module {
     });
     return output.length ? output : false;
   }
+  //get all filters
   getFilters(all, ajax) {
     var output = [];
     if (all) {
@@ -26749,6 +29759,7 @@ var Filter = class extends Module {
     output = output.concat(this.filtersToArray(this.filterList, ajax));
     return output;
   }
+  //filter to Object
   filtersToArray(filterList, ajax) {
     var output = [];
     filterList.forEach((filter) => {
@@ -26767,6 +29778,7 @@ var Filter = class extends Module {
     });
     return output;
   }
+  //get all filters
   getHeaderFilters() {
     var output = [];
     for (var key in this.headerFilters) {
@@ -26774,6 +29786,7 @@ var Filter = class extends Module {
     }
     return output;
   }
+  //remove filter from array
   removeFilter(field, type, value) {
     if (!Array.isArray(field)) {
       field = [{ field, type, value }];
@@ -26797,6 +29810,7 @@ var Filter = class extends Module {
     });
     this.trackChanges();
   }
+  //clear filters
   clearFilter(all) {
     this.filterList = [];
     if (all) {
@@ -26804,6 +29818,7 @@ var Filter = class extends Module {
     }
     this.trackChanges();
   }
+  //clear header filters
   clearHeaderFilter() {
     this.headerFilters = {};
     this.prevHeaderFilterChangeCheck = "{}";
@@ -26816,6 +29831,7 @@ var Filter = class extends Module {
     });
     this.trackChanges();
   }
+  //search data and return matching rows
   search(searchType, field, type, value) {
     var activeRows = [], filterList = [];
     if (!Array.isArray(field)) {
@@ -26840,6 +29856,7 @@ var Filter = class extends Module {
     });
     return activeRows;
   }
+  //filter row array
   filter(rowList, filters) {
     var activeRows = [], activeRowComponents = [];
     if (this.subscribedExternal("dataFiltering")) {
@@ -26862,6 +29879,7 @@ var Filter = class extends Module {
     }
     return activeRows;
   }
+  //filter individual row
   filterRow(row2, filters) {
     var match2 = true, data = row2.getData();
     this.filterList.forEach((filter) => {
@@ -26903,7 +29921,7 @@ function textarea$1(cell, formatterParams, onRendered) {
   return this.emptyToSpace(this.sanitizeHTML(cell.getValue()));
 }
 function money(cell, formatterParams, onRendered) {
-  var floatVal = parseFloat(cell.getValue()), sign2 = "", number2, integer, decimal, rgx;
+  var floatVal = parseFloat(cell.getValue()), sign2 = "", number2, integer, decimal, rgx, value;
   var decimalSym = formatterParams.decimal || ".";
   var thousandSym = formatterParams.thousand || ",";
   var negativeSign = formatterParams.negativeSign || "-";
@@ -26927,7 +29945,13 @@ function money(cell, formatterParams, onRendered) {
       integer = integer.replace(rgx, "$1" + thousandSym + "$2");
     }
   }
-  return after ? sign2 + integer + decimal + symbol : sign2 + symbol + integer + decimal;
+  value = integer + decimal;
+  if (sign2 === true) {
+    value = "(" + value + ")";
+    return after ? value + symbol : symbol + value;
+  } else {
+    return after ? sign2 + value + symbol : sign2 + symbol + value;
+  }
 }
 function link(cell, formatterParams, onRendered) {
   var value = cell.getValue(), urlPrefix = formatterParams.urlPrefix || "", download = formatterParams.download, label = value, el = document.createElement("a"), data;
@@ -26955,7 +29979,7 @@ function link(cell, formatterParams, onRendered) {
   if (label) {
     if (formatterParams.urlField) {
       data = cell.getData();
-      value = data[formatterParams.urlField];
+      value = Helpers.retrieveNestedData(this.table.options.nestedFieldSeparator, formatterParams.urlField, data);
     }
     if (formatterParams.url) {
       switch (typeof formatterParams.url) {
@@ -27403,6 +30427,7 @@ var Format = class extends Module {
     this.subscribe("column-layout", this.initializeColumn.bind(this));
     this.subscribe("column-format", this.formatHeader.bind(this));
   }
+  //initialize column formatter
   initializeColumn(column) {
     column.modules.format = this.lookupFormatter(column, "");
     if (typeof column.definition.formatterPrint !== "undefined") {
@@ -27441,6 +30466,7 @@ var Format = class extends Module {
       cell.modules.format.rendered = true;
     }
   }
+  //return a formatted value for a column header
   formatHeader(column, title, el) {
     var formatter, params, onRendered, mockCell;
     if (column.definition.titleFormatter) {
@@ -27454,6 +30480,9 @@ var Format = class extends Module {
         },
         getElement: function() {
           return el;
+        },
+        getType: function() {
+          return "header";
         },
         getColumn: function() {
           return column.getComponent();
@@ -27469,6 +30498,7 @@ var Format = class extends Module {
       return title;
     }
   }
+  //return a formatted value for a cell
   formatValue(cell) {
     var component = cell.getComponent(), params = typeof cell.column.modules.format.params === "function" ? cell.column.modules.format.params(component) : cell.column.modules.format.params;
     function onRendered(callback2) {
@@ -27518,6 +30548,7 @@ var Format = class extends Module {
   emptyToSpace(value) {
     return value === null || typeof value === "undefined" || value === "" ? "&nbsp;" : value;
   }
+  //get formatter for cell
   getFormatter(formatter) {
     switch (typeof formatter) {
       case "string":
@@ -27549,6 +30580,7 @@ var FrozenColumns = class extends Module {
     this.blocked = true;
     this.registerColumnOption("frozen");
   }
+  //reset initial state
   reset() {
     this.initializationMode = "left";
     this.leftColumns = [];
@@ -27584,6 +30616,7 @@ var FrozenColumns = class extends Module {
       this.initializeColumn(column);
     });
   }
+  //initialize specific column
   initializeColumn(column) {
     var config = { margin: 0, edge: false };
     if (!column.isGroup) {
@@ -27611,6 +30644,7 @@ var FrozenColumns = class extends Module {
       return column.definition.frozen;
     }
   }
+  //layout calculation rows
   layoutCalcRows() {
     if (this.table.modExists("columnCalcs")) {
       if (this.table.modules.columnCalcs.topInitialized && this.table.modules.columnCalcs.topRow) {
@@ -27637,6 +30671,7 @@ var FrozenColumns = class extends Module {
       }
     });
   }
+  //calculate column positions and layout headers
   layoutColumnPosition(allCells) {
     var leftParents = [];
     var leftMargin = 0;
@@ -27696,6 +30731,7 @@ var FrozenColumns = class extends Module {
   getColGroupParentElement(column) {
     return column.parent.isGroup ? this.getColGroupParentElement(column.parent) : column.getElement();
   }
+  //layout columns appropriately
   layout() {
     if (this.active && !this.blocked) {
       this.layoutColumnPosition();
@@ -27734,7 +30770,7 @@ var FrozenColumns = class extends Module {
   }
   layoutElement(element, column) {
     var position;
-    if (column.modules.frozen) {
+    if (column.modules.frozen && element) {
       element.style.position = "sticky";
       if (this.table.rtl) {
         position = column.modules.frozen.position === "left" ? "right" : "left";
@@ -27785,7 +30821,15 @@ var FrozenRows = class extends Module {
     if (this.table.options.frozenRows) {
       this.subscribe("data-processed", this.initializeRows.bind(this));
       this.subscribe("row-added", this.initializeRow.bind(this));
+      this.subscribe("table-redrawing", this.resizeHolderWidth.bind(this));
+      this.subscribe("column-resized", this.resizeHolderWidth.bind(this));
+      this.subscribe("column-show", this.resizeHolderWidth.bind(this));
+      this.subscribe("column-hide", this.resizeHolderWidth.bind(this));
     }
+    this.resizeHolderWidth();
+  }
+  resizeHolderWidth() {
+    this.topElement.style.minWidth = this.table.columnManager.headersElement.offsetWidth + "px";
   }
   initializeRows() {
     this.table.rowManager.getRows().forEach((row2) => {
@@ -27821,6 +30865,7 @@ var FrozenRows = class extends Module {
     });
     return rows3;
   }
+  //filter frozen rows out of display data
   getRows(rows3) {
     var output = rows3.slice(0);
     this.rows.forEach(function(row2) {
@@ -27884,7 +30929,7 @@ var GroupComponent = class {
         if (typeof target[name] !== "undefined") {
           return target[name];
         } else {
-          return target._group.groupManager.table.componentFunctionBinder.handle("row", target._group, name);
+          return target._group.groupManager.table.componentFunctionBinder.handle("group", target._group, name);
         }
       }
     });
@@ -27918,6 +30963,9 @@ var GroupComponent = class {
   }
   toggle() {
     this._group.toggleVisibility();
+  }
+  scrollTo(position, ifVisible) {
+    return this._group.groupManager.table.rowManager.scrollToRow(this._group, position, ifVisible);
   }
   _getSelf() {
     return this._group;
@@ -28002,9 +31050,13 @@ var Group = class {
     if (this.groupManager.table.options.groupToggleElement) {
       toggleElement = this.groupManager.table.options.groupToggleElement == "arrow" ? this.arrowElement : this.element;
       toggleElement.addEventListener("click", (e) => {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        this.toggleVisibility();
+        if (this.groupManager.table.options.groupToggleElement === "arrow") {
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }
+        setTimeout(() => {
+          this.toggleVisibility();
+        });
       });
     }
   }
@@ -28052,7 +31104,6 @@ var Group = class {
       }
     }
     row2.modules.group = this;
-    this.generateGroupHeaderContents();
     if (this.groupManager.table.modExists("columnCalcs") && this.groupManager.table.options.columnCalcs != "table") {
       this.groupManager.table.modules.columnCalcs.recalcGroup(this);
     }
@@ -28068,6 +31119,7 @@ var Group = class {
   }
   getRowIndex(row2) {
   }
+  //update row data to match grouping constraints
   conformRowData(data) {
     if (this.field) {
       data[this.field] = this.key;
@@ -28283,16 +31335,23 @@ var Group = class {
     });
     return output;
   }
-  getRows(component) {
+  getRows(component, includeChildren) {
     var output = [];
-    this.rows.forEach(function(row2) {
-      output.push(component ? row2.getComponent() : row2);
-    });
+    if (includeChildren && this.groupList.length) {
+      this.groupList.forEach((group) => {
+        output = output.concat(group.getRows(component, includeChildren));
+      });
+    } else {
+      this.rows.forEach(function(row2) {
+        output.push(component ? row2.getComponent() : row2);
+      });
+    }
     return output;
   }
   generateGroupHeaderContents() {
     var data = [];
-    this.rows.forEach(function(row2) {
+    var rows3 = this.getRows(false, true);
+    rows3.forEach(function(row2) {
       data.push(row2.getData());
     });
     this.elementContents = this.generator(this.key, this.getRowCount(), data, this.getComponent());
@@ -28312,6 +31371,7 @@ var Group = class {
     }
     return path;
   }
+  ////////////// Standard Row Functions //////////////
   getElement() {
     return this.elementContents ? this.element : this.generateElement();
   }
@@ -28334,6 +31394,7 @@ var Group = class {
       this.element.parentNode.removeChild(this.element);
     }
   }
+  //normalize the height of elements in the row
   normalizeHeight() {
     this.setHeight(this.element.clientHeight);
   }
@@ -28356,6 +31417,7 @@ var Group = class {
       this.outerHeight = this.element.offsetHeight;
     }
   }
+  //return rows outer height
   getHeight() {
     return this.outerHeight;
   }
@@ -28372,6 +31434,9 @@ var Group = class {
   }
   deinitializeHeight() {
   }
+  rendered() {
+  }
+  //////////////// Object Generation /////////////////
   getComponent() {
     if (!this.component) {
       this.component = new GroupComponent(this);
@@ -28413,6 +31478,7 @@ var GroupRows = class extends Module {
     this.registerTableFunction("getGroupedData", this.userGetGroupedData.bind(this));
     this.registerComponentFunction("row", "getGroup", this.rowGetGroup.bind(this));
   }
+  //initialize group configuration
   initialize() {
     this.subscribe("table-destroy", this._blockRedrawing.bind(this));
     this.subscribe("rows-wipe", this._blockRedrawing.bind(this));
@@ -28565,6 +31631,9 @@ var GroupRows = class extends Module {
   trackChanges() {
     this.dispatch("group-changed");
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
   setGroupBy(groups) {
     this.table.options.groupBy = groups;
     if (!this.initialized) {
@@ -28606,12 +31675,19 @@ var GroupRows = class extends Module {
   userGetGroups(values2) {
     return this.getGroups(true);
   }
+  // get grouped table data in the same format as getData()
   userGetGroupedData() {
     return this.table.options.groupBy ? this.getGroupedData() : this.getData();
   }
+  ///////////////////////////////////////
+  ///////// Component Functions /////////
+  ///////////////////////////////////////
   rowGetGroup(row2) {
     return row2.modules.group ? row2.modules.group.getComponent() : false;
   }
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
   rowMoving(from2, to2, after) {
     if (this.table.options.groupBy) {
       if (!after && to2 instanceof Group) {
@@ -28644,6 +31720,7 @@ var GroupRows = class extends Module {
       this.reassignRowToGroup(cell.row);
     }
   }
+  //return appropriate rows with group headers
   getRows(rows3) {
     if (this.table.options.groupBy && this.groupIDLookups.length) {
       this.dispatchExternal("dataGrouping");
@@ -28860,8 +31937,10 @@ var defaultUndoers = {
     this._rebindRow(action.component, newRow);
   },
   rowMove: function(action) {
-    this.table.rowManager.moveRowActual(action.component, this.table.rowManager.rows[action.data.posFrom], !action.data.after);
-    this.table.rowManager.redraw();
+    var after = action.data.posFrom - action.data.posTo > 0;
+    this.table.rowManager.moveRowActual(action.component, this.table.rowManager.getRowFromPosition(action.data.posFrom), after);
+    this.table.rowManager.regenerateRowPositions();
+    this.table.rowManager.reRenderInPosition();
   }
 };
 var defaultRedoers = {
@@ -28880,8 +31959,9 @@ var defaultRedoers = {
     action.component.deleteActual();
   },
   rowMove: function(action) {
-    this.table.rowManager.moveRowActual(action.component, this.table.rowManager.rows[action.data.posTo], action.data.after);
-    this.table.rowManager.redraw();
+    this.table.rowManager.moveRowActual(action.component, this.table.rowManager.getRowFromPosition(action.data.posTo), action.data.after);
+    this.table.rowManager.regenerateRowPositions();
+    this.table.rowManager.reRenderInPosition();
   }
 };
 var History = class extends Module {
@@ -28986,6 +32066,7 @@ var History = class extends Module {
       return false;
     }
   }
+  //rebind rows to new element after deletion
   _rebindRow(oldRow, newRow) {
     this.history.forEach(function(action) {
       if (action.component instanceof Row) {
@@ -29051,6 +32132,7 @@ var HtmlTableImport = class extends Module {
     options.data = data;
     this.dispatchExternal("htmlImported");
   }
+  //extract tabulator attribute options
   _extractOptions(element, options, defaultOptions2) {
     var attributes = element.attributes;
     var optionsArr = defaultOptions2 ? Object.keys(defaultOptions2) : Object.keys(options);
@@ -29069,6 +32151,7 @@ var HtmlTableImport = class extends Module {
       }
     }
   }
+  //get value of attribute
   _attribValue(value) {
     if (value === "true") {
       return true;
@@ -29078,12 +32161,14 @@ var HtmlTableImport = class extends Module {
     }
     return value;
   }
+  //find column if it has already been defined
   _findCol(title) {
     var match2 = this.table.options.columns.find((column) => {
       return column.title === title;
     });
     return match2 || false;
   }
+  //extract column from headers
   _extractHeaders(headers, rows3) {
     for (var index2 = 0; index2 < headers.length; index2++) {
       var header = headers[index2], exists2 = false, col = this._findCol(header.textContent), width;
@@ -29093,7 +32178,7 @@ var HtmlTableImport = class extends Module {
         col = { title: header.textContent.trim() };
       }
       if (!col.field) {
-        col.field = header.textContent.trim().toLowerCase().replace(" ", "_");
+        col.field = header.textContent.trim().toLowerCase().replaceAll(" ", "_");
       }
       width = header.getAttribute("width");
       if (width && !col.width) {
@@ -29109,6 +32194,7 @@ var HtmlTableImport = class extends Module {
       }
     }
   }
+  //generate blank headers
   _generateBlankHeaders(headers, rows3) {
     for (var index2 = 0; index2 < headers.length; index2++) {
       var header = headers[index2], col = { title: "", field: "col" + index2 };
@@ -29315,6 +32401,7 @@ var Interaction2 = class extends Module {
   constructor(table) {
     super(table);
     this.eventMap = {
+      //row events
       rowClick: "row-click",
       rowDblClick: "row-dblclick",
       rowContext: "row-contextmenu",
@@ -29328,6 +32415,7 @@ var Interaction2 = class extends Module {
       rowTap: "row",
       rowDblTap: "row",
       rowTapHold: "row",
+      //cell events
       cellClick: "cell-click",
       cellDblClick: "cell-dblclick",
       cellContext: "cell-contextmenu",
@@ -29341,6 +32429,7 @@ var Interaction2 = class extends Module {
       cellTap: "cell",
       cellDblTap: "cell",
       cellTapHold: "cell",
+      //column header events
       headerClick: "column-click",
       headerDblClick: "column-dblclick",
       headerContext: "column-contextmenu",
@@ -29354,6 +32443,7 @@ var Interaction2 = class extends Module {
       headerTap: "column",
       headerDblTap: "column",
       headerTapHold: "column",
+      //group header
       groupClick: "group-click",
       groupDblClick: "group-dblclick",
       groupContext: "group-contextmenu",
@@ -29424,6 +32514,16 @@ var Interaction2 = class extends Module {
     this.initializeExternalEvents();
     this.subscribe("column-init", this.initializeColumn.bind(this));
     this.subscribe("cell-dblclick", this.cellContentsSelectionFixer.bind(this));
+    this.subscribe("scroll-horizontal", this.clearTouchWatchers.bind(this));
+    this.subscribe("scroll-vertical", this.clearTouchWatchers.bind(this));
+  }
+  clearTouchWatchers() {
+    var types = Object.values(this.touchWatchers);
+    types.forEach((type) => {
+      for (let key in type) {
+        type[key] = null;
+      }
+    });
   }
   cellContentsSelectionFixer(e, cell) {
     var range2;
@@ -29582,7 +32682,7 @@ var defaultBindings = {
   scrollToEnd: 35,
   undo: ["ctrl + 90", "meta + 90"],
   redo: ["ctrl + 89", "meta + 89"],
-  copyToClipboard: ["ctrl + 67", "meta + 89"]
+  copyToClipboard: ["ctrl + 67", "meta + 67"]
 };
 var defaultActions = {
   keyBlock: function(e) {
@@ -30560,6 +33660,7 @@ var MoveRows = class extends Module {
   elementRowDrop(e, element, row2) {
     this.dispatchExternal("movableRowsElementDrop", e, element, row2 ? row2.getComponent() : false);
   }
+  //establish connection with other tables
   connectToTables(row2) {
     var connectionTables;
     if (this.connectionSelectorsTables) {
@@ -30591,6 +33692,7 @@ var MoveRows = class extends Module {
       });
     }
   }
+  //disconnect from other tables
   disconnectFromTables() {
     var connectionTables;
     if (this.connectionSelectorsTables) {
@@ -30604,6 +33706,7 @@ var MoveRows = class extends Module {
       delete element.tabulatorElementDropEvent;
     });
   }
+  //accept incomming connection
   connect(table, row2) {
     if (!this.connectedTable) {
       this.connectedTable = table;
@@ -30623,6 +33726,7 @@ var MoveRows = class extends Module {
       return false;
     }
   }
+  //close incoming connection
   disconnect(table) {
     if (table === this.connectedTable) {
       this.connectedTable = false;
@@ -30757,6 +33861,7 @@ var Mutator = class extends Module {
   rowDataChanged(row2, tempData, updatedData) {
     return this.transformRow(tempData, "data", updatedData);
   }
+  //initialize column mutator
   initializeColumn(column) {
     var match2 = false, config = {};
     this.allowedTypes.forEach((type) => {
@@ -30792,6 +33897,7 @@ var Mutator = class extends Module {
     }
     return mutator;
   }
+  //apply mutator to row
   transformRow(data, type, updatedData) {
     var key = "mutator" + (type.charAt(0).toUpperCase() + type.slice(1)), value;
     if (this.enabled) {
@@ -30801,7 +33907,7 @@ var Mutator = class extends Module {
           mutator = column.modules.mutate[key] || column.modules.mutate.mutator || false;
           if (mutator) {
             value = column.getFieldValue(typeof updatedData !== "undefined" ? updatedData : data);
-            if (type == "data" || typeof value !== "undefined") {
+            if (type == "data" && !updatedData || typeof value !== "undefined") {
               component = column.getComponent();
               params = typeof mutator.params === "function" ? mutator.params(value, data, type, component) : mutator.params;
               column.setFieldValue(data, mutator.mutator(value, data, type, params, component));
@@ -30812,6 +33918,7 @@ var Mutator = class extends Module {
     }
     return data;
   }
+  //apply mutator to new cell value
   transformCell(cell, value) {
     if (cell.column.modules.mutate) {
       var mutator = cell.column.modules.mutate.mutatorEdit || cell.column.modules.mutate.mutator || false, tempData = {};
@@ -31023,9 +34130,12 @@ var Page = class extends Module {
     }
     return params;
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
   userSetPageToRow(row2) {
     if (this.table.options.pagination) {
-      row2 = this.rowManager.findRow(row2);
+      row2 = this.table.rowManager.findRow(row2);
       if (row2) {
         return this.setPageToRow(row2);
       }
@@ -31040,6 +34150,9 @@ var Page = class extends Module {
       return false;
     }
   }
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
   scrollVertical(top, dir) {
     var element, diff, margin;
     if (!dir && !this.table.dataLoader.loading) {
@@ -31142,6 +34255,7 @@ var Page = class extends Module {
       }
     }
   }
+  //setup pagination
   initializePaginator(hidden) {
     var pageSelectLabel, paginationCounterHolder;
     if (!hidden) {
@@ -31239,6 +34353,7 @@ var Page = class extends Module {
   trackChanges() {
     this.dispatch("page-changed");
   }
+  //calculate maximum page from number of rows
   setMaxRows(rowCount) {
     if (!rowCount) {
       this.max = 1;
@@ -31249,6 +34364,7 @@ var Page = class extends Module {
       this.page = this.max;
     }
   }
+  //reset to first page without triggering action
   reset(force) {
     if (!this.initialLoad) {
       if (this.mode == "local" || force) {
@@ -31257,6 +34373,7 @@ var Page = class extends Module {
       }
     }
   }
+  //set the maximum page
   setMaxPage(max) {
     max = parseInt(max);
     this.max = max || 1;
@@ -31265,6 +34382,7 @@ var Page = class extends Module {
       this.trigger();
     }
   }
+  //set current page number
   setPage(page) {
     switch (page) {
       case "first":
@@ -31340,6 +34458,7 @@ var Page = class extends Module {
       }
     }
   }
+  //setup the pagination buttons
   _setPageButtons() {
     let leftSize = Math.floor((this.count - 1) / 2);
     let rightSize = Math.ceil((this.count - 1) / 2);
@@ -31387,6 +34506,7 @@ var Page = class extends Module {
     });
     return button;
   }
+  //previous page
   previousPage() {
     if (this.page > 1) {
       this.page--;
@@ -31397,6 +34517,7 @@ var Page = class extends Module {
       return Promise.reject();
     }
   }
+  //next page
   nextPage() {
     if (this.page < this.max) {
       this.page++;
@@ -31409,9 +34530,11 @@ var Page = class extends Module {
       return Promise.reject();
     }
   }
+  //return current page number
   getPage() {
     return this.page;
   }
+  //return max page number
   getPageMax() {
     return this.max;
   }
@@ -31421,6 +34544,7 @@ var Page = class extends Module {
   getMode() {
     return this.mode;
   }
+  //return appropriate rows for current page
   getRows(data) {
     var actualRowPageSize = 0, output, start, end, actualStartRow;
     var actualRows = data.filter((row2) => {
@@ -31523,6 +34647,7 @@ var Page = class extends Module {
     }
     return data.data;
   }
+  //handle the footer element being redrawn
   footerRedraw() {
     var footer = this.table.footerManager.containerElement;
     if (Math.ceil(footer.clientWidth) - footer.scrollWidth < 0) {
@@ -31560,7 +34685,7 @@ var defaultWriters = {
     localStorage.setItem(id + "-" + type, JSON.stringify(data));
   },
   cookie: function(id, type, data) {
-    var expireDate = new Date();
+    var expireDate = /* @__PURE__ */ new Date();
     expireDate.setDate(expireDate.getDate() + 1e4);
     document.cookie = id + "-" + type + "=" + JSON.stringify(data) + "; expires=" + expireDate.toUTCString();
   }
@@ -31580,6 +34705,7 @@ var Persistence = class extends Module {
     this.registerTableOption("persistenceReaderFunc", false);
     this.registerTableOption("persistenceWriterFunc", false);
   }
+  // Test for whether localStorage is available for use.
   localStorageTest() {
     var testKey = "_tabulator_test";
     try {
@@ -31590,6 +34716,7 @@ var Persistence = class extends Module {
       return false;
     }
   }
+  //setup parameters
   initialize() {
     if (this.table.options.persistence) {
       var mode = this.table.options.persistenceMode, id = this.table.options.persistenceID, retrievedData;
@@ -31632,6 +34759,7 @@ var Persistence = class extends Module {
       this.config = {
         sort: this.table.options.persistence === true || this.table.options.persistence.sort,
         filter: this.table.options.persistence === true || this.table.options.persistence.filter,
+        headerFilter: this.table.options.persistence === true || this.table.options.persistence.headerFilter,
         group: this.table.options.persistence === true || this.table.options.persistence.group,
         page: this.table.options.persistence === true || this.table.options.persistence.page,
         columns: this.table.options.persistence === true ? ["title", "width", "visible"] : this.table.options.persistence.columns
@@ -31671,6 +34799,7 @@ var Persistence = class extends Module {
       this.subscribe("table-built", this.tableBuilt.bind(this), 0);
       this.subscribe("table-redraw", this.tableRedraw.bind(this));
       this.subscribe("filter-changed", this.eventSave.bind(this, "filter"));
+      this.subscribe("filter-changed", this.eventSave.bind(this, "headerFilter"));
       this.subscribe("sort-changed", this.eventSave.bind(this, "sort"));
       this.subscribe("group-changed", this.eventSave.bind(this, "group"));
       this.subscribe("page-changed", this.eventSave.bind(this, "page"));
@@ -31687,7 +34816,7 @@ var Persistence = class extends Module {
     }
   }
   tableBuilt() {
-    var sorters, filters;
+    var sorters, filters, headerFilters;
     if (this.config.sort) {
       sorters = this.load("sort");
       if (!sorters === false) {
@@ -31700,19 +34829,31 @@ var Persistence = class extends Module {
         this.table.options.initialFilter = filters;
       }
     }
+    if (this.config.headerFilter) {
+      headerFilters = this.load("headerFilter");
+      if (!headerFilters === false) {
+        this.table.options.initialHeaderFilter = headerFilters;
+      }
+    }
   }
   tableRedraw(force) {
     if (force && this.config.columns) {
       this.save("columns");
     }
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
   getColumnLayout() {
     return this.parseColumns(this.table.columnManager.getColumns());
   }
   setColumnLayout(layout) {
-    this.table.columnManager.setColumns(this.mergeDefinition(this.table.options.columns, layout));
+    this.table.columnManager.setColumns(this.mergeDefinition(this.table.options.columns, layout, true));
     return true;
   }
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
   initializeColumn(column) {
     var def, keys;
     if (this.config.columns) {
@@ -31745,6 +34886,7 @@ var Persistence = class extends Module {
       this.defWatcherBlock = false;
     }
   }
+  //load saved definitions
   load(type, current) {
     var data = this.retrieveData(type);
     if (current) {
@@ -31752,16 +34894,20 @@ var Persistence = class extends Module {
     }
     return data;
   }
+  //retrieve data from memory
   retrieveData(type) {
     return this.readFunc ? this.readFunc(this.id, type) : false;
   }
-  mergeDefinition(oldCols, newCols) {
+  //merge old and new column definitions
+  mergeDefinition(oldCols, newCols, mergeAllNew) {
     var output = [];
     newCols = newCols || [];
     newCols.forEach((column, to2) => {
       var from2 = this._findColumn(oldCols, column), keys;
       if (from2) {
-        if (this.config.columns === true || this.config.columns == void 0) {
+        if (mergeAllNew) {
+          keys = Object.keys(column);
+        } else if (this.config.columns === true || this.config.columns == void 0) {
           keys = Object.keys(from2);
           keys.push("width");
         } else {
@@ -31790,6 +34936,7 @@ var Persistence = class extends Module {
     });
     return output;
   }
+  //find matching columns
   _findColumn(columns, subject) {
     var type = subject.columns ? "group" : subject.field ? "field" : "object";
     return columns.find(function(col) {
@@ -31803,6 +34950,7 @@ var Persistence = class extends Module {
       }
     });
   }
+  //save data
   save(type) {
     var data = {};
     switch (type) {
@@ -31811,6 +34959,9 @@ var Persistence = class extends Module {
         break;
       case "filter":
         data = this.table.modules.filter.getFilters();
+        break;
+      case "headerFilter":
+        data = this.table.modules.filter.getHeaderFilters();
         break;
       case "sort":
         data = this.validateSorters(this.table.modules.sort.getSort());
@@ -31826,6 +34977,7 @@ var Persistence = class extends Module {
       this.writeFunc(this.id, type, data);
     }
   }
+  //ensure sorters contain no function data
   validateSorters(data) {
     data.forEach(function(item) {
       item.column = item.field;
@@ -31860,6 +35012,7 @@ var Persistence = class extends Module {
     }
     return data;
   }
+  //parse columns for data to store
   parseColumns(columns) {
     var definitions = [], excludedKeys = ["headerContextMenu", "headerMenu", "contextMenu", "clickMenu"];
     columns.forEach((column) => {
@@ -32103,6 +35256,12 @@ var Print = class extends Module {
       window.removeEventListener("afterprint", this.afterprintEventHandler);
     }
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
   replaceTable() {
     if (!this.manualBlock) {
       this.element = document.createElement("div");
@@ -32526,6 +35685,7 @@ var ResizeColumns = class extends Module {
       if (cell.modules.resize && cell.modules.resize.handleEl) {
         if (frozenOffset) {
           cell.modules.resize.handleEl.style[column.modules.frozen.position] = frozenOffset;
+          cell.modules.resize.handleEl.style["z-index"] = 11;
         }
         cell.element.after(cell.modules.resize.handleEl);
       }
@@ -32863,6 +36023,7 @@ var ResponsiveLayout = class extends Module {
     this.registerTableOption("responsiveLayoutCollapseFormatter", false);
     this.registerColumnOption("responsive");
   }
+  //generate responsive columns list
   initialize() {
     if (this.table.options.responsiveLayout) {
       this.subscribe("column-layout", this.initializeColumn.bind(this));
@@ -32927,6 +36088,7 @@ var ResponsiveLayout = class extends Module {
       }
     }
   }
+  //define layout information
   initializeColumn(column) {
     var def = column.getDefinition();
     column.modules.responsive = { order: typeof def.responsive === "undefined" ? 1 : def.responsive, visible: def.visible === false ? false : true };
@@ -32952,6 +36114,7 @@ var ResponsiveLayout = class extends Module {
       this.generateCollapsedRowContent(row2);
     }
   }
+  //update column visibility
   updateColumnVisibility(column, responsiveToggle) {
     if (!responsiveToggle && column.modules.responsive) {
       column.modules.responsive.visible = column.visible;
@@ -32984,6 +36147,7 @@ var ResponsiveLayout = class extends Module {
       }
     }
   }
+  //redraw columns to fit space
   update() {
     var working = true;
     while (working) {
@@ -33054,6 +36218,9 @@ var ResponsiveLayout = class extends Module {
             },
             getData: function() {
               return data;
+            },
+            getType: function() {
+              return "cell";
             },
             getElement: function() {
               return document.createElement("div");
@@ -33154,11 +36321,12 @@ var SelectRow = class extends Module {
     this._deselectRow(row2, true);
   }
   clearSelectionData(silent) {
+    var prevSelected = this.selectedRows.length;
     this.selecting = false;
     this.lastClickedRow = false;
     this.selectPrev = [];
     this.selectedRows = [];
-    if (silent !== true) {
+    if (prevSelected && silent !== true) {
       this._rowSelectionChanged();
     }
   }
@@ -33262,11 +36430,12 @@ var SelectRow = class extends Module {
     }
   }
   checkRowSelectability(row2) {
-    if (row2.type === "row") {
+    if (row2 && row2.type === "row") {
       return this.table.options.selectableCheck.call(this.table, row2.getComponent());
     }
     return false;
   }
+  //toggle row selection
   toggleRow(row2) {
     if (this.checkRowSelectability(row2)) {
       if (row2.modules.select && row2.modules.select.selected) {
@@ -33276,42 +36445,40 @@ var SelectRow = class extends Module {
       }
     }
   }
+  //select a number of rows
   selectRows(rows3) {
-    var rowMatch;
+    var changes = [], rowMatch, change;
     switch (typeof rows3) {
       case "undefined":
-        this.table.rowManager.rows.forEach((row2) => {
-          this._selectRow(row2, true, true);
-        });
-        this._rowSelectionChanged();
+        rowMatch = this.table.rowManager.rows;
         break;
       case "string":
         rowMatch = this.table.rowManager.findRow(rows3);
-        if (rowMatch) {
-          this._selectRow(rowMatch, true, true);
-          this._rowSelectionChanged();
-        } else {
+        if (!rowMatch) {
           rowMatch = this.table.rowManager.getRows(rows3);
-          rowMatch.forEach((row2) => {
-            this._selectRow(row2, true, true);
-          });
-          if (rowMatch.length) {
-            this._rowSelectionChanged();
-          }
         }
         break;
       default:
-        if (Array.isArray(rows3)) {
-          rows3.forEach((row2) => {
-            this._selectRow(row2, true, true);
-          });
-          this._rowSelectionChanged();
-        } else {
-          this._selectRow(rows3, false, true);
-        }
+        rowMatch = rows3;
         break;
     }
+    if (Array.isArray(rowMatch)) {
+      if (rowMatch.length) {
+        rowMatch.forEach((row2) => {
+          change = this._selectRow(row2, true, true);
+          if (change) {
+            changes.push(change);
+          }
+        });
+        this._rowSelectionChanged(false, changes);
+      }
+    } else {
+      if (rowMatch) {
+        this._selectRow(rowMatch, false, true);
+      }
+    }
   }
+  //select an individual row
   _selectRow(rowInfo, silent, force) {
     if (!isNaN(this.table.options.selectable) && this.table.options.selectable !== true && !force) {
       if (this.selectedRows.length >= this.table.options.selectable) {
@@ -33338,7 +36505,8 @@ var SelectRow = class extends Module {
           this.childRowSelection(row2, true);
         }
         this.dispatchExternal("rowSelected", row2.getComponent());
-        this._rowSelectionChanged(silent);
+        this._rowSelectionChanged(silent, row2);
+        return row2;
       }
     } else {
       if (!silent) {
@@ -33349,35 +36517,51 @@ var SelectRow = class extends Module {
   isRowSelected(row2) {
     return this.selectedRows.indexOf(row2) !== -1;
   }
+  //deselect a number of rows
   deselectRows(rows3, silent) {
-    var self2 = this, rowCount;
-    if (typeof rows3 == "undefined") {
-      rowCount = self2.selectedRows.length;
-      for (let i2 = 0; i2 < rowCount; i2++) {
-        self2._deselectRow(self2.selectedRows[0], true);
-      }
-      if (rowCount) {
-        self2._rowSelectionChanged(silent);
+    var changes = [], rowMatch, change;
+    switch (typeof rows3) {
+      case "undefined":
+        rowMatch = Object.assign([], this.selectedRows);
+        break;
+      case "string":
+        rowMatch = this.table.rowManager.findRow(rows3);
+        if (!rowMatch) {
+          rowMatch = this.table.rowManager.getRows(rows3);
+        }
+        break;
+      default:
+        rowMatch = rows3;
+        break;
+    }
+    if (Array.isArray(rowMatch)) {
+      if (rowMatch.length) {
+        rowMatch.forEach((row2) => {
+          change = this._deselectRow(row2, true, true);
+          if (change) {
+            changes.push(change);
+          }
+        });
+        this._rowSelectionChanged(silent, [], changes);
       }
     } else {
-      if (Array.isArray(rows3)) {
-        rows3.forEach(function(row2) {
-          self2._deselectRow(row2, true);
-        });
-        self2._rowSelectionChanged(silent);
-      } else {
-        self2._deselectRow(rows3, silent);
+      if (rowMatch) {
+        this._deselectRow(rowMatch, silent, true);
       }
     }
   }
+  //deselect an individual row
   _deselectRow(rowInfo, silent) {
-    var self2 = this, row2 = self2.table.rowManager.findRow(rowInfo), index2;
+    var self2 = this, row2 = self2.table.rowManager.findRow(rowInfo), index2, element;
     if (row2) {
       index2 = self2.selectedRows.findIndex(function(selectedRow) {
         return selectedRow == row2;
       });
       if (index2 > -1) {
-        row2.getElement().classList.remove("tabulator-selected");
+        element = row2.getElement();
+        if (element) {
+          element.classList.remove("tabulator-selected");
+        }
         if (!row2.modules.select) {
           row2.modules.select = {};
         }
@@ -33390,7 +36574,8 @@ var SelectRow = class extends Module {
           this.childRowSelection(row2, false);
         }
         this.dispatchExternal("rowDeselected", row2.getComponent());
-        self2._rowSelectionChanged(silent);
+        self2._rowSelectionChanged(silent, void 0, row2);
+        return row2;
       }
     } else {
       if (!silent) {
@@ -33412,7 +36597,7 @@ var SelectRow = class extends Module {
     });
     return rows3;
   }
-  _rowSelectionChanged(silent) {
+  _rowSelectionChanged(silent, selected = [], deselected = []) {
     if (this.headerCheckboxElement) {
       if (this.selectedRows.length === 0) {
         this.headerCheckboxElement.checked = false;
@@ -33426,7 +36611,15 @@ var SelectRow = class extends Module {
       }
     }
     if (!silent) {
-      this.dispatchExternal("rowSelectionChanged", this.getSelectedData(), this.getSelectedRows());
+      if (!Array.isArray(selected)) {
+        selected = [selected];
+      }
+      selected = selected.map((row2) => row2.getComponent());
+      if (!Array.isArray(deselected)) {
+        deselected = [deselected];
+      }
+      deselected = deselected.map((row2) => row2.getComponent());
+      this.dispatchExternal("rowSelectionChanged", this.getSelectedData(), this.getSelectedRows(), selected, deselected);
     }
   }
   registerRowSelectCheckbox(row2, element) {
@@ -33694,6 +36887,9 @@ var Sort = class extends Module {
     params.sort = sorters;
     return params;
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
   userSetSort(sortList, dir) {
     this.setSort(sortList, dir);
     this.refreshSort();
@@ -33702,6 +36898,10 @@ var Sort = class extends Module {
     this.clear();
     this.refreshSort();
   }
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
+  //initialize column header for sorting
   initializeColumn(column) {
     var sorter2 = false, colEl, arrowEl;
     switch (typeof column.definition.sorter) {
@@ -33812,11 +37012,13 @@ var Sort = class extends Module {
       this.refreshData(true);
     }
   }
+  //check if the sorters have changed since last use
   hasChanged() {
     var changed = this.changed;
     this.changed = false;
     return changed;
   }
+  //return current sorters
   getSort() {
     var self2 = this, sorters = [];
     self2.sortList.forEach(function(item) {
@@ -33826,6 +37028,7 @@ var Sort = class extends Module {
     });
     return sorters;
   }
+  //change sort list and trigger sort
   setSort(sortList, dir) {
     var self2 = this, newSortList = [];
     if (!Array.isArray(sortList)) {
@@ -33845,9 +37048,11 @@ var Sort = class extends Module {
     self2.sortList = newSortList;
     this.dispatch("sort-changed");
   }
+  //clear sorters
   clear() {
     this.setSort([]);
   }
+  //find appropriate sorter for column
   findSorter(column) {
     var row2 = this.table.rowManager.activeRows[0], sorter2 = "string", field, value;
     if (row2) {
@@ -33876,6 +37081,7 @@ var Sort = class extends Module {
     }
     return Sort.sorters[sorter2];
   }
+  //work through sort list sorting data
   sort(data) {
     var self2 = this, sortList = this.table.options.sortOrderReverse ? self2.sortList.slice().reverse() : self2.sortList, sortListActual = [], rowComponents = [];
     if (this.subscribedExternal("dataSorting")) {
@@ -33913,6 +37119,7 @@ var Sort = class extends Module {
     }
     return data;
   }
+  //clear sort arrows on columns
   clearColumnHeaders() {
     this.table.columnManager.getRealColumns().forEach((column) => {
       if (column.modules.sort) {
@@ -33922,6 +37129,7 @@ var Sort = class extends Module {
       }
     });
   }
+  //set the column header sort direction
   setColumnHeader(column, dir) {
     column.modules.sort.dir = dir;
     column.getElement().setAttribute("aria-sort", dir === "asc" ? "ascending" : "descending");
@@ -33940,6 +37148,7 @@ var Sort = class extends Module {
       }
     }
   }
+  //sort each item in sort list
   _sortItems(data, sortList) {
     var sorterCount = sortList.length - 1;
     data.sort((a, b) => {
@@ -33954,6 +37163,7 @@ var Sort = class extends Module {
       return result;
     });
   }
+  //process individual rows for a sort function on active data
   _sortRow(a, b, column, dir, params) {
     var el1Comp, el2Comp;
     var el1 = dir == "asc" ? a : b;
@@ -34062,6 +37272,7 @@ var Tooltip2 = class extends Module {
 };
 Tooltip2.moduleName = "tooltip";
 var defaultValidators = {
+  //is integer
   integer: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
@@ -34069,6 +37280,7 @@ var defaultValidators = {
     value = Number(value);
     return !isNaN(value) && isFinite(value) && Math.floor(value) === value;
   },
+  //is float
   float: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
@@ -34076,54 +37288,63 @@ var defaultValidators = {
     value = Number(value);
     return !isNaN(value) && isFinite(value) && value % 1 !== 0;
   },
+  //must be a number
   numeric: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
     }
     return !isNaN(value);
   },
+  //must be a string
   string: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
     }
     return isNaN(value);
   },
+  //maximum value
   max: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
     }
     return parseFloat(value) <= parameters;
   },
+  //minimum value
   min: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
     }
     return parseFloat(value) >= parameters;
   },
+  //starts with  value
   starts: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
     }
     return String(value).toLowerCase().startsWith(String(parameters).toLowerCase());
   },
+  //ends with  value
   ends: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
     }
     return String(value).toLowerCase().endsWith(String(parameters).toLowerCase());
   },
+  //minimum string length
   minLength: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
     }
     return String(value).length >= parameters;
   },
+  //maximum string length
   maxLength: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
     }
     return String(value).length <= parameters;
   },
+  //in provided value list
   in: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
@@ -34133,6 +37354,7 @@ var defaultValidators = {
     }
     return parameters.indexOf(value) > -1;
   },
+  //must match provided regex
   regex: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
@@ -34140,6 +37362,7 @@ var defaultValidators = {
     var reg = new RegExp(parameters);
     return reg.test(value);
   },
+  //value must be unique in this column
   unique: function(cell, value, parameters) {
     if (value === "" || value === null || typeof value === "undefined") {
       return true;
@@ -34157,6 +37380,7 @@ var defaultValidators = {
     });
     return unique;
   },
+  //must have a value
   required: function(cell, value, parameters) {
     return value !== "" && value !== null && typeof value !== "undefined";
   }
@@ -34183,6 +37407,9 @@ var Validate = class extends Module {
     this.subscribe("edit-editor-clear", this.editorClear.bind(this));
     this.subscribe("edit-edited-clear", this.editedClear.bind(this));
   }
+  ///////////////////////////////////
+  ///////// Event Handling //////////
+  ///////////////////////////////////
   editValidate(cell, value, previousValue) {
     var valid = this.table.options.validationMode !== "manual" ? this.validate(cell.column.modules.validate, cell, value) : true;
     if (valid !== true) {
@@ -34206,12 +37433,18 @@ var Validate = class extends Module {
       cell.modules.validate.invalid = false;
     }
   }
+  ///////////////////////////////////
+  ////////// Cell Functions /////////
+  ///////////////////////////////////
   cellIsValid(cell) {
     return cell.modules.validate ? cell.modules.validate.invalid || true : true;
   }
   cellValidate(cell) {
     return this.validate(cell.column.modules.validate, cell, cell.getValue());
   }
+  ///////////////////////////////////
+  ///////// Column Functions ////////
+  ///////////////////////////////////
   columnValidate(column) {
     var invalid = [];
     column.cells.forEach((cell) => {
@@ -34221,6 +37454,9 @@ var Validate = class extends Module {
     });
     return invalid.length ? invalid : true;
   }
+  ///////////////////////////////////
+  ////////// Row Functions //////////
+  ///////////////////////////////////
   rowValidate(row2) {
     var invalid = [];
     row2.cells.forEach((cell) => {
@@ -34230,6 +37466,9 @@ var Validate = class extends Module {
     });
     return invalid.length ? invalid : true;
   }
+  ///////////////////////////////////
+  ///////// Table Functions /////////
+  ///////////////////////////////////
   userClearCellValidation(cells) {
     if (!cells) {
       cells = this.getInvalidCells();
@@ -34252,11 +37491,15 @@ var Validate = class extends Module {
     });
     return output.length ? output : true;
   }
+  ///////////////////////////////////
+  ///////// Internal Logic //////////
+  ///////////////////////////////////
   initializeColumnCheck(column) {
     if (typeof column.definition.validator !== "undefined") {
       this.initializeColumn(column);
     }
   }
+  //validate
   initializeColumn(column) {
     var self2 = this, config = [], validator;
     if (column.definition.validator) {
@@ -34400,30 +37643,50 @@ var modules = /* @__PURE__ */ Object.freeze({
 });
 var defaultOptions = {
   debugEventsExternal: false,
+  //flag to console log events
   debugEventsInternal: false,
+  //flag to console log events
   debugInvalidOptions: true,
+  //allow toggling of invalid option warnings
   debugInvalidComponentFuncs: true,
+  //allow toggling of invalid component warnings
   debugInitialization: true,
+  //allow toggling of pre initialization function call warnings
   debugDeprecation: true,
+  //allow toggling of deprecation warnings
   height: false,
+  //height of tabulator
   minHeight: false,
+  //minimum height of tabulator
   maxHeight: false,
+  //maximum height of tabulator
   columnHeaderVertAlign: "top",
+  //vertical alignment of column headers
   popupContainer: false,
   columns: [],
+  //store for colum header info
   columnDefaults: {},
+  //store column default props
   data: false,
+  //default starting data
   autoColumns: false,
+  //build columns from data row structure
   autoColumnsDefinitions: false,
   nestedFieldSeparator: ".",
+  //separator for nested data
   footerElement: false,
+  //hold footer element
   index: "id",
+  //filed for row index
   textDirection: "auto",
   addRowPos: "bottom",
+  //position to insert blank rows, top|bottom
   headerVisible: true,
+  //hide header
   renderVertical: "virtual",
   renderHorizontal: "basic",
   renderVerticalBuffer: 0,
+  // set virtual DOM buffer size
   scrollToRowPosition: "top",
   scrollToRowIfVisible: true,
   scrollToColumnPosition: "left",
@@ -34451,13 +37714,14 @@ var OptionsList = class {
     this.registeredDefaults[option] = value;
   }
   generate(defaultOptions2, userOptions = {}) {
-    var output = Object.assign({}, this.registeredDefaults);
+    var output = Object.assign({}, this.registeredDefaults), warn = this.table.options.debugInvalidOptions || userOptions.debugInvalidOptions === true;
     Object.assign(output, defaultOptions2);
-    if (userOptions.debugInvalidOptions !== false || this.table.options.debugInvalidOptions) {
-      for (let key in userOptions) {
-        if (!output.hasOwnProperty(key)) {
+    for (let key in userOptions) {
+      if (!output.hasOwnProperty(key)) {
+        if (warn) {
           console.warn("Invalid " + this.msgType + " option:", key);
         }
+        output[key] = userOptions.key;
       }
     }
     for (let key in output) {
@@ -34484,6 +37748,9 @@ var Renderer = class extends CoreFeature {
     this.tableElement = table.rowManager.tableElement;
     this.verticalFillMode = "fit";
   }
+  ///////////////////////////////////
+  /////// Internal Bindings /////////
+  ///////////////////////////////////
   initialize() {
   }
   clearRows() {
@@ -34520,6 +37787,9 @@ var Renderer = class extends CoreFeature {
   visibleRows(includingBuffer) {
     return [];
   }
+  ///////////////////////////////////
+  //////// Helper Functions /////////
+  ///////////////////////////////////
   rows() {
     return this.table.rowManager.getDisplayRows();
   }
@@ -34533,6 +37803,10 @@ var Renderer = class extends CoreFeature {
       rowEl.classList.remove("tabulator-row-even");
     }
   }
+  ///////////////////////////////////
+  /////// External Triggers /////////
+  /////// (DO NOT OVERRIDE) /////////
+  ///////////////////////////////////
   clear() {
     this.clearRows();
     this.clearColumns();
@@ -34600,11 +37874,17 @@ var BasicHorizontal = class extends Renderer {
   constructor(table) {
     super(table);
   }
-  renderRowCells(row2) {
+  renderRowCells(row2, inFragment) {
+    const rowFrag = document.createDocumentFragment();
     row2.cells.forEach((cell) => {
-      row2.element.appendChild(cell.getElement());
-      cell.cellRendered();
+      rowFrag.appendChild(cell.getElement());
     });
+    row2.element.appendChild(rowFrag);
+    if (!inFragment) {
+      row2.cells.forEach((cell) => {
+        cell.cellRendered();
+      });
+    }
   }
   reinitializeColumnWidths(columns) {
     columns.forEach(function(column) {
@@ -34655,6 +37935,9 @@ var VirtualDomHorizontal = class extends Renderer {
   clearVisRowCache() {
     this.visibleRows = null;
   }
+  //////////////////////////////////////
+  ///////// Public Functions ///////////
+  //////////////////////////////////////
   renderColumns(row2, force) {
     this.dataChange();
   }
@@ -34732,8 +38015,12 @@ var VirtualDomHorizontal = class extends Renderer {
     if (this.initialized) {
       this.initializeRow(row2);
     } else {
+      const rowFrag = document.createDocumentFragment();
       row2.cells.forEach((cell) => {
-        row2.element.appendChild(cell.getElement());
+        rowFrag.appendChild(cell.getElement());
+      });
+      row2.element.appendChild(rowFrag);
+      row2.cells.forEach((cell) => {
         cell.cellRendered();
       });
     }
@@ -34746,6 +38033,9 @@ var VirtualDomHorizontal = class extends Renderer {
       this.columns[i2].reinitializeWidth();
     }
   }
+  //////////////////////////////////////
+  //////// Internal Rendering //////////
+  //////////////////////////////////////
   deinitialize() {
     this.initialized = false;
   }
@@ -35058,6 +38348,7 @@ var ColumnManager = class extends CoreFeature {
     this.redrawBlockUpdate = null;
     this.renderer = null;
   }
+  ////////////// Setup Functions /////////////////
   initialize() {
     this.initializeRenderer();
     this.headersElement = this.createHeadersElement();
@@ -35065,6 +38356,7 @@ var ColumnManager = class extends CoreFeature {
     this.element = this.createHeaderElement();
     this.contentsElement.insertBefore(this.headersElement, this.contentsElement.firstChild);
     this.element.insertBefore(this.contentsElement, this.element.firstChild);
+    this.initializeScrollWheelWatcher();
     this.subscribe("scroll-horizontal", this.scrollHorizontal.bind(this));
     this.subscribe("scrollbar-vertical", this.padVerticalScrollbar.bind(this));
   }
@@ -35114,20 +38406,35 @@ var ColumnManager = class extends CoreFeature {
     }
     return el;
   }
+  //return containing element
   getElement() {
     return this.element;
   }
+  //return containing contents element
   getContentsElement() {
     return this.contentsElement;
   }
+  //return header containing element
   getHeadersElement() {
     return this.headersElement;
   }
+  //scroll horizontally to match table body
   scrollHorizontal(left) {
     this.contentsElement.scrollLeft = left;
     this.scrollLeft = left;
     this.renderer.scrollColumns(left);
   }
+  initializeScrollWheelWatcher() {
+    this.contentsElement.addEventListener("wheel", (e) => {
+      var left;
+      if (e.deltaX) {
+        left = this.contentsElement.scrollLeft + e.deltaX;
+        this.table.rowManager.scrollHorizontal(left);
+        this.table.columnManager.scrollHorizontal(left);
+      }
+    });
+  }
+  ///////////// Column Setup Functions /////////////
   generateColumnsFromRowData(data) {
     var cols = [], definitions = this.table.options.autoColumnsDefinitions, row2, sorter2;
     if (data && data.length) {
@@ -35252,6 +38559,7 @@ var ColumnManager = class extends CoreFeature {
       column.reRegisterPosition();
     });
   }
+  //ensure column headers take up the correct amount of space in column groups
   verticalAlignHeaders() {
     var minHeight = 0;
     if (!this.redrawBlock) {
@@ -35272,6 +38580,7 @@ var ColumnManager = class extends CoreFeature {
       this.table.rowManager.adjustTableSize();
     }
   }
+  //////////////// Column Details /////////////////
   findColumn(subject) {
     var columns;
     if (typeof subject == "object") {
@@ -35301,7 +38610,7 @@ var ColumnManager = class extends CoreFeature {
   getColumnsByFieldRoot(root) {
     var matches = [];
     Object.keys(this.columnsByField).forEach((field) => {
-      var fieldRoot = field.split(".")[0];
+      var fieldRoot = this.table.options.nestedFieldSeparator ? field.split(this.table.options.nestedFieldSeparator)[0] : field;
       if (fieldRoot === root) {
         matches.push(this.columnsByField[field]);
       }
@@ -35325,14 +38634,17 @@ var ColumnManager = class extends CoreFeature {
       return column === col;
     });
   }
+  //return all columns that are not groups
   getRealColumns() {
     return this.columnsByIndex;
   }
+  //traverse across columns and call action
   traverse(callback2) {
     this.columnsByIndex.forEach((column, i2) => {
       callback2(column, i2);
     });
   }
+  //get definitions of actual columns
   getDefinitions(active) {
     var output = [];
     this.columnsByIndex.forEach((column) => {
@@ -35342,6 +38654,7 @@ var ColumnManager = class extends CoreFeature {
     });
     return output;
   }
+  //get full nested definition tree
   getDefinitionTree() {
     var output = [];
     this.columns.forEach((column) => {
@@ -35447,6 +38760,7 @@ var ColumnManager = class extends CoreFeature {
       }
     });
   }
+  //////////////// Cell Management /////////////////
   generateCells(row2) {
     var cells = [];
     this.columnsByIndex.forEach((column) => {
@@ -35454,6 +38768,7 @@ var ColumnManager = class extends CoreFeature {
     });
     return cells;
   }
+  //////////////// Column Management /////////////////
   getFlexBaseWidth() {
     var totalWidth = this.table.element.clientWidth, fixedWidth = 0;
     if (this.table.rowManager.element.scrollHeight > this.table.rowManager.element.clientHeight) {
@@ -35492,6 +38807,7 @@ var ColumnManager = class extends CoreFeature {
       resolve2(column);
     });
   }
+  //remove column from system
   deregisterColumn(column) {
     var field = column.getField(), index2;
     if (field) {
@@ -35526,6 +38842,7 @@ var ColumnManager = class extends CoreFeature {
     this.verticalAlignHeaders();
     this.renderer.rerenderColumns(this.redrawBlockUpdate);
   }
+  //redraw columns
   redraw(force) {
     if (Helpers.elVisible(this.element)) {
       this.verticalAlignHeaders();
@@ -35562,13 +38879,25 @@ var BasicVertical = class extends Renderer {
     element.style.visibility = "";
   }
   renderRows() {
-    var element = this.tableElement, onlyGroupHeaders = true;
-    this.rows().forEach((row2, index2) => {
+    var element = this.tableElement, onlyGroupHeaders = true, tableFrag = document.createDocumentFragment(), rows3 = this.rows();
+    rows3.forEach((row2, index2) => {
       this.styleRow(row2, index2);
-      element.appendChild(row2.getElement());
-      row2.initialize(true);
+      row2.initialize(false, true);
       if (row2.type !== "group") {
         onlyGroupHeaders = false;
+      }
+      tableFrag.appendChild(row2.getElement());
+    });
+    element.appendChild(tableFrag);
+    rows3.forEach((row2) => {
+      row2.rendered();
+      if (!row2.heightInitialized) {
+        row2.calcHeight(true);
+      }
+    });
+    rows3.forEach((row2) => {
+      if (!row2.heightInitialized) {
+        row2.setCellHeight();
       }
     });
     if (onlyGroupHeaders) {
@@ -35579,10 +38908,10 @@ var BasicVertical = class extends Renderer {
   }
   rerenderRows(callback2) {
     this.clearRows();
-    this.renderRows();
     if (callback2) {
       callback2();
     }
+    this.renderRows();
   }
   scrollToRowNearestTop(row2) {
     var rowTop = Helpers.elOffset(row2.getElement()).top;
@@ -35616,6 +38945,9 @@ var VirtualDomVertical = class extends Renderer {
     this.vDomTopNewRows = [];
     this.vDomBottomNewRows = [];
   }
+  //////////////////////////////////////
+  ///////// Public Functions ///////////
+  //////////////////////////////////////
   clearRows() {
     var element = this.tableElement;
     while (element.firstChild)
@@ -35666,7 +38998,7 @@ var VirtualDomVertical = class extends Renderer {
       this._virtualRenderFill(topRow === false ? this.rows.length - 1 : topRow, true, topOffset || 0);
     } else {
       this.clear();
-      this.table.rowManager._showPlaceholder();
+      this.table.rowManager.tableEmpty();
     }
     this.scrollColumns(left);
   }
@@ -35753,8 +39085,12 @@ var VirtualDomVertical = class extends Renderer {
     }
     return rows3.slice(topRow, bottomRow + 1);
   }
+  //////////////////////////////////////
+  //////// Internal Rendering //////////
+  //////////////////////////////////////
+  //full virtual render
   _virtualRenderFill(position, forceMove, offset2) {
-    var element = this.tableElement, holder = this.elementVertical, topPad = 0, rowsHeight = 0, heightOccupied = 0, topPadHeight = 0, i2 = 0, rows3 = this.rows(), rowsCount = rows3.length, containerHeight = this.elementVertical.clientHeight;
+    var element = this.tableElement, holder = this.elementVertical, topPad = 0, rowsHeight = 0, rowHeight = 0, heightOccupied = 0, topPadHeight = 0, i2 = 0, rows3 = this.rows(), rowsCount = rows3.length, index2 = 0, row2, rowFragment, renderedRows = [], totalRowsRendered = 0, rowsToRender = 0, fixedHeight = this.table.rowManager.fixedHeight, containerHeight = this.elementVertical.clientHeight, avgRowHeight = this.table.options.rowHeight, resized = true;
     position = position || 0;
     offset2 = offset2 || 0;
     if (!position) {
@@ -35775,29 +39111,67 @@ var VirtualDomVertical = class extends Renderer {
     if (rowsCount && Helpers.elVisible(this.elementVertical)) {
       this.vDomTop = position;
       this.vDomBottom = position - 1;
-      while ((rowsHeight <= containerHeight + this.vDomWindowBuffer || i2 < this.vDomWindowMinTotalRows) && this.vDomBottom < rowsCount - 1) {
-        var index2 = this.vDomBottom + 1, row2 = rows3[index2], rowHeight = 0;
-        this.styleRow(row2, index2);
-        element.appendChild(row2.getElement());
-        row2.initialize();
-        if (!row2.heightInitialized) {
-          row2.normalizeHeight(true);
+      if (fixedHeight || this.table.options.maxHeight) {
+        if (avgRowHeight) {
+          rowsToRender = containerHeight / avgRowHeight + this.vDomWindowBuffer / avgRowHeight;
         }
-        rowHeight = row2.getHeight();
-        if (i2 < topPad) {
-          topPadHeight += rowHeight;
-        } else {
-          rowsHeight += rowHeight;
+        rowsToRender = Math.max(this.vDomWindowMinTotalRows, Math.ceil(rowsToRender));
+      } else {
+        rowsToRender = rowsCount;
+      }
+      while ((rowsToRender == rowsCount || rowsHeight <= containerHeight + this.vDomWindowBuffer || totalRowsRendered < this.vDomWindowMinTotalRows) && this.vDomBottom < rowsCount - 1) {
+        renderedRows = [];
+        rowFragment = document.createDocumentFragment();
+        i2 = 0;
+        while (i2 < rowsToRender && this.vDomBottom < rowsCount - 1) {
+          index2 = this.vDomBottom + 1, row2 = rows3[index2];
+          this.styleRow(row2, index2);
+          row2.initialize(false, true);
+          if (!row2.heightInitialized && !this.table.options.rowHeight) {
+            row2.clearCellHeight();
+          }
+          rowFragment.appendChild(row2.getElement());
+          renderedRows.push(row2);
+          this.vDomBottom++;
+          i2++;
         }
-        if (rowHeight > this.vDomWindowBuffer) {
-          this.vDomWindowBuffer = rowHeight * 2;
+        if (!renderedRows.length) {
+          break;
         }
-        this.vDomBottom++;
-        i2++;
+        element.appendChild(rowFragment);
+        renderedRows.forEach((row3) => {
+          row3.rendered();
+          if (!row3.heightInitialized) {
+            row3.calcHeight(true);
+          }
+        });
+        renderedRows.forEach((row3) => {
+          if (!row3.heightInitialized) {
+            row3.setCellHeight();
+          }
+        });
+        renderedRows.forEach((row3) => {
+          rowHeight = row3.getHeight();
+          if (totalRowsRendered < topPad) {
+            topPadHeight += rowHeight;
+          } else {
+            rowsHeight += rowHeight;
+          }
+          if (rowHeight > this.vDomWindowBuffer) {
+            this.vDomWindowBuffer = rowHeight * 2;
+          }
+          totalRowsRendered++;
+        });
+        resized = this.table.rowManager.adjustTableSize();
+        containerHeight = this.elementVertical.clientHeight;
+        if (resized && (fixedHeight || this.table.options.maxHeight)) {
+          avgRowHeight = rowsHeight / totalRowsRendered;
+          rowsToRender = Math.max(this.vDomWindowMinTotalRows, Math.ceil(containerHeight / avgRowHeight + this.vDomWindowBuffer / avgRowHeight));
+        }
       }
       if (!position) {
         this.vDomTopPad = 0;
-        this.vDomRowHeight = Math.floor((rowsHeight + topPadHeight) / i2);
+        this.vDomRowHeight = Math.floor((rowsHeight + topPadHeight) / totalRowsRendered);
         this.vDomBottomPad = this.vDomRowHeight * (rowsCount - this.vDomBottom - 1);
         this.vDomScrollHeight = topPadHeight + rowsHeight + this.vDomBottomPad - containerHeight;
       } else {
@@ -35810,7 +39184,7 @@ var VirtualDomVertical = class extends Renderer {
         this.scrollTop = this.vDomTopPad + topPadHeight + offset2 - (this.elementVertical.scrollWidth > this.elementVertical.clientWidth ? this.elementVertical.offsetHeight - containerHeight : 0);
       }
       this.scrollTop = Math.min(this.scrollTop, this.elementVertical.scrollHeight - containerHeight);
-      if (this.elementVertical.scrollWidth > this.elementVertical.offsetWidth && forceMove) {
+      if (this.elementVertical.scrollWidth > this.elementVertical.clientWidth && forceMove) {
         this.scrollTop += this.elementVertical.offsetHeight - containerHeight;
       }
       this.vDomScrollPosTop = this.scrollTop;
@@ -36017,6 +39391,7 @@ var RowManager = class extends CoreFeature {
     this.scrollbarWidth = 0;
     this.renderer = null;
   }
+  //////////////// Setup Functions /////////////////
   createHolderElement() {
     var el = document.createElement("div");
     el.classList.add("tabulator-tableholder");
@@ -36031,6 +39406,10 @@ var RowManager = class extends CoreFeature {
   }
   initializePlaceholder() {
     var placeholder = this.table.options.placeholder;
+    if (typeof placeholder === "function") {
+      placeholder = placeholder.call(this.table);
+    }
+    placeholder = this.chain("placeholder", [placeholder], placeholder, placeholder) || placeholder;
     if (placeholder) {
       let el = document.createElement("div");
       el.classList.add("tabulator-placeholder");
@@ -36050,9 +39429,11 @@ var RowManager = class extends CoreFeature {
       this.placeholder = el;
     }
   }
+  //return containing element
   getElement() {
     return this.element;
   }
+  //return table element
   getTableElement() {
     return this.tableElement;
   }
@@ -36077,6 +39458,7 @@ var RowManager = class extends CoreFeature {
       }
     });
   }
+  ////////////////// Row Manipulation //////////////////
   findRow(subject) {
     if (typeof subject == "object") {
       if (subject instanceof Row) {
@@ -36115,6 +39497,7 @@ var RowManager = class extends CoreFeature {
   scrollToRow(row2, position, ifVisible) {
     return this.renderer.scrollToRowPosition(row2, position, ifVisible);
   }
+  ////////////////// Data Handling //////////////////
   setData(data, renderInPosition, columnsChanged) {
     return new Promise((resolve2, reject) => {
       if (renderInPosition && this.getDisplayRows().length) {
@@ -36193,7 +39576,7 @@ var RowManager = class extends CoreFeature {
     this.regenerateRowPositions();
     this.dispatchExternal("rowDeleted", row2.getComponent());
     if (!this.displayRowsCount) {
-      this._showPlaceholder();
+      this.tableEmpty();
     }
     if (this.subscribedExternal("dataChanged")) {
       this.dispatchExternal("dataChanged", this.getData());
@@ -36203,6 +39586,7 @@ var RowManager = class extends CoreFeature {
     var row2 = this.addRowActual(data, pos, index2, blockRedraw);
     return row2;
   }
+  //add multiple rows
   addRows(data, pos, index2, refreshDisplayOnly) {
     var rows3 = [];
     return new Promise((resolve2, reject) => {
@@ -36216,7 +39600,7 @@ var RowManager = class extends CoreFeature {
       data.forEach((item, i2) => {
         var row2 = this.addRow(item, pos, index2, true);
         rows3.push(row2);
-        this.dispatch("row-added", row2, data, pos, index2);
+        this.dispatch("row-added", row2, item, pos, index2);
       });
       this.refreshActiveData(refreshDisplayOnly ? "displayPipeline" : false, false, true);
       this.regenerateRowPositions();
@@ -36418,6 +39802,7 @@ var RowManager = class extends CoreFeature {
       console.error("Display pipeline handlers must have a priority in order to be registered");
     }
   }
+  //set active data set
   refreshActiveData(handler, skipStage, renderInPosition) {
     var table = this.table, stage = "", index2 = 0, cascadeOrder = ["all", "dataPipeline", "display", "displayPipeline", "end"];
     if (!this.table.destroyed) {
@@ -36490,7 +39875,7 @@ var RowManager = class extends CoreFeature {
   }
   refreshPipelines(handler, stage, index2, renderInPosition) {
     this.dispatch("data-refreshing");
-    if (!handler) {
+    if (!handler || !this.activeRowsPipeline[0]) {
       this.activeRowsPipeline[0] = this.rows.slice(0);
     }
     switch (stage) {
@@ -36516,6 +39901,7 @@ var RowManager = class extends CoreFeature {
       this._clearPlaceholder();
     }
   }
+  //regenerate row positions
   regenerateRowPositions() {
     var rows3 = this.getDisplayRows();
     var index2 = 1;
@@ -36527,14 +39913,16 @@ var RowManager = class extends CoreFeature {
     });
   }
   setActiveRows(activeRows) {
-    this.activeRows = activeRows;
+    this.activeRows = this.activeRows = Object.assign([], activeRows);
     this.activeRowsCount = this.activeRows.length;
   }
+  //reset display rows array
   resetDisplayRows() {
     this.displayRows = [];
     this.displayRows.push(this.activeRows.slice(0));
     this.displayRowsCount = this.displayRows[0].length;
   }
+  //set display row pipeline data
   setDisplayRows(displayRows, index2) {
     this.displayRows[index2] = displayRows;
     if (index2 == this.displayRows.length - 1) {
@@ -36555,11 +39943,13 @@ var RowManager = class extends CoreFeature {
     }
     return rows3;
   }
+  //repeat action across display rows
   displayRowIterator(callback2) {
     this.activeRowsPipeline.forEach(callback2);
     this.displayRows.forEach(callback2);
     this.displayRowsCount = this.displayRows[this.displayRows.length - 1].length;
   }
+  //return only actual rows (not group headers etc)
   getRows(type) {
     var rows3 = [];
     switch (type) {
@@ -36577,6 +39967,8 @@ var RowManager = class extends CoreFeature {
     }
     return rows3;
   }
+  ///////////////// Table Rendering /////////////////
+  //trigger rerender of table in current position
   reRenderInPosition(callback2) {
     if (this.redrawBlock) {
       if (callback2) {
@@ -36619,7 +40011,7 @@ var RowManager = class extends CoreFeature {
       this.renderMode = this.table.options.renderVertical;
       this.renderer = new renderClass(this.table, this.element, this.tableElement);
       this.renderer.initialize();
-      if (this.table.element.clientHeight || this.table.options.height) {
+      if ((this.table.element.clientHeight || this.table.options.height) && !(this.table.options.minHeight && this.table.options.maxHeight)) {
         this.fixedHeight = true;
       } else {
         this.fixedHeight = false;
@@ -36639,6 +40031,9 @@ var RowManager = class extends CoreFeature {
       this.renderer.renderRows();
       if (this.firstRender) {
         this.firstRender = false;
+        if (!this.fixedHeight) {
+          this.adjustTableSize();
+        }
         this.layoutRefresh(true);
       }
     } else {
@@ -36654,6 +40049,7 @@ var RowManager = class extends CoreFeature {
     this.scrollBarCheck();
     this.dispatchExternal("renderComplete");
   }
+  //show scrollbars on empty table div
   renderEmptyScroll() {
     if (this.placeholder) {
       this.tableElement.style.display = "none";
@@ -36667,11 +40063,20 @@ var RowManager = class extends CoreFeature {
     this.scrollLeft = 0;
     this.renderer.clearRows();
   }
+  tableEmpty() {
+    this.renderEmptyScroll();
+    this._showPlaceholder();
+  }
   _showPlaceholder() {
     if (this.placeholder) {
+      if (this.placeholder && this.placeholder.parentNode) {
+        this.placeholder.parentNode.removeChild(this.placeholder);
+      }
+      this.initializePlaceholder();
       this.placeholder.setAttribute("tabulator-render-mode", this.renderMode);
       this.getElement().appendChild(this.placeholder);
       this._positionPlaceholder();
+      this.adjustTableSize();
     }
   }
   _clearPlaceholder() {
@@ -36679,6 +40084,7 @@ var RowManager = class extends CoreFeature {
       this.placeholder.parentNode.removeChild(this.placeholder);
     }
     this.tableElement.style.minWidth = "";
+    this.tableElement.style.display = "";
   }
   _positionPlaceholder() {
     if (this.placeholder && this.placeholder.parentNode) {
@@ -36697,20 +40103,24 @@ var RowManager = class extends CoreFeature {
       rowEl.classList.remove("tabulator-row-even");
     }
   }
+  //normalize height of active rows
   normalizeHeight() {
     this.activeRows.forEach(function(row2) {
       row2.normalizeHeight();
     });
   }
+  //adjust the height of the table holder to fit in the Tabulator element
   adjustTableSize() {
-    var initialHeight = this.element.clientHeight, minHeight;
+    let initialHeight = this.element.clientHeight, minHeight;
+    let resized = false;
     if (this.renderer.verticalFillMode === "fill") {
       let otherHeight = Math.floor(this.table.columnManager.getElement().getBoundingClientRect().height + (this.table.footerManager && this.table.footerManager.active && !this.table.footerManager.external ? this.table.footerManager.getElement().getBoundingClientRect().height : 0));
       if (this.fixedHeight) {
         minHeight = isNaN(this.table.options.minHeight) ? this.table.options.minHeight : this.table.options.minHeight + "px";
+        const height = "calc(100% - " + otherHeight + "px)";
         this.element.style.minHeight = minHeight || "calc(100% - " + otherHeight + "px)";
-        this.element.style.height = "calc(100% - " + otherHeight + "px)";
-        this.element.style.maxHeight = "calc(100% - " + otherHeight + "px)";
+        this.element.style.height = height;
+        this.element.style.maxHeight = height;
       } else {
         this.element.style.height = "";
         this.element.style.height = this.table.element.clientHeight - otherHeight + "px";
@@ -36718,6 +40128,7 @@ var RowManager = class extends CoreFeature {
       }
       this.renderer.resize();
       if (!this.fixedHeight && initialHeight != this.element.clientHeight) {
+        resized = true;
         if (this.subscribed("table-resize")) {
           this.dispatch("table-resize");
         } else {
@@ -36727,16 +40138,20 @@ var RowManager = class extends CoreFeature {
       this.scrollBarCheck();
     }
     this._positionPlaceholder();
+    return resized;
   }
+  //reinitialize all rows
   reinitialize() {
     this.rows.forEach(function(row2) {
       row2.reinitialize(true);
     });
   }
+  //prevent table from being redrawn
   blockRedraw() {
     this.redrawBlock = true;
     this.redrawBlockRestoreConfig = false;
   }
+  //restore table redrawing
   restoreRedraw() {
     this.redrawBlock = false;
     if (this.redrawBlockRestoreConfig) {
@@ -36749,13 +40164,15 @@ var RowManager = class extends CoreFeature {
     }
     this.redrawBlockRenderInPosition = false;
   }
+  //redraw table
   redraw(force) {
-    var left = this.scrollLeft;
-    this.adjustTableSize();
+    const resized = this.adjustTableSize();
     this.table.tableWidth = this.table.element.clientWidth;
     if (!force) {
-      this.reRenderInPosition();
-      this.scrollHorizontal(left);
+      if (resized) {
+        this.reRenderInPosition();
+      }
+      this.scrollHorizontal(this.scrollLeft);
     } else {
       this.renderTable();
     }
@@ -37130,6 +40547,9 @@ var DataLoader = class extends CoreFeature {
   }
   load(data, params, config, replace, silent, columnsChanged) {
     var requestNo = ++this.requestOrder;
+    if (this.table.destroyed) {
+      return Promise.resolve();
+    }
     this.dispatchExternal("dataLoading", data);
     if (data && (data.indexOf("{") == 0 || data.indexOf("[") == 0)) {
       data = JSON.parse(data);
@@ -37143,18 +40563,22 @@ var DataLoader = class extends CoreFeature {
       params = this.mapParams(params, this.table.options.dataSendParams);
       var result = this.chain("data-load", [data, params, config, silent], false, Promise.resolve([]));
       return result.then((response) => {
-        if (!Array.isArray(response) && typeof response == "object") {
-          response = this.mapParams(response, this.objectInvert(this.table.options.dataReceiveParams));
-        }
-        var rowData = this.chain("data-loaded", response, null, response);
-        if (requestNo == this.requestOrder) {
-          this.clearAlert();
-          if (rowData !== false) {
-            this.dispatchExternal("dataLoaded", rowData);
-            this.table.rowManager.setData(rowData, replace, typeof columnsChanged === "undefined" ? !replace : columnsChanged);
+        if (!this.table.destroyed) {
+          if (!Array.isArray(response) && typeof response == "object") {
+            response = this.mapParams(response, this.objectInvert(this.table.options.dataReceiveParams));
+          }
+          var rowData = this.chain("data-loaded", response, null, response);
+          if (requestNo == this.requestOrder) {
+            this.clearAlert();
+            if (rowData !== false) {
+              this.dispatchExternal("dataLoaded", rowData);
+              this.table.rowManager.setData(rowData, replace, typeof columnsChanged === "undefined" ? !replace : columnsChanged);
+            }
+          } else {
+            console.warn("Data Load Response Blocked - An active data load request was blocked by an attempt to change table data while the request was being made");
           }
         } else {
-          console.warn("Data Load Response Blocked - An active data load request was blocked by an attempt to change table data while the request was being made");
+          console.warn("Data Load Response Blocked - Table has been destroyed");
         }
       }).catch((error) => {
         console.error("Data Load Error: ", error);
@@ -37668,6 +41092,7 @@ var Layout = class extends Module {
     this.registerColumnOption("widthGrow");
     this.registerColumnOption("widthShrink");
   }
+  //initialize layout system
   initialize() {
     var layout = this.table.options.layout;
     if (Layout.modes[layout]) {
@@ -37677,10 +41102,20 @@ var Layout = class extends Module {
       this.mode = "fitData";
     }
     this.table.element.setAttribute("tabulator-layout", this.mode);
+    this.subscribe("column-init", this.initializeColumn.bind(this));
+  }
+  initializeColumn(column) {
+    if (column.definition.widthGrow) {
+      column.definition.widthGrow = Number(column.definition.widthGrow);
+    }
+    if (column.definition.widthShrink) {
+      column.definition.widthShrink = Number(column.definition.widthShrink);
+    }
   }
   getMode() {
     return this.mode;
   }
+  //trigger table layout
   layout(dataChanged) {
     this.dispatch("layout-refreshing");
     Layout.modes[this.mode].call(this, this.table.columnManager.columnsByIndex, dataChanged);
@@ -37691,6 +41126,7 @@ Layout.moduleName = "layout";
 Layout.modes = defaultModes;
 var defaultLangs = {
   "default": {
+    //hold default locale text
     "groups": {
       "item": "item",
       "items": "items"
@@ -37748,9 +41184,11 @@ var Localize = class extends Module {
     this.registerTableFunction("getLocale", this.getLocale.bind(this));
     this.registerTableFunction("getLang", this.getLang.bind(this));
   }
+  //set header placeholder
   setHeaderFilterPlaceholder(placeholder) {
     this.langList.default.headerFilters.default = placeholder;
   }
+  //setup a lang description object
   installLang(locale, lang) {
     if (this.langList[locale]) {
       this._setLangProp(this.langList[locale], lang);
@@ -37767,6 +41205,7 @@ var Localize = class extends Module {
       }
     }
   }
+  //set current locale
   setLocale(desiredLocale) {
     desiredLocale = desiredLocale || "default";
     function traverseLang(trans, path) {
@@ -37804,16 +41243,20 @@ var Localize = class extends Module {
     this.dispatchExternal("localized", this.locale, this.lang);
     this._executeBindings();
   }
+  //get current locale
   getLocale(locale) {
     return this.locale;
   }
+  //get lang object for given local or current if none provided
   getLang(locale) {
     return locale ? this.langList[locale] : this.lang;
   }
+  //get text for current locale
   getText(path, value) {
     var fillPath = value ? path + "|" + value : path, pathArray = fillPath.split("|"), text = this._getLangElement(pathArray, this.locale);
     return text || "";
   }
+  //traverse langs object and find localized copy
   _getLangElement(path, locale) {
     var root = this.lang;
     path.forEach(function(level) {
@@ -37829,6 +41272,7 @@ var Localize = class extends Module {
     });
     return root;
   }
+  //set update binding
   bind(path, callback2) {
     if (!this.bindings[path]) {
       this.bindings[path] = [];
@@ -37836,6 +41280,7 @@ var Localize = class extends Module {
     this.bindings[path].push(callback2);
     callback2(this.getText(path), this.lang);
   }
+  //iterate through bindings and trigger updates
   _executeBindings() {
     for (let path in this.bindings) {
       this.bindings[path].forEach((binding) => {
@@ -38079,6 +41524,7 @@ var Tabulator = class {
     this.dataLoader.initialize();
     this.footerManager.initialize();
   }
+  //convert deprecated functionality to new functions
   _mapDeprecatedFunctionality() {
   }
   _clearSelection() {
@@ -38094,6 +41540,7 @@ var Tabulator = class {
     }
     this.element.classList.remove("tabulator-block-select");
   }
+  //create table
   _create() {
     this.externalEvents.dispatch("tableBuilding");
     this.eventBus.dispatch("table-building");
@@ -38121,12 +41568,14 @@ var Tabulator = class {
         this.rtl = false;
     }
   }
+  //clear pointers to objects in default config object
   _clearObjectPointers() {
     this.options.columns = this.options.columns.slice(0);
     if (Array.isArray(this.options.data) && !this.options.reactiveData) {
       this.options.data = this.options.data.slice(0);
     }
   }
+  //build tabulator element
   _buildElement() {
     var element = this.element, options = this.options, newElement;
     if (element.tagName === "TABLE") {
@@ -38158,6 +41607,7 @@ var Tabulator = class {
       element.style.maxHeight = options.maxHeight;
     }
   }
+  //initialize core systems and modules
   _initializeTable() {
     var element = this.element, options = this.options;
     this.interactionMonitor.initialize();
@@ -38184,6 +41634,7 @@ var Tabulator = class {
   _loadInitialData() {
     this.dataLoader.load(this.options.data);
   }
+  //deconstructor
   destroy() {
     var element = this.element;
     this.destroyed = true;
@@ -38205,6 +41656,9 @@ var Tabulator = class {
       this.browserSlow = true;
     } else if (ua.indexOf("Firefox") > -1) {
       this.browser = "firefox";
+      this.browserSlow = false;
+    } else if (ua.indexOf("Mac OS") > -1) {
+      this.browser = "safari";
       this.browserSlow = false;
     } else {
       this.browser = "other";
@@ -38228,6 +41682,8 @@ var Tabulator = class {
     }
     return this.initialized;
   }
+  ////////////////// Data Handling //////////////////
+  //block table redrawing
   blockRedraw() {
     this.initGuard();
     this.eventBus.dispatch("redraw-blocking");
@@ -38235,6 +41691,7 @@ var Tabulator = class {
     this.columnManager.blockRedraw();
     this.eventBus.dispatch("redraw-blocked");
   }
+  //restore table redrawing
   restoreRedraw() {
     this.initGuard();
     this.eventBus.dispatch("redraw-restoring");
@@ -38242,25 +41699,31 @@ var Tabulator = class {
     this.columnManager.restoreRedraw();
     this.eventBus.dispatch("redraw-restored");
   }
+  //load data
   setData(data, params, config) {
     this.initGuard(false, "To set initial data please use the 'data' property in the table constructor.");
     return this.dataLoader.load(data, params, config, false);
   }
+  //clear data
   clearData() {
     this.initGuard();
     this.dataLoader.blockActiveLoad();
     this.rowManager.clearData();
   }
+  //get table data array
   getData(active) {
     return this.rowManager.getData(active);
   }
+  //get table data array count
   getDataCount(active) {
     return this.rowManager.getDataCount(active);
   }
+  //replace data, keeping table in position with same sort
   replaceData(data, params, config) {
     this.initGuard();
     return this.dataLoader.load(data, params, config, true, true);
   }
+  //update table data
   updateData(data) {
     var responses = 0;
     this.initGuard();
@@ -38313,6 +41776,7 @@ var Tabulator = class {
       }
     });
   }
+  //update table data
   updateOrAddData(data) {
     var rows3 = [], responses = 0;
     this.initGuard();
@@ -38349,6 +41813,7 @@ var Tabulator = class {
       }
     });
   }
+  //get row object
   getRow(index2) {
     var row2 = this.rowManager.findRow(index2);
     if (row2) {
@@ -38358,6 +41823,7 @@ var Tabulator = class {
       return false;
     }
   }
+  //get row object
   getRowFromPosition(position) {
     var row2 = this.rowManager.getRowFromPosition(position);
     if (row2) {
@@ -38367,6 +41833,7 @@ var Tabulator = class {
       return false;
     }
   }
+  //delete row from table
   deleteRow(index2) {
     var foundRows = [];
     this.initGuard();
@@ -38391,6 +41858,7 @@ var Tabulator = class {
     this.rowManager.reRenderInPosition();
     return Promise.resolve();
   }
+  //add row to table
   addRow(data, pos, index2) {
     this.initGuard();
     if (typeof data === "string") {
@@ -38400,6 +41868,7 @@ var Tabulator = class {
       return rows3[0].getComponent();
     });
   }
+  //update a row if it exists otherwise create it
   updateOrAddRow(index2, data) {
     var row2 = this.rowManager.findRow(index2);
     this.initGuard();
@@ -38416,6 +41885,7 @@ var Tabulator = class {
       });
     }
   }
+  //update row data
   updateRow(index2, data) {
     var row2 = this.rowManager.findRow(index2);
     this.initGuard();
@@ -38431,6 +41901,7 @@ var Tabulator = class {
       return Promise.reject("Update Error - No matching row found");
     }
   }
+  //scroll to row in DOM
   scrollToRow(index2, position, ifVisible) {
     var row2 = this.rowManager.findRow(index2);
     if (row2) {
@@ -38452,6 +41923,7 @@ var Tabulator = class {
   getRows(active) {
     return this.rowManager.getComponents(active);
   }
+  //get position of row in table
   getRowPosition(index2) {
     var row2 = this.rowManager.findRow(index2);
     if (row2) {
@@ -38461,6 +41933,7 @@ var Tabulator = class {
       return false;
     }
   }
+  /////////////// Column Functions  ///////////////
   setColumns(definition) {
     this.initGuard(false, "To set initial columns please use the 'columns' property in the table constructor");
     this.columnManager.setColumns(definition);
@@ -38554,6 +42027,7 @@ var Tabulator = class {
       console.warn("Move Error - No matching column found:", from2);
     }
   }
+  //scroll to column in DOM
   scrollToColumn(field, position, ifVisible) {
     return new Promise((resolve2, reject) => {
       var column = this.columnManager.findColumn(field);
@@ -38565,6 +42039,8 @@ var Tabulator = class {
       }
     });
   }
+  //////////// General Public Functions ////////////
+  //redraw list without updating data
   redraw(force) {
     this.initGuard();
     this.columnManager.redraw(force);
@@ -38576,6 +42052,7 @@ var Tabulator = class {
     this.rowManager.initializeRenderer();
     this.rowManager.redraw();
   }
+  //////////////////// Event Bus ///////////////////
   on(key, callback2) {
     this.externalEvents.subscribe(key, callback2);
   }
@@ -38587,6 +42064,7 @@ var Tabulator = class {
     args.shift();
     this.externalEvents.dispatch(...arguments);
   }
+  //////////////////// Alerts ///////////////////
   alert(contents, type) {
     this.initGuard();
     this.alertManager.alert(contents, type);
@@ -38595,6 +42073,7 @@ var Tabulator = class {
     this.initGuard();
     this.alertManager.clear();
   }
+  ////////////// Extension Management //////////////
   modExists(plugin2, required) {
     if (this.modules[plugin2]) {
       return true;
@@ -38722,7 +42201,7 @@ var defaults2 = {
   monthSelectorType: "dropdown",
   nextArrow: "<svg version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 17 17'><g></g><path d='M13.207 8.472l-7.854 7.854-0.707-0.707 7.146-7.146-7.146-7.148 0.707-0.707 7.854 7.854z' /></svg>",
   noCalendar: false,
-  now: new Date(),
+  now: /* @__PURE__ */ new Date(),
   onChange: [],
   onClose: [],
   onDayCreate: [],
@@ -39101,7 +42580,7 @@ var createDateParser = function(_a) {
       var format = givenFormat || (config || defaults2).dateFormat;
       var datestr = String(date2).trim();
       if (datestr === "today") {
-        parsedDate = new Date();
+        parsedDate = /* @__PURE__ */ new Date();
         timeless = true;
       } else if (config && config.parseDate) {
         parsedDate = config.parseDate(date2, format);
@@ -39125,7 +42604,7 @@ var createDateParser = function(_a) {
           } else if (!isBackSlash)
             regexStr += ".";
         }
-        parsedDate = !config || !config.noCalendar ? new Date(new Date().getFullYear(), 0, 1, 0, 0, 0, 0) : new Date(new Date().setHours(0, 0, 0, 0));
+        parsedDate = !config || !config.noCalendar ? new Date((/* @__PURE__ */ new Date()).getFullYear(), 0, 1, 0, 0, 0, 0) : new Date((/* @__PURE__ */ new Date()).setHours(0, 0, 0, 0));
         ops.forEach(function(_a2) {
           var fn = _a2.fn, val = _a2.val;
           return parsedDate = fn(parsedDate, val, locale) || parsedDate;
@@ -39194,7 +42673,6 @@ function getDefaultHours(config) {
 }
 
 // node_modules/flatpickr/dist/esm/utils/polyfills.js
-"use strict";
 if (typeof Object.assign !== "function") {
   Object.assign = function(target) {
     var args = [];
@@ -39337,7 +42815,7 @@ function FlatpickrInstance(element, instanceConfig) {
   }
   function updateTime(e) {
     if (self2.selectedDates.length === 0) {
-      var defaultDate = self2.config.minDate === void 0 || compareDates(new Date(), self2.config.minDate) >= 0 ? new Date() : new Date(self2.config.minDate.getTime());
+      var defaultDate = self2.config.minDate === void 0 || compareDates(/* @__PURE__ */ new Date(), self2.config.minDate) >= 0 ? /* @__PURE__ */ new Date() : new Date(self2.config.minDate.getTime());
       var defaults3 = getDefaultHours(self2.config);
       defaultDate.setHours(defaults3.hours, defaults3.minutes, defaults3.seconds, defaultDate.getMilliseconds());
       self2.selectedDates = [defaultDate];
@@ -40748,7 +44226,7 @@ function FlatpickrInstance(element, instanceConfig) {
   }
   function setupDates() {
     self2.selectedDates = [];
-    self2.now = self2.parseDate(self2.config.now) || new Date();
+    self2.now = self2.parseDate(self2.config.now) || /* @__PURE__ */ new Date();
     var preloadedDate = self2.config.defaultDate || ((self2.input.nodeName === "INPUT" || self2.input.nodeName === "TEXTAREA") && self2.input.placeholder && self2.input.value === self2.input.placeholder ? null : self2.input.value);
     if (preloadedDate)
       setSelectedDate(preloadedDate, self2.config.dateFormat);
@@ -41034,7 +44512,7 @@ function TimeRangeHook() {
         firstDayOfWeek: 1
       },
       onChange: (selectedDates, dateStr, instance) => {
-        if (selectedDates.length == 2) {
+        if (2 == selectedDates.length) {
           let to2 = DateTime.fromJSDate(selectedDates[1]).plus({ days: 1 }).plus({ seconds: -1 }).toJSDate();
           this.sendNotification({ from: selectedDates[0], to: to2 });
         }
@@ -41043,32 +44521,60 @@ function TimeRangeHook() {
   };
 }
 var time_range_hook_default = TimeRangeHook;
-/*!
- * @kurkle/color v0.2.1
- * https://github.com/kurkle/color#readme
- * (c) 2022 Jukka Kurkela
- * Released under the MIT License
- */
-/*!
- * Chart.js v3.9.1
- * https://www.chartjs.org
- * (c) 2022 Chart.js Contributors
- * Released under the MIT License
- */
-/*!
- * chartjs-adapter-luxon v1.2.0
- * https://www.chartjs.org
- * (c) 2022 chartjs-adapter-luxon Contributors
- * Released under the MIT license
- */
-/*!
-* chartjs-plugin-zoom v1.2.1
-* undefined
- * (c) 2016-2022 chartjs-plugin-zoom Contributors
- * Released under the MIT License
- */
-/*! Hammer.JS - v2.0.7 - 2016-04-22
- * http://hammerjs.github.io/
- *
- * Copyright (c) 2016 Jorik Tangelder;
- * Licensed under the MIT license */
+/*! Bundled license information:
+
+hammerjs/hammer.js:
+  (*! Hammer.JS - v2.0.7 - 2016-04-22
+   * http://hammerjs.github.io/
+   *
+   * Copyright (c) 2016 Jorik Tangelder;
+   * Licensed under the MIT license *)
+
+chart.js/dist/chunks/helpers.segment.mjs:
+  (*!
+   * Chart.js v3.9.1
+   * https://www.chartjs.org
+   * (c) 2022 Chart.js Contributors
+   * Released under the MIT License
+   *)
+
+chart.js/dist/chunks/helpers.segment.mjs:
+  (*!
+   * @kurkle/color v0.2.1
+   * https://github.com/kurkle/color#readme
+   * (c) 2022 Jukka Kurkela
+   * Released under the MIT License
+   *)
+
+chart.js/dist/chart.mjs:
+  (*!
+   * Chart.js v3.9.1
+   * https://www.chartjs.org
+   * (c) 2022 Chart.js Contributors
+   * Released under the MIT License
+   *)
+
+chartjs-adapter-luxon/dist/chartjs-adapter-luxon.esm.js:
+  (*!
+   * chartjs-adapter-luxon v1.3.1
+   * https://www.chartjs.org
+   * (c) 2023 chartjs-adapter-luxon Contributors
+   * Released under the MIT license
+   *)
+
+chart.js/dist/helpers.mjs:
+  (*!
+   * Chart.js v3.9.1
+   * https://www.chartjs.org
+   * (c) 2022 Chart.js Contributors
+   * Released under the MIT License
+   *)
+
+chartjs-plugin-zoom/dist/chartjs-plugin-zoom.esm.js:
+  (*!
+  * chartjs-plugin-zoom v2.0.1
+  * undefined
+   * (c) 2016-2023 chartjs-plugin-zoom Contributors
+   * Released under the MIT License
+   *)
+*/
