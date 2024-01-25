@@ -115,7 +115,7 @@ defmodule Luminous.Panel.Chart do
       <div id={"#{Utils.dom_id(@panel)}-container"} phx-update="ignore">
         <canvas
           id={Utils.dom_id(@panel)}
-          time-range-selector-id={@time_range_selector.id}
+          time-range-selector-id={@dashboard.time_range_selector.id}
           phx-hook={@panel.hook}
         >
         </canvas>

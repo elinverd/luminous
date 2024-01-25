@@ -62,12 +62,7 @@ defmodule Luminous.Components do
 
       <div class="z-0 flex flex-col w-full space-y-8">
         <%= for panel <- @dashboard.panels do %>
-          <.panel
-            panel={panel}
-            data={@data[panel.id]}
-            variables={@dashboard.variables}
-            time_range_selector={@dashboard.time_range_selector}
-          />
+          <.panel panel={panel} data={@data[panel.id]} dashboard={@dashboard} />
         <% end %>
       </div>
     </div>
@@ -80,8 +75,7 @@ defmodule Luminous.Components do
   """
   attr :panel, :map, required: true
   attr :data, :map, required: true
-  attr :variables, :list, required: true
-  attr :time_range_selector, TimeRangeSelector, required: true
+  attr :dashboard, :map, required: true
 
   def panel(assigns) do
     ~H"""
@@ -151,7 +145,7 @@ defmodule Luminous.Components do
 
         <div class="flex flex-row space-x-4">
           <div id={"#{Utils.dom_id(@panel)}-title"} class="text-xl font-medium">
-            <%= Utils.interpolate(@panel.title, @variables) %>
+            <%= Utils.interpolate(@panel.title, @dashboard.variables) %>
           </div>
           <%= unless is_nil(@panel.description) do %>
             <div class="flex flex-col items-center lmn-has-tooltip">
