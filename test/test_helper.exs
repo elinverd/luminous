@@ -1,6 +1,6 @@
 Supervisor.start_link(
   [
-    Luminous.Endpoint
+    Luminous.Test.Endpoint
   ],
   strategy: :one_for_one
 )

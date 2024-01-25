@@ -14,10 +14,10 @@ defmodule Luminous.ConnCase do
       import Luminous.ConnCase
       import Phoenix.LiveViewTest
 
-      alias Luminous.Router.Helpers, as: Routes
+      alias Luminous.Test.Router.Helpers, as: Routes
 
       # The default endpoint for testing
-      @endpoint Luminous.Endpoint
+      @endpoint Luminous.Test.Endpoint
     end
   end
 

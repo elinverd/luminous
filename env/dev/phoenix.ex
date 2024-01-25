@@ -1,23 +1,22 @@
-defmodule Luminous.Router do
+defmodule Luminous.Dev.Router do
   @moduledoc false
 
   use Phoenix.Router
   import Phoenix.LiveView.Router
 
   pipeline :browser do
-    plug :put_root_layout, html: {Luminous.LayoutView, :root}
+    plug :put_root_layout, html: {Luminous.Dev.LayoutView, :root}
     plug :fetch_session
   end
 
   scope "/", Luminous do
     pipe_through :browser
 
-    live "/test", Dashboards.TestDashboardLive, :index
-    live "/demo", Dashboards.DemoDashboardLive, :index
+    live "/", Dev.DashboardLive, :index
   end
 end
 
-defmodule Luminous.Socket do
+defmodule Luminous.Dev.Socket do
   @moduledoc false
 
   use Phoenix.Socket
@@ -31,7 +30,7 @@ defmodule Luminous.Socket do
   def id(_socket), do: nil
 end
 
-defmodule Luminous.Endpoint do
+defmodule Luminous.Dev.Endpoint do
   @moduledoc false
 
   use Phoenix.Endpoint, otp_app: :luminous
@@ -57,10 +56,10 @@ defmodule Luminous.Endpoint do
     only: ~w(assets)
   )
 
-  plug(Luminous.Router)
+  plug(Luminous.Dev.Router)
 end
 
-defmodule Luminous.ErrorView do
+defmodule Luminous.Dev.ErrorView do
   @moduledoc false
 
   use Phoenix.View, root: "test/templates"
@@ -70,13 +69,13 @@ defmodule Luminous.ErrorView do
   end
 end
 
-defmodule Luminous.LayoutView do
+defmodule Luminous.Dev.LayoutView do
   @moduledoc false
 
   use Phoenix.View, root: "dev"
   use Phoenix.Component
 
-  alias Luminous.Router.Helpers, as: Routes
+  alias Luminous.Dev.Router.Helpers, as: Routes
 
   def render("root.html", assigns) do
     ~H"""

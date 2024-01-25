@@ -25,10 +25,10 @@ tasks:
     actions:
       - mix dialyzer
 
-  - name: dev
+  - name: run
     description: run the dev server
     actions:
-      - mix dev
+      - mix run
 
   - name: docs
     description: generate the docs

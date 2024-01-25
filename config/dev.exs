@@ -1,11 +1,11 @@
 import Config
 
-config :luminous, Luminous.Endpoint,
+config :luminous, Luminous.Dev.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "Hu4qQN3iKzTV4fJxhorPQlA/osH9fAMtbtjVS58PFgfw3ja5Z18Q/WSNR9wP4OfW",
   live_view: [signing_salt: "hMegieSe"],
   http: [port: System.get_env("PORT") || 5000],
-  render_errors: [view: Luminous.ErrorView],
+  render_errors: [view: Luminous.Dev.ErrorView],
   code_reloader: true,
   debug_errors: true,
   check_origin: false,

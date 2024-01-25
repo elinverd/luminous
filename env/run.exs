@@ -4,7 +4,7 @@
 
 Task.async(fn ->
   children = [
-    Luminous.Endpoint,
+    Luminous.Dev.Endpoint,
     {Phoenix.PubSub, name: Luminous.PubSub}
   ]
 

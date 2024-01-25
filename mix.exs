@@ -37,8 +37,8 @@ defmodule Luminous.MixProject do
 
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:prod), do: ["lib"]
-  defp elixirc_paths(:dev), do: ["lib", "dev"]
-  defp elixirc_paths(:test), do: ["lib", "dev", "test/support"]
+  defp elixirc_paths(:dev), do: ["lib", "env"]
+  defp elixirc_paths(:test), do: ["lib", "env", "test/support"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
@@ -65,7 +65,7 @@ defmodule Luminous.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "cmd --cd assets npm install"],
-      dev: "run --no-halt dev/run.exs",
+      run: "run --no-halt env/run.exs",
       "assets.build": ["tailwind dist", "esbuild dist"]
     ]
   end

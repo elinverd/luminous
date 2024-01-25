@@ -1,150 +1,10 @@
-defmodule Luminous.Dashboards.DemoDashboardLive do
+defmodule Luminous.Dev.DashboardLive do
   @moduledoc """
   This module demonstrates the functionality of a dashboard using `Luminous.Live`.
   """
 
-  alias Luminous.Router.Helpers, as: Routes
+  alias Luminous.Dev.Router.Helpers, as: Routes
   alias Luminous.{Variable, Query, TimeRange, Components}
-  alias Luminous.Dashboards.DemoDashboardLive.{Queries, Variables}
-
-  # This is where the actual dashboard is defined (compile-time) by
-  # specifying all of its components.
-
-  # In general, a dashboard can have multiple panels and each panel
-  # can have multiple queries. A dashboard also has a set of variables
-  # and a time range component from which the user can select
-  # arbitrary time windows.
-  use Luminous.Live,
-    title: "Demo Dashboard",
-    path: &Routes.demo_dashboard_path/3,
-    action: :index,
-    time_zone: "UTC",
-    panels: [
-      Panel.define!(
-        type: Panel.Chart,
-        id: :simple_time_series,
-        title: "Simple Time Series",
-        queries: [
-          Query.define(:simple_time_series, Queries)
-        ],
-        description: """
-        This is a (possibly) long description of the particular
-        dashboard. It is meant to explain in more depth with the user
-        is seeing, the underlying assumptions etc.
-        """,
-        ylabel: "Description"
-      ),
-      Panel.define!(
-        type: Panel.Table,
-        id: :tabular_data,
-        title: "Tabular Data",
-        queries: [
-          Query.define(:tabular_data_1, Queries),
-          Query.define(:tabular_data_2, Queries)
-        ],
-        description: "This is a panel with tabular data",
-        data_attributes: %{
-          "label" => [title: "Label", order: 0, halign: :center],
-          "foo" => [
-            title: "Foo",
-            order: 1,
-            halign: :right,
-            table_totals: :avg,
-            number_formatting: [
-              thousand_separator: ".",
-              decimal_separator: ",",
-              precision: 1
-            ]
-          ],
-          "bar" => [
-            title: "Bar",
-            order: 2,
-            halign: :right,
-            table_totals: :sum,
-            number_formatting: [
-              thousand_separator: "_",
-              decimal_separator: ".",
-              precision: 4
-            ]
-          ]
-        }
-      ),
-      Panel.define!(
-        type: Panel.Table,
-        id: :selected_regions,
-        title: "Selected Regions",
-        queries: [Query.define(:regions, Queries)],
-        description:
-          "This is a table that displays the selected regions and is dynamically updated every time the variable selection changes",
-        data_attributes: %{
-          "label" => [title: "Label", order: 0],
-          "value" => [title: "Value", order: 1]
-        }
-      ),
-      Panel.define!(
-        type: Panel.Stat,
-        id: :single_stat,
-        title: "Single-stat panel",
-        queries: [Query.define(:single_stat, Queries)],
-        data_attributes: %{
-          "foo" => [title: "Just a date", order: 0]
-        }
-      ),
-      Panel.define!(
-        type: Panel.Stat,
-        id: :multi_stat,
-        title: "This is a multi-stat panel",
-        queries: [
-          Query.define(:string_stat, Queries),
-          Query.define(:more_stats, Queries)
-        ],
-        data_attributes: %{
-          "foo" => [title: "Just a date", order: 0],
-          "var_1" => [title: "Var A", order: 1],
-          "var_2" => [title: "Var B", order: 2]
-        }
-      ),
-      Panel.define!(
-        type: Panel.Chart,
-        id: :multiple_time_series_with_diff,
-        title: "Multiple Time Series with Ordering",
-        queries: [Query.define(:multiple_time_series_with_diff, Queries)],
-        ylabel: "Description",
-        data_attributes: %{
-          "a" => [type: :line, unit: "μCKR", order: 0],
-          "b" => [type: :line, unit: "μFOO", order: 1],
-          "a-b" => [type: :bar, order: 2]
-        }
-      ),
-      Panel.define!(
-        type: Panel.Chart,
-        id: :multiple_time_series_with_stacking,
-        title: "Multiple Time Series with Stacking",
-        queries: [Query.define(:multiple_time_series_with_total, Queries)],
-        ylabel: "Description",
-        stacked_x: true,
-        stacked_y: true,
-        data_attributes: %{
-          "a" => [type: :bar, order: 0],
-          "b" => [type: :bar, order: 1],
-          "total" => [fill: false]
-        }
-      )
-    ],
-    variables: [
-      Variable.define!(id: :multiplier_var, label: "Multiplier", module: Variables),
-      Variable.define!(id: :interval_var, label: "Interval", module: Variables),
-      Variable.define!(id: :region_var, label: "Region", module: Variables, type: :multi)
-    ]
-
-  @impl true
-  def parameters(_socket) do
-    %{param_name: "some_value"}
-  end
-
-  # a live dashboard also needs to specify its default time range
-  @impl true
-  def default_time_range(tz), do: TimeRange.last_n_days(7, tz)
 
   defmodule Variables do
     @moduledoc """
@@ -315,6 +175,145 @@ defmodule Luminous.Dashboards.DemoDashboardLive do
       Luminous.Generator.generate(time_range, multiplier, interval, ["a", "b"])
     end
   end
+
+  # This is where the actual dashboard is defined (compile-time) by
+  # specifying all of its components.
+
+  # In general, a dashboard can have multiple panels and each panel
+  # can have multiple queries. A dashboard also has a set of variables
+  # and a time range component from which the user can select
+  # arbitrary time windows.
+  use Luminous.Live,
+    title: "Demo Dashboard",
+    path: &Routes.dashboard_path/3,
+    action: :index,
+    time_zone: "UTC",
+    panels: [
+      Panel.define!(
+        type: Panel.Chart,
+        id: :simple_time_series,
+        title: "Simple Time Series",
+        queries: [
+          Query.define(:simple_time_series, Queries)
+        ],
+        description: """
+        This is a (possibly) long description of the particular
+        dashboard. It is meant to explain in more depth with the user
+        is seeing, the underlying assumptions etc.
+        """,
+        ylabel: "Description"
+      ),
+      Panel.define!(
+        type: Panel.Table,
+        id: :tabular_data,
+        title: "Tabular Data",
+        queries: [
+          Query.define(:tabular_data_1, Queries),
+          Query.define(:tabular_data_2, Queries)
+        ],
+        description: "This is a panel with tabular data",
+        data_attributes: %{
+          "label" => [title: "Label", order: 0, halign: :center],
+          "foo" => [
+            title: "Foo",
+            order: 1,
+            halign: :right,
+            table_totals: :avg,
+            number_formatting: [
+              thousand_separator: ".",
+              decimal_separator: ",",
+              precision: 1
+            ]
+          ],
+          "bar" => [
+            title: "Bar",
+            order: 2,
+            halign: :right,
+            table_totals: :sum,
+            number_formatting: [
+              thousand_separator: "_",
+              decimal_separator: ".",
+              precision: 4
+            ]
+          ]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Table,
+        id: :selected_regions,
+        title: "Selected Regions",
+        queries: [Query.define(:regions, Queries)],
+        description:
+          "This is a table that displays the selected regions and is dynamically updated every time the variable selection changes",
+        data_attributes: %{
+          "label" => [title: "Label", order: 0],
+          "value" => [title: "Value", order: 1]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Stat,
+        id: :single_stat,
+        title: "Single-stat panel",
+        queries: [Query.define(:single_stat, Queries)],
+        data_attributes: %{
+          "foo" => [title: "Just a date", order: 0]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Stat,
+        id: :multi_stat,
+        title: "This is a multi-stat panel",
+        queries: [
+          Query.define(:string_stat, Queries),
+          Query.define(:more_stats, Queries)
+        ],
+        data_attributes: %{
+          "foo" => [title: "Just a date", order: 0],
+          "var_1" => [title: "Var A", order: 1],
+          "var_2" => [title: "Var B", order: 2]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Chart,
+        id: :multiple_time_series_with_diff,
+        title: "Multiple Time Series with Ordering",
+        queries: [Query.define(:multiple_time_series_with_diff, Queries)],
+        ylabel: "Description",
+        data_attributes: %{
+          "a" => [type: :line, unit: "μCKR", order: 0],
+          "b" => [type: :line, unit: "μFOO", order: 1],
+          "a-b" => [type: :bar, order: 2]
+        }
+      ),
+      Panel.define!(
+        type: Panel.Chart,
+        id: :multiple_time_series_with_stacking,
+        title: "Multiple Time Series with Stacking",
+        queries: [Query.define(:multiple_time_series_with_total, Queries)],
+        ylabel: "Description",
+        stacked_x: true,
+        stacked_y: true,
+        data_attributes: %{
+          "a" => [type: :bar, order: 0],
+          "b" => [type: :bar, order: 1],
+          "total" => [fill: false]
+        }
+      )
+    ],
+    variables: [
+      Variable.define!(id: :multiplier_var, label: "Multiplier", module: Variables),
+      Variable.define!(id: :interval_var, label: "Interval", module: Variables),
+      Variable.define!(id: :region_var, label: "Region", module: Variables, type: :multi)
+    ]
+
+  @impl true
+  def parameters(_socket) do
+    %{param_name: "some_value"}
+  end
+
+  # a live dashboard also needs to specify its default time range
+  @impl true
+  def default_time_range(tz), do: TimeRange.last_n_days(7, tz)
 
   @doc false
   # Here, we make use of the default component (`dashboard`) that

@@ -29,14 +29,10 @@ defmodule Luminous.TimeRangeSelector do
   def hook(), do: "TimeRangeHook"
 
   @doc """
-  Populate the selector's dynamic properties (e.g. current time range) at runtime.
+  Create and return a new selector
   """
-  @spec populate(t(), time_zone()) :: t()
-  def populate(selector, default_time_range) do
-    selector
-    |> Map.put(:current_time_range, default_time_range)
-    |> Map.put(:id, id())
-  end
+  @spec new(t()) :: t()
+  def new(selector), do: Map.put(selector, :id, id())
 
   @doc """
   Updates the current time range of the selector.

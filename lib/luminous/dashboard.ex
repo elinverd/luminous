@@ -53,7 +53,7 @@ defmodule Luminous.Dashboard do
     |> Map.put(:variables, Enum.map(dashboard.variables, &Variable.populate(&1, params)))
     |> Map.put(
       :time_range_selector,
-      TimeRangeSelector.populate(dashboard.time_range_selector, dashboard.time_zone)
+      TimeRangeSelector.new(dashboard.time_range_selector)
     )
   end
 
