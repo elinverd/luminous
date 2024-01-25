@@ -86,7 +86,7 @@ defmodule Luminous.Live do
 
       @impl true
       def handle_event(
-            "time_range_change",
+            "lmn_time_range_change",
             %{"from" => from_iso, "to" => to_iso},
             %{assigns: %{dashboard: dashboard}} = socket
           ) do
@@ -101,7 +101,7 @@ defmodule Luminous.Live do
       end
 
       def handle_event(
-            "preset_time_range_selected",
+            "lmn_preset_time_range_selected",
             %{"preset" => preset},
             %{assigns: %{dashboard: dashboard}} = socket
           ) do
@@ -118,7 +118,7 @@ defmodule Luminous.Live do
       end
 
       def handle_event(
-            "variable_updated",
+            "lmn_variable_updated",
             %{"variable" => variable, "value" => value},
             %{assigns: %{dashboard: dashboard}} = socket
           ) do

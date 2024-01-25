@@ -26,7 +26,7 @@ function TimeRangeHook() {
 
   // send a notification to the live view that the state has changed
   this.sendNotification = function (payload) {
-    this.pushEventTo("#" + this.el.id, "time_range_change", payload)
+    this.pushEventTo("#" + this.el.id, "lmn_time_range_change", payload)
   }
 
   this.setupFlatpickr = function () {

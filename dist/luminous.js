@@ -41023,7 +41023,7 @@ function TimeRangeHook() {
     this.setupFlatpickr();
   };
   this.sendNotification = function(payload) {
-    this.pushEventTo("#" + this.el.id, "time_range_change", payload);
+    this.pushEventTo("#" + this.el.id, "lmn_time_range_change", payload);
   };
   this.setupFlatpickr = function() {
     this.flatpickr = esm_default("#" + this.el.id, {

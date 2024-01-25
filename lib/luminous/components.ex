@@ -238,7 +238,8 @@ defmodule Luminous.Components do
                     class="lmn-time-range-presets-dropdown-item-content"
                     id={"time-range-preset-#{preset}"}
                     phx-click={
-                      Utils.hide_dropdown("preset-dropdown") |> JS.push("preset_time_range_selected")
+                      Utils.hide_dropdown("preset-dropdown")
+                      |> JS.push("lmn_preset_time_range_selected")
                     }
                     phx-value-preset={preset}
                   >
@@ -299,7 +300,7 @@ defmodule Luminous.Components do
                 class="lmn-variable-dropdown-item-content"
                 phx-click={
                   Utils.hide_dropdown("#{@variable.id}-dropdown-content")
-                  |> JS.push("variable_updated")
+                  |> JS.push("lmn_variable_updated")
                 }
                 phx-value-variable={"#{@variable.id}"}
                 phx-value-value={"#{value}"}

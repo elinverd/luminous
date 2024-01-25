@@ -177,7 +177,7 @@ defmodule Luminous.LiveTest do
       # select a different time range
       view
       |> element("#time-range-selector")
-      |> render_hook("time_range_change", %{
+      |> render_hook("lmn_time_range_change", %{
         "from" => DateTime.to_iso8601(from),
         "to" => DateTime.to_iso8601(to)
       })
@@ -283,7 +283,7 @@ defmodule Luminous.LiveTest do
 
       view
       |> element("#multi_var-dropdown")
-      |> render_hook("variable_updated", %{variable: "multi_var", value: ["north"]})
+      |> render_hook("lmn_variable_updated", %{variable: "multi_var", value: ["north"]})
 
       assert_patched(
         view,
@@ -307,7 +307,7 @@ defmodule Luminous.LiveTest do
 
       view
       |> element("#multi_var-dropdown")
-      |> render_hook("variable_updated", %{variable: "multi_var", value: ["north", "south"]})
+      |> render_hook("lmn_variable_updated", %{variable: "multi_var", value: ["north", "south"]})
 
       assert_patched(
         view,
@@ -331,7 +331,7 @@ defmodule Luminous.LiveTest do
 
       view
       |> element("#multi_var-dropdown")
-      |> render_hook("variable_updated", %{variable: "multi_var", value: []})
+      |> render_hook("lmn_variable_updated", %{variable: "multi_var", value: []})
 
       assert_patched(
         view,

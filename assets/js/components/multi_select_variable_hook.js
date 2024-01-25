@@ -22,7 +22,7 @@ function MultiSelectVariableHook() {
     document.getElementById(this.el.id).addEventListener('clickAway', (e) => {
       if (this.state.open) {
         this.state.open = false
-        this.pushEventTo("#" + this.el.id, "variable_updated", {variable: e.detail.var_id, value: this.state.values})
+        this.pushEventTo("#" + this.el.id, "lmn_variable_updated", {variable: e.detail.var_id, value: this.state.values})
       }
     })
   }
