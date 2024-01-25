@@ -35,12 +35,7 @@ defmodule Luminous.Live do
 
         dashboard = Dashboard.populate(dashboard(), params)
 
-        {:ok,
-         assign(socket,
-           dashboard: dashboard,
-           panel_data: %{},
-           panel_statistics: %{}
-         )}
+        {:ok, assign(socket, dashboard: dashboard)}
       end
 
       @impl true
@@ -135,7 +130,7 @@ defmodule Luminous.Live do
 
         socket =
           socket
-          |> assign(panel_data: Map.put(socket.assigns.panel_data, id, panel_data))
+          |> assign(dashboard: Dashboard.update_data(socket.assigns.dashboard, id, panel_data))
           |> push_event("#{Utils.dom_id(panel)}::refresh-data", panel_data)
           |> push_panel_load_event(:end, id)
 

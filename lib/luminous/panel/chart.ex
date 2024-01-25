@@ -1,5 +1,5 @@
 defmodule Luminous.Panel.Chart do
-  alias Luminous.{Attributes, Panel, Utils}
+  alias Luminous.{Attributes, Dashboard, Panel, Utils}
 
   use Panel
 
@@ -120,8 +120,8 @@ defmodule Luminous.Panel.Chart do
         >
         </canvas>
       </div>
-      <%= unless is_nil(@data) do %>
-        <.panel_statistics stats={Enum.map(@data.datasets, & &1.stats)} />
+      <%= if data = Dashboard.get_data(@dashboard, @panel.id) do %>
+        <.panel_statistics stats={Enum.map(data.datasets, & &1.stats)} />
       <% end %>
     </div>
     """

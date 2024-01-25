@@ -39,7 +39,6 @@ defmodule Luminous.Components do
   Additionally, it registers callbacks for reacting to panel loading states.
   """
   attr :dashboard, :map, required: true
-  attr :data, :map, required: true
 
   def dashboard(assigns) do
     ~H"""
@@ -62,7 +61,7 @@ defmodule Luminous.Components do
 
       <div class="z-0 flex flex-col w-full space-y-8">
         <%= for panel <- @dashboard.panels do %>
-          <.panel panel={panel} data={@data[panel.id]} dashboard={@dashboard} />
+          <.panel panel={panel} dashboard={@dashboard} />
         <% end %>
       </div>
     </div>
@@ -74,7 +73,6 @@ defmodule Luminous.Components do
   and then delegating the rendering to the concrete Panel
   """
   attr :panel, :map, required: true
-  attr :data, :map, required: true
   attr :dashboard, :map, required: true
 
   def panel(assigns) do

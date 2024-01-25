@@ -50,6 +50,7 @@ defmodule Luminous.Dashboard do
   @spec populate(t(), map()) :: t()
   def populate(dashboard, params) do
     dashboard
+    |> Map.put(:data, %{})
     |> Map.put(:variables, Enum.map(dashboard.variables, &Variable.populate(&1, params)))
     |> Map.put(
       :time_range_selector,
@@ -88,6 +89,18 @@ defmodule Luminous.Dashboard do
   def update_variables(dashboard, new_variables) do
     %{dashboard | variables: new_variables}
   end
+
+  @doc """
+  Update the dashboard's panel data
+  """
+  @spec update_data(t(), :atom, any()) :: t()
+  def update_data(dashboard, panel_id, data), do: put_in(dashboard, [:data, panel_id], data)
+
+  @doc """
+  return the panel data for the specified panel
+  """
+  @spec get_data(t(), :atom) :: any()
+  def get_data(dashboard, panel_id), do: get_in(dashboard, [:data, panel_id])
 
   @doc """
   Update the dashboard's current time range with a new one.
