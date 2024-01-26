@@ -134,6 +134,8 @@ defmodule ClientApp.DashboardLive do
 
   defmodule Queries do
     @behaviour Luminous.Query
+
+    @impl true
     def query(:my_query, _time_range, _variables) do
       [
         [{:time, ~U[2022-08-19T10:00:00Z]}, {"foo", 10}, {"bar", 100}],
@@ -150,7 +152,7 @@ defmodule ClientApp.DashboardLive do
         id: :simple_time_series,
         title: "Simple Time Series",
         queries: [
-          Query.define(:my_query, Queries)
+          Luminous.Query.define(:my_query, Queries)
         ],
         description: """
         This will be rendered as a tooltip
@@ -187,6 +189,41 @@ multiple (variable type: `:multi`) values.
 Variable selections trigger the refresh of all panels in the
 dashboard. The state of all variables is available within the `query`
 callback that is implemented by the client application.
+
+Just like queries, variables must be included in a module that
+implements the `Luminous.Variable` behaviour:
+
+```elixir
+defmodule ClientApp.DashboardLive do
+
+  defmodule Variables do
+    @behaviour Luminous.Variable
+
+    @impl true
+    def variable(:simple_var, _assigns), do: ["hour", "day", "week"]
+
+    def variable(:descriptive_var, _assigns) do
+      [
+        %{label: "Visible Value 1", value: "val1"},
+        %{label: "Visible Value 2", value: "val2"},
+      ]
+    end
+  end
+
+  use Luminous.Live,
+    ...
+    variables: [
+      Luminous.Variable.define!(id: :simple_var, label: "Select one value", module: Variables),
+      Luminous.Variable.define!(id: :descriptive_var, label: "Select one value", module: Variables),
+    ],
+    ...
+end
+```
+
+The variable callback will receive the live view socket assigns as the
+second argument, however it is important to note that the `variable/2`
+callback is executed once when the dashboard is loaded for populating
+the dropdown values.
 
 ### Demo
 
