@@ -119,8 +119,11 @@ defmodule Luminous.Components do
                 <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" />
               </svg>
             </div>
-            <div id={"#{Utils.dom_id(@panel)}-actions-dropdown"} class="absolute hidden right-0">
-              <ul class="lmn-panel-actions-dropdown">
+            <div
+              id={"#{Utils.dom_id(@panel)}-actions-dropdown"}
+              class="absolute hidden right-0 lmn-panel-actions-dropdown"
+            >
+              <ul>
                 <%= for %{event: event, label: label} <- get_panel_actions(@panel) do %>
                   <li class="lmn-panel-actions-dropdown-item-container">
                     <div
