@@ -1858,6 +1858,7 @@ var require_hammer = __commonJS({
 var luminous_exports = {};
 __export(luminous_exports, {
   ChartJSHook: () => chartjs_hook_default,
+  MultiSelectVariableHook: () => multi_select_variable_hook_default,
   TableHook: () => table_hook_default,
   TimeRangeHook: () => time_range_hook_default
 });
@@ -44521,6 +44522,32 @@ function TimeRangeHook() {
   };
 }
 var time_range_hook_default = TimeRangeHook;
+
+// js/components/multi_select_variable_hook.js
+function MultiSelectVariableHook() {
+  this.mounted = function() {
+    this.state = { open: false, values: null };
+    document.getElementById(this.el.id).addEventListener("dropdownOpen", (e) => {
+      this.state.open = true;
+      this.state.values = e.detail.values;
+    });
+    document.getElementById(this.el.id).addEventListener("valueClicked", (e) => {
+      const index2 = this.state.values.indexOf(e.detail.value);
+      if (index2 > -1) {
+        this.state.values.splice(index2, 1);
+      } else {
+        this.state.values.push(e.detail.value);
+      }
+    });
+    document.getElementById(this.el.id).addEventListener("clickAway", (e) => {
+      if (this.state.open) {
+        this.state.open = false;
+        this.pushEventTo("#" + this.el.id, "lmn_variable_updated", { variable: e.detail.var_id, value: this.state.values });
+      }
+    });
+  };
+}
+var multi_select_variable_hook_default = MultiSelectVariableHook;
 /*! Bundled license information:
 
 hammerjs/hammer.js:

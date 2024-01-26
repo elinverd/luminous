@@ -65,12 +65,13 @@ In order to be able to use the provided components, the library's
 In `assets/js/app.js`:
 
 ```javascript
-import { ChartJSHook, TableHook, TimeRangeHook } from "luminous"
+import { ChartJSHook, TableHook, TimeRangeHook, MultiSelectVariableHook } from "luminous"
 
 let Hooks = {
   TimeRangeHook: new TimeRangeHook(),
   ChartJSHook: new ChartJSHook(),
-  TableHook: new TableHook()
+  TableHook: new TableHook(),
+  MultiSelectVariableHook: new MultiSelectVariableHook()
 }
 
 ...
