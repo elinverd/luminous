@@ -38,8 +38,6 @@ tasks:
 
   - name: build
     description: build the project and the assets
-    depends_on:
-      - deps
     actions:
       - mix compile
       - mix assets.build
