@@ -384,7 +384,6 @@ defmodule Luminous.LiveTest do
         Routes.dashboard_path(conn, :index,
           var1: "a",
           var2: 1,
-          var3: "test_param_val_1",
           multi_var: ["north", "south", "east", "west"],
           from: from,
           to: to
@@ -407,17 +406,16 @@ defmodule Luminous.LiveTest do
       view |> element("#var1-b") |> render_click()
 
       # we use "Europe/Athens" because this is the time zone defined in TestDashboardLive module
-      tr = Luminous.TimeRange.yesterday("Europe/Athens")
+      default = Luminous.TimeRange.default("Europe/Athens")
 
       assert_patched(
         view,
         Routes.dashboard_path(conn, :index,
           var1: "b",
           var2: 1,
-          var3: "test_param_val_1",
           multi_var: ["north", "south", "east", "west"],
-          from: DateTime.to_unix(tr.from),
-          to: DateTime.to_unix(tr.to)
+          from: DateTime.to_unix(default.from),
+          to: DateTime.to_unix(default.to)
         )
       )
 
@@ -428,28 +426,20 @@ defmodule Luminous.LiveTest do
         Routes.dashboard_path(conn, :index,
           var1: "b",
           var2: 3,
-          var3: "test_param_val_1",
           multi_var: ["north", "south", "east", "west"],
-          from: DateTime.to_unix(tr.from),
-          to: DateTime.to_unix(tr.to)
+          from: DateTime.to_unix(default.from),
+          to: DateTime.to_unix(default.to)
         )
       )
-    end
-
-    test "when a variable requires a param from the LV socket", %{conn: conn} do
-      {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
-
-      assert has_element?(view, "#var3-dropdown li", "test_param_val_1")
-      assert has_element?(view, "#var3-dropdown li", "test_param_val_2")
     end
   end
 
   describe "multi-select variables" do
     setup do
       # we use "Europe/Athens" because this is the time zone defined in TestDashboardLive module
-      tr = Luminous.TimeRange.yesterday("Europe/Athens")
+      default = Luminous.TimeRange.default("Europe/Athens")
 
-      %{from: DateTime.to_unix(tr.from), to: DateTime.to_unix(tr.to)}
+      %{from: DateTime.to_unix(default.from), to: DateTime.to_unix(default.to)}
     end
 
     test "when a single value is selected", %{conn: conn, from: from, to: to} do
@@ -466,7 +456,6 @@ defmodule Luminous.LiveTest do
         Routes.dashboard_path(conn, :index,
           var1: "a",
           var2: 1,
-          var3: "test_param_val_1",
           multi_var: ["north"],
           from: from,
           to: to
@@ -490,7 +479,6 @@ defmodule Luminous.LiveTest do
         Routes.dashboard_path(conn, :index,
           var1: "a",
           var2: 1,
-          var3: "test_param_val_1",
           multi_var: ["north", "south"],
           from: from,
           to: to
@@ -514,7 +502,6 @@ defmodule Luminous.LiveTest do
         Routes.dashboard_path(conn, :index,
           var1: "a",
           var2: 1,
-          var3: "test_param_val_1",
           multi_var: "none",
           from: from,
           to: to

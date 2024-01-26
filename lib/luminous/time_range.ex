@@ -2,11 +2,25 @@ defmodule Luminous.TimeRange do
   @moduledoc """
   This module defines a struct with two fields (`:from` and `:to`) to represent a time range.
   Additionally, various helper functions are defined that operate on time ranges.
+
+  It also specifies a behaviour that can be (optionally) implemented
+  by client-side dashboards in order to override the dashboard's
+  default time range (which is "today").
   """
 
   @type t() :: %__MODULE__{from: DateTime.t(), to: DateTime.t()}
+  @type time_zone :: binary()
+
+  @spec default_time_zone() :: time_zone()
+  def default_time_zone(), do: "Europe/Athens"
 
   defstruct [:from, :to]
+
+  @doc """
+  Implement inside a client-side dashboard in order to return the
+  dashboard's default time range.
+  """
+  @callback default_time_range(time_zone()) :: t()
 
   @spec new(DateTime.t(), DateTime.t()) :: t()
   def new(from, to), do: %__MODULE__{from: from, to: to}
@@ -35,7 +49,7 @@ defmodule Luminous.TimeRange do
   @spec to_map(t()) :: map()
   def to_map(time_range), do: Map.from_struct(time_range)
 
-  @spec shift_zone!(t(), binary()) :: t()
+  @spec shift_zone!(t(), time_zone()) :: t()
   def shift_zone!(time_range, time_zone) do
     new(
       DateTime.shift_zone!(time_range.from, time_zone),
@@ -43,7 +57,10 @@ defmodule Luminous.TimeRange do
     )
   end
 
-  @spec today(binary(), DateTime.t() | nil) :: t()
+  @spec default(time_zone()) :: t()
+  def default(tz), do: today(tz)
+
+  @spec today(time_zone(), DateTime.t() | nil) :: t()
   def today(tz, now \\ nil) do
     now = now || DateTime.now!(tz)
     from = round(now, :day)
@@ -51,7 +68,7 @@ defmodule Luminous.TimeRange do
     new(from, to)
   end
 
-  @spec yesterday(binary(), DateTime.t() | nil) :: t()
+  @spec yesterday(time_zone(), DateTime.t() | nil) :: t()
   def yesterday(tz, now \\ nil) do
     now = now || DateTime.now!(tz)
     to = now |> round(:day) |> add(-1, :second)
@@ -59,7 +76,7 @@ defmodule Luminous.TimeRange do
     new(from, to)
   end
 
-  @spec tomorrow(binary(), DateTime.t() | nil) :: t()
+  @spec tomorrow(time_zone(), DateTime.t() | nil) :: t()
   def tomorrow(tz, now \\ nil) do
     now = now || DateTime.now!(tz)
     from = now |> add(1, :day) |> round(:day)
@@ -67,7 +84,7 @@ defmodule Luminous.TimeRange do
     new(from, to)
   end
 
-  @spec last_n_days(non_neg_integer(), binary(), DateTime.t() | nil) :: t()
+  @spec last_n_days(non_neg_integer(), time_zone(), DateTime.t() | nil) :: t()
   def last_n_days(n, tz, now \\ nil) do
     now = now || DateTime.now!(tz)
     to = now |> round(:day) |> add(1, :day) |> add(-1, :second)
@@ -75,7 +92,7 @@ defmodule Luminous.TimeRange do
     new(from, to)
   end
 
-  @spec this_week(binary(), DateTime.t() | nil) :: t()
+  @spec this_week(time_zone(), DateTime.t() | nil) :: t()
   def this_week(tz, now \\ nil) do
     today = DateTime.to_date(now || DateTime.now!(tz))
     from = today |> Date.beginning_of_week() |> DateTime.new!(~T[00:00:00], tz)
@@ -83,7 +100,7 @@ defmodule Luminous.TimeRange do
     new(from, to)
   end
 
-  @spec last_week(binary(), DateTime.t() | nil) :: t()
+  @spec last_week(time_zone(), DateTime.t() | nil) :: t()
   def last_week(tz, now \\ nil) do
     same_day_last_week = (now || DateTime.now!(tz)) |> DateTime.to_date() |> Date.add(-7)
     from = same_day_last_week |> Date.beginning_of_week() |> DateTime.new!(~T[00:00:00], tz)
@@ -91,7 +108,7 @@ defmodule Luminous.TimeRange do
     new(from, to)
   end
 
-  @spec this_month(binary(), DateTime.t() | nil) :: t()
+  @spec this_month(time_zone(), DateTime.t() | nil) :: t()
   def this_month(tz, now \\ nil) do
     now = now || DateTime.now!(tz)
     from = round(now, :month)
@@ -99,7 +116,7 @@ defmodule Luminous.TimeRange do
     new(from, to)
   end
 
-  @spec last_month(binary(), DateTime.t() | nil) :: t()
+  @spec last_month(time_zone(), DateTime.t() | nil) :: t()
   def last_month(tz, now \\ nil) do
     now = now || DateTime.now!(tz)
     to = now |> round(:month) |> add(-1, :second)

@@ -2,7 +2,7 @@ defmodule Luminous.Test.DashboardLive do
   @moduledoc false
 
   alias Luminous.Test.Router.Helpers, as: Routes
-  alias Luminous.{Dashboard, Variable, Query, TimeRange, Components}
+  alias Luminous.{Dashboard, Variable, Query, Components}
 
   defmodule Variables do
     @moduledoc false
@@ -11,14 +11,12 @@ defmodule Luminous.Test.DashboardLive do
     @impl true
     def variable(:var1, _), do: ["a", "b", "c"]
     def variable(:var2, _), do: ["1", "2", "3"]
-    def variable(:var3, %{test_param: values}), do: values
     def variable(:multi_var, _), do: ["north", "south", "east", "west"]
 
     def all(),
       do: [
         Variable.define!(id: :var1, label: "Var 1", module: __MODULE__),
         Variable.define!(id: :var2, label: "Var 2", module: __MODULE__),
-        Variable.define!(id: :var3, label: "Var 3", module: __MODULE__),
         Variable.define!(id: :multi_var, label: "Multi", module: __MODULE__, type: :multi)
       ]
   end
@@ -35,13 +33,10 @@ defmodule Luminous.Test.DashboardLive do
     dashboard =
       schema
       |> Dashboard.define!()
-      |> Dashboard.populate(parameters(socket))
+      |> Dashboard.populate(socket.assigns)
 
     dashboard =
-      Dashboard.update_current_time_range(
-        dashboard,
-        default_time_range(dashboard.time_zone)
-      )
+      Dashboard.update_current_time_range(dashboard, lmn_get_default_time_range(dashboard))
 
     socket =
       socket
@@ -50,14 +45,6 @@ defmodule Luminous.Test.DashboardLive do
 
     {:noreply, socket}
   end
-
-  @impl true
-  def parameters(_socket) do
-    %{test_param: ["test_param_val_1", "test_param_val_2"]}
-  end
-
-  @impl true
-  def default_time_range(tz), do: TimeRange.yesterday(tz)
 
   defmodule Queries do
     @moduledoc false

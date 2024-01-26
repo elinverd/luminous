@@ -6,8 +6,6 @@ defmodule Luminous.TimeRangeSelector do
   """
   alias Luminous.TimeRange
 
-  @type time_zone :: binary()
-
   @type preset :: binary()
 
   @type t :: %__MODULE__{current_time_range: nil | TimeRange.t()}
@@ -52,7 +50,7 @@ defmodule Luminous.TimeRangeSelector do
   Calculates and returns the time range for the given preset in the given
   time zone.
   """
-  @spec get_time_range_for(preset(), time_zone()) :: TimeRange.t() | nil
+  @spec get_time_range_for(preset(), TimeRange.time_zone()) :: TimeRange.t() | nil
   def get_time_range_for(preset, time_zone) do
     case Enum.find(@presets, fn {label, _, _} -> label == preset end) do
       {_, function, args} -> apply(function, List.insert_at(args, -1, time_zone))

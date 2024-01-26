@@ -8,80 +8,57 @@ defmodule Luminous.Live do
   More details and examples in the project README.
   """
 
-  alias Luminous.{Dashboard, Panel, Utils}
-
   defmacro __using__(opts) do
     quote do
       use Phoenix.LiveView
 
-      @behaviour Luminous.Dashboard
-
-      alias Luminous.{
-        Dashboard,
-        Components,
-        Panel,
-        Query,
-        TimeRange,
-        TimeRangeSelector,
-        Variable
-      }
-
-      require Logger
-
-      defp __init_dashboard__(), do: Dashboard.define!(unquote(opts))
+      defp __init__(), do: Luminous.Dashboard.define!(unquote(opts))
 
       @impl true
       def mount(_, _, socket) do
-        params =
-          if function_exported?(__MODULE__, :parameters, 1) do
-            apply(__MODULE__, :parameters, [socket])
-          else
-            %{}
-          end
-
-        dashboard = Dashboard.populate(__init_dashboard__(), params)
+        dashboard = Luminous.Dashboard.populate(__init__(), socket.assigns)
 
         {:ok, assign(socket, dashboard: dashboard)}
       end
 
       @impl true
       def handle_params(params, _uri, socket) do
-        if connected?(socket) do
-          # get time from params
-          time_range = get_time_range(socket.assigns.dashboard, params)
+        socket =
+          if connected?(socket) do
+            # get time from params
+            time_range = lmn_get_time_range(socket.assigns.dashboard, params)
 
-          # get variable values from params
-          variables =
-            Enum.map(
-              socket.assigns.dashboard.variables,
-              &Variable.update_current(&1, params["#{&1.id}"])
-            )
+            # get variable values from params
+            variables =
+              Enum.map(
+                socket.assigns.dashboard.variables,
+                &Luminous.Variable.update_current(&1, params["#{&1.id}"])
+              )
 
-          # update dashboard
-          dashboard =
-            socket.assigns.dashboard
-            |> Dashboard.update_variables(variables)
-            |> Dashboard.update_current_time_range(time_range)
+            # update dashboard
+            dashboard =
+              socket.assigns.dashboard
+              |> Luminous.Dashboard.update_variables(variables)
+              |> Luminous.Dashboard.update_current_time_range(time_range)
 
-          # refresh all panel data
-          socket =
-            Enum.reduce(dashboard.panels, socket, fn panel, sock ->
-              Task.async(fn ->
-                {panel, Panel.refresh(panel, variables, time_range)}
+            # refresh all panel data
+            socket =
+              Enum.reduce(dashboard.panels, socket, fn panel, sock ->
+                Task.async(fn ->
+                  {panel, Luminous.Panel.refresh(panel, variables, time_range)}
+                end)
+
+                lmn_push_panel_load_event(sock, :start, panel.id)
               end)
 
-              push_panel_load_event(sock, :start, panel.id)
-            end)
-
-          socket =
             socket
             |> assign(dashboard: dashboard)
-            |> push_time_range_event(TimeRangeSelector.id(), time_range)
+            |> lmn_push_time_range_event(Luminous.TimeRangeSelector.id(), time_range)
+          else
+            socket
+          end
 
-          {:noreply, socket}
-        else
-          {:noreply, socket}
-        end
+        {:noreply, socket}
       end
 
       @impl true
@@ -91,12 +68,13 @@ defmodule Luminous.Live do
             %{assigns: %{dashboard: dashboard}} = socket
           ) do
         time_range =
-          TimeRange.from_iso(from_iso, to_iso)
-          |> TimeRange.shift_zone!(dashboard.time_zone)
+          Luminous.TimeRange.from_iso(from_iso, to_iso)
+          |> Luminous.TimeRange.shift_zone!(dashboard.time_zone)
 
         {:noreply,
          push_patch(socket,
-           to: Dashboard.path(dashboard, socket, from: time_range.from, to: time_range.to)
+           to:
+             Luminous.Dashboard.path(dashboard, socket, from: time_range.from, to: time_range.to)
          )}
       end
 
@@ -106,14 +84,15 @@ defmodule Luminous.Live do
             %{assigns: %{dashboard: dashboard}} = socket
           ) do
         time_range =
-          case TimeRangeSelector.get_time_range_for(preset, dashboard.time_zone) do
-            nil -> default_time_range(dashboard.time_zone)
+          case Luminous.TimeRangeSelector.get_time_range_for(preset, dashboard.time_zone) do
+            nil -> lmn_get_default_time_range(dashboard.time_zone)
             time_range -> time_range
           end
 
         {:noreply,
          push_patch(socket,
-           to: Dashboard.path(dashboard, socket, from: time_range.from, to: time_range.to)
+           to:
+             Luminous.Dashboard.path(dashboard, socket, from: time_range.from, to: time_range.to)
          )}
       end
 
@@ -126,7 +105,10 @@ defmodule Luminous.Live do
 
         {:noreply,
          push_patch(socket,
-           to: Dashboard.path(dashboard, socket, [{String.to_existing_atom(variable), value}])
+           to:
+             Luminous.Dashboard.path(dashboard, socket, [
+               {String.to_existing_atom(variable), value}
+             ])
          )}
       end
 
@@ -136,9 +118,11 @@ defmodule Luminous.Live do
 
         socket =
           socket
-          |> assign(dashboard: Dashboard.update_data(socket.assigns.dashboard, id, panel_data))
-          |> push_event("#{Utils.dom_id(panel)}::refresh-data", panel_data)
-          |> push_panel_load_event(:end, id)
+          |> assign(
+            dashboard: Luminous.Dashboard.update_data(socket.assigns.dashboard, id, panel_data)
+          )
+          |> push_event("#{Luminous.Utils.dom_id(panel)}::refresh-data", panel_data)
+          |> lmn_push_panel_load_event(:end, id)
 
         {:noreply, socket}
       end
@@ -148,25 +132,33 @@ defmodule Luminous.Live do
         {:noreply, socket}
       end
 
-      defp get_time_range(dashboard, %{"from" => from_unix, "to" => to_unix}) do
-        TimeRange.from_unix(
+      defp lmn_get_time_range(dashboard, %{"from" => from_unix, "to" => to_unix}) do
+        Luminous.TimeRange.from_unix(
           String.to_integer(from_unix),
           String.to_integer(to_unix)
         )
-        |> TimeRange.shift_zone!(dashboard.time_zone)
+        |> Luminous.TimeRange.shift_zone!(dashboard.time_zone)
       end
 
-      defp get_time_range(dashboard, _), do: default_time_range(dashboard.time_zone)
+      defp lmn_get_time_range(dashboard, _), do: lmn_get_default_time_range(dashboard)
 
-      defp push_panel_load_event(socket, :start, panel_id),
+      defp lmn_get_default_time_range(dashboard) do
+        if function_exported?(__MODULE__, :default_time_range, 1) do
+          apply(__MODULE__, :default_time_range, [dashboard.time_zone])
+        else
+          Luminous.TimeRange.default(dashboard.time_zone)
+        end
+      end
+
+      defp lmn_push_panel_load_event(socket, :start, panel_id),
         do: push_event(socket, "panel:load:start", %{id: panel_id})
 
-      defp push_panel_load_event(socket, :end, panel_id),
+      defp lmn_push_panel_load_event(socket, :end, panel_id),
         do: push_event(socket, "panel:load:end", %{id: panel_id})
 
-      defp push_time_range_event(socket, time_range_selector_id, %TimeRange{} = tr) do
+      defp lmn_push_time_range_event(socket, time_range_selector_id, %Luminous.TimeRange{} = tr) do
         topic = "#{time_range_selector_id}::refresh-data"
-        payload = %{time_range: TimeRange.to_map(tr)}
+        payload = %{time_range: Luminous.TimeRange.to_map(tr)}
         push_event(socket, topic, payload)
       end
     end

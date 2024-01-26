@@ -17,6 +17,7 @@ defmodule Luminous.Variable do
 
   @doc """
   A module must implement this behaviour to be passed as an argument to `define!/1`.
+  The function receives the variable id and the LV socket assigns.
   """
   @callback variable(atom(), map()) :: [simple_value() | descriptive_value()]
 
@@ -60,10 +61,10 @@ defmodule Luminous.Variable do
   all of the available values in the case of a multi variable.
   """
   @spec populate(t(), map()) :: t()
-  def populate(var, params) do
+  def populate(var, socket_assigns) do
     values =
       var.module
-      |> apply(:variable, [var.id, params])
+      |> apply(:variable, [var.id, socket_assigns])
       |> Enum.map(fn
         m when is_map(m) -> m
         s when is_binary(s) -> %{label: s, value: s}

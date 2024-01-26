@@ -9,22 +9,6 @@ defmodule Luminous.Dashboard do
 
   alias Luminous.{Attributes, TimeRange, TimeRangeSelector, Variable}
 
-  @doc """
-  The dashboard uses a `TimeRangeSelector` and a default time range must be defined.
-  """
-  @callback default_time_range(binary()) :: TimeRange.t()
-
-  @doc """
-  The consumer can optionally implement this callback, in case they want to
-  inject custom parameters in other callbacks (e.g. `Luminous.Variable` behaviour).
-  Those parameters can be used to scope the callback results.
-  """
-  @callback parameters(Phoenix.LiveView.Socket.t()) :: map()
-
-  @optional_callbacks parameters: 1
-
-  @default_time_zone "Europe/Athens"
-
   @type t :: map()
 
   @attributes [
@@ -34,7 +18,7 @@ defmodule Luminous.Dashboard do
     panels: [type: {:list, :map}, default: []],
     variables: [type: {:list, :map}, default: []],
     time_range_selector: [type: {:struct, TimeRangeSelector}, default: %TimeRangeSelector{}],
-    time_zone: [type: :string, default: @default_time_zone]
+    time_zone: [type: :string, default: TimeRange.default_time_zone()]
   ]
 
   @doc """
@@ -49,10 +33,10 @@ defmodule Luminous.Dashboard do
   Populate the dashboard's dynamic properties (e.g. variable values, time range etc.) at runtime.
   """
   @spec populate(t(), map()) :: t()
-  def populate(dashboard, params) do
+  def populate(dashboard, socket_assigns) do
     dashboard
     |> Map.put(:data, %{})
-    |> Map.put(:variables, Enum.map(dashboard.variables, &Variable.populate(&1, params)))
+    |> Map.put(:variables, Enum.map(dashboard.variables, &Variable.populate(&1, socket_assigns)))
     |> Map.put(
       :time_range_selector,
       TimeRangeSelector.new(dashboard.time_range_selector)

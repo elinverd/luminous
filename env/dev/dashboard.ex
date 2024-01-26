@@ -3,7 +3,7 @@ defmodule Luminous.Dev.DashboardLive do
   # This module demonstrates the functionality of a dashboard using `Luminous.Live`.
 
   alias Luminous.Dev.Router.Helpers, as: Routes
-  alias Luminous.{Variable, Query, TimeRange, Components}
+  alias Luminous.{Variable, Query, Components}
 
   defmodule Variables do
     @moduledoc false
@@ -22,13 +22,11 @@ defmodule Luminous.Dev.DashboardLive do
 
     @behaviour Variable
     @impl true
-    def variable(:multiplier_var, %{param_name: _some_value}) do
-      # `_some_value` can be used here in order to scope the variable values.
-      # See `Luminous.Dashboards.parameters/1` callback.
+    def variable(:multiplier_var, _) do
       ["1", "10", "100"]
     end
 
-    def variable(:interval_var, %{param_name: _some_value}), do: ["hour", "day"]
+    def variable(:interval_var, _), do: ["hour", "day"]
 
     def variable(:region_var, _), do: ["north", "south", "east", "west"]
     def variable(:region_var2, _), do: ["north2", "south2", "east2", "west2"]
@@ -175,6 +173,7 @@ defmodule Luminous.Dev.DashboardLive do
 
   # This is where the actual dashboard is defined (compile-time) by
   # specifying all of its components.
+  alias Luminous.{Components, Panel, Query, Variable}
 
   # In general, a dashboard can have multiple panels and each panel
   # can have multiple queries. A dashboard also has a set of variables
@@ -302,15 +301,6 @@ defmodule Luminous.Dev.DashboardLive do
       Variable.define!(id: :interval_var, label: "Interval", module: Variables),
       Variable.define!(id: :region_var, label: "Region", module: Variables, type: :multi)
     ]
-
-  @impl true
-  def parameters(_socket) do
-    %{param_name: "some_value"}
-  end
-
-  # a live dashboard also needs to specify its default time range
-  @impl true
-  def default_time_range(tz), do: TimeRange.last_n_days(7, tz)
 
   @doc false
   # Here, we make use of the default component (`dashboard`) that

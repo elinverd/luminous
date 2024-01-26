@@ -109,10 +109,6 @@ defmodule ClientApp.DashboardLive do
       ...
     ]
 
-  # we also need to implement the `Luminous.Dashboard` behaviour
-  @impl true
-  def default_time_range(tz), do: Luminous.TimeRange.today(tz)
-
   # the dashboard can be rendered by leveraging the corresponding functionality
   # from `Luminous.Components`
   def render(assigns) do
@@ -122,6 +118,10 @@ defmodule ClientApp.DashboardLive do
   end
 end
 ```
+
+The client-side dashboard can also (optionally) implement the
+`Luminous.TimeRange` behaviour in order to override the dashboard's
+default time range value which is "today".
 
 ### Panels and Queries
 
