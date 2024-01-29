@@ -21,7 +21,6 @@ defmodule Luminous.Panel do
   use Phoenix.Component
 
   alias Luminous.{Attributes, Dashboard, Query, TimeRange, Variable}
-  alias Luminous.Query
 
   defmacro __using__(_opts) do
     quote do
