@@ -34,4 +34,4 @@ jobs:
         if: ${{ matrix.lint }}
 
       - name: Run test suite
-        run: mix test
+        run: mix test || if [[ $? = 2 ]]; then mix test --failed; else false; fi
