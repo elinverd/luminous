@@ -84,7 +84,7 @@ defmodule Luminous.Panel do
   @spec define!(Keyword.t()) :: t()
   def define!(opts \\ []) do
     mod = fetch_panel_module!(opts)
-    schema = Attributes.Schema.panel() ++ get_attributes!(mod, :panel_attributes)
+    schema = Keyword.merge(Attributes.Schema.panel(), get_attributes!(mod, :panel_attributes))
 
     case Attributes.parse(opts, schema) do
       {:ok, panel} ->
@@ -119,7 +119,8 @@ defmodule Luminous.Panel do
   end
 
   defp validate_data_attributes!(panel) do
-    schema = Attributes.Schema.data() ++ get_attributes!(panel.type, :data_attributes)
+    schema =
+      Keyword.merge(Attributes.Schema.data(), get_attributes!(panel.type, :data_attributes))
 
     panel.data_attributes
     |> Enum.map(fn {label, attrs} -> {label, Attributes.parse!(attrs, schema)} end)

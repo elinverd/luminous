@@ -23,6 +23,7 @@ defmodule Luminous.Attributes do
         type: [type: :atom, required: true],
         id: [type: :atom, required: true],
         title: [type: :string, default: ""],
+        hook: [type: {:or, [:string, nil]}, default: nil],
         queries: [type: {:list, {:struct, Query}}],
         description: [type: {:or, [:string, nil]}, default: nil],
         attributes: [type: :keyword_list, default: []],

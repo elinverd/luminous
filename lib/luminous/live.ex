@@ -121,8 +121,12 @@ defmodule Luminous.Live do
           |> assign(
             dashboard: Luminous.Dashboard.update_data(socket.assigns.dashboard, id, panel_data)
           )
-          |> push_event("#{Luminous.Utils.dom_id(panel)}::refresh-data", panel_data)
           |> lmn_push_panel_load_event(:end, id)
+
+        socket =
+          if is_nil(panel.hook),
+            do: socket,
+            else: push_event(socket, "#{Luminous.Utils.dom_id(panel)}::refresh-data", panel_data)
 
         {:noreply, socket}
       end

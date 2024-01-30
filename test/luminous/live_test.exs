@@ -279,6 +279,38 @@ defmodule Luminous.LiveTest do
       assert view |> element("#panel-p11-stat-values") |> render() =~ ">-<"
     end
 
+    test "does not push the event in the case of the stat panel", %{conn: conn} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index,
+        panels: [
+          Panel.define!(
+            type: Panel.Stat,
+            id: :p2,
+            title: "Panel 2",
+            queries: [Query.define(:q2, Queries)],
+            data_attributes: %{
+              "foo" => [unit: "$", title: "Bar ($)"]
+            }
+          )
+        ]
+      ]
+
+      {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+      set_dashboard(view, dashboard)
+
+      # let's assert that we will not receive the message in the case of the Stat panel
+      # not the most solid of tests but with a timeout of 500ms it should do the job
+
+      assert %{proxy: {ref, _topic, _}} = view
+
+      refute_receive {^ref,
+                      {:push_event, "panel-p2::refresh-data",
+                       %{stats: [%{title: "Bar ($)", unit: "$", value: 666}]}}},
+                     200
+    end
+
     test "sends the correct data to the table panel", %{conn: conn} do
       dashboard = [
         title: "Test",
