@@ -58,8 +58,6 @@ defmodule Luminous.Panel do
   """
   @callback actions() :: [%{event: binary(), label: binary()}]
 
-  @optional_callbacks actions: 0
-
   @doc """
   Define custom attributes specific to the concrete panel type
   These will be used to parse, validate and populate the client's input
@@ -71,6 +69,8 @@ defmodule Luminous.Panel do
   These will be used to parse, validate and populate the client's input
   """
   @callback data_attributes() :: Attributes.Schema.t()
+
+  @optional_callbacks panel_attributes: 0, data_attributes: 0, actions: 0
 
   @doc """
 
@@ -84,7 +84,7 @@ defmodule Luminous.Panel do
   @spec define!(Keyword.t()) :: t()
   def define!(opts \\ []) do
     mod = fetch_panel_module!(opts)
-    schema = Attributes.Schema.panel() ++ apply(mod, :panel_attributes, [])
+    schema = Attributes.Schema.panel() ++ get_attributes!(mod, :panel_attributes)
 
     case Attributes.parse(opts, schema) do
       {:ok, panel} ->
@@ -119,10 +119,27 @@ defmodule Luminous.Panel do
   end
 
   defp validate_data_attributes!(panel) do
-    schema = Attributes.Schema.data() ++ apply(panel.type, :data_attributes, [])
+    schema = Attributes.Schema.data() ++ get_attributes!(panel.type, :data_attributes)
 
     panel.data_attributes
     |> Enum.map(fn {label, attrs} -> {label, Attributes.parse!(attrs, schema)} end)
     |> Map.new()
+  end
+
+  defp get_attributes!(panel_type, attribute_type) do
+    # first, we need to ensure that the module `panel_type` is loaded
+    # because if it isn't then function_exported?/3 will return false
+    # even if the module is defined
+    panel_type =
+      case Code.ensure_loaded(panel_type) do
+        {:module, mod} -> mod
+        {:error, reason} -> raise "failed to load module #{panel_type}: #{reason}"
+      end
+
+    if function_exported?(panel_type, attribute_type, 0) do
+      apply(panel_type, attribute_type, [])
+    else
+      []
+    end
   end
 end

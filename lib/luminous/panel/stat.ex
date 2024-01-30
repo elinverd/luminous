@@ -6,12 +6,6 @@ defmodule Luminous.Panel.Stat do
   use Luminous.Panel
 
   @impl true
-  def data_attributes(), do: []
-
-  @impl true
-  def panel_attributes(), do: []
-
-  @impl true
   # do we have a single number?
   def transform(n, _panel) when is_number(n) or Decimal.is_decimal(n) do
     [%{title: nil, value: n, unit: nil}]
