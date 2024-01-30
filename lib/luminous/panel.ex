@@ -38,10 +38,10 @@ defmodule Luminous.Panel do
   @callback transform(Query.result(), t()) :: any()
 
   @doc """
-  aggregate all transformed results to a single structure
+  aggregate all transformed results to a single map
   that will be sent for visualization
   """
-  @callback reduce(list(), t(), Dashboard.t()) :: any()
+  @callback reduce(list(), t(), Dashboard.t()) :: map()
 
   @doc """
   The phoenix function component that renders the panel. The panel's
