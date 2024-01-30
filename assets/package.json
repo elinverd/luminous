@@ -1,6 +1,6 @@
 {
   "name": "luminous",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "description": "The JavaScript client for the Luminous framework.",
   "license": "MIT",
   "main": "./assets/js/app.js",
