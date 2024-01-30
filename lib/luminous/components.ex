@@ -48,7 +48,7 @@ defmodule Luminous.Components do
         <div class="pb-4 text-4xl font-bold text-center "><%= @dashboard.title %></div>
         <div class="flex flex-col md:flex-row justify-between">
           <div class="flex space-x-2 items-center">
-            <%= for var <- @dashboard.variables do %>
+            <%= for var <- @dashboard.variables, !var.hidden do %>
               <.variable variable={var} />
             <% end %>
           </div>

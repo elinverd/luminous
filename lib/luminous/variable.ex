@@ -30,7 +30,8 @@ defmodule Luminous.Variable do
     id: [type: :atom, required: true],
     label: [type: :string, required: true],
     module: [type: :atom, required: true],
-    type: [type: {:in, [:single, :multi]}, default: :single]
+    type: [type: {:in, [:single, :multi]}, default: :single],
+    hidden: [type: :boolean, default: false]
   ]
 
   @doc """

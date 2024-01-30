@@ -1,7 +1,7 @@
 defmodule Luminous.LiveTest do
   use Luminous.ConnCase, async: true
 
-  alias Luminous.{Attributes, Query, Panel}
+  alias Luminous.{Attributes, Query, Panel, Variable}
 
   alias Luminous.Test.DashboardLive.{Queries, Variables}
 
@@ -431,6 +431,27 @@ defmodule Luminous.LiveTest do
           to: DateTime.to_unix(default.to)
         )
       )
+    end
+
+    test "should not display hidden variables", %{conn: conn} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index,
+        variables: [
+          Variable.define!(id: :var1, label: "Var 1", module: Variables),
+          Variable.define!(id: :var2, label: "Var 2", module: Variables, hidden: true),
+          Variable.define!(id: :multi_var, label: "Multi", module: Variables)
+        ]
+      ]
+
+      {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+
+      set_dashboard(view, dashboard)
+
+      assert has_element?(view, "#var1-dropdown")
+      refute has_element?(view, "#var2-dropdown")
+      assert has_element?(view, "#multi_var-dropdown")
     end
   end
 
