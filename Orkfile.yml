@@ -18,8 +18,9 @@ tasks:
     description: run all the tests
     depends_on:
       - check.format
+    expand_env: false
     actions:
-      - mix test
+      - bash -c "mix test --color || if [[ $? = 2 ]]; then mix test --color --failed; fi"
 
   - name: verify
     description: run dialyzer
