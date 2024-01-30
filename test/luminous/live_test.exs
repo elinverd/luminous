@@ -3,7 +3,82 @@ defmodule Luminous.LiveTest do
 
   alias Luminous.{Attributes, Query, Panel, Variable}
 
-  alias Luminous.Test.DashboardLive.{Queries, Variables}
+  defmodule Variables do
+    @moduledoc false
+
+    @behaviour Variable
+    @impl true
+    def variable(:var1, _), do: ["a", "b", "c"]
+    def variable(:var2, _), do: ["1", "2", "3"]
+    def variable(:multi_var, _), do: ["north", "south", "east", "west"]
+    def variable(:empty, _), do: []
+  end
+
+  defmodule Queries do
+    @moduledoc false
+
+    @behaviour Query
+    @impl true
+    def query(:q1, _time_range, _variables) do
+      [
+        [{:time, ~U[2022-08-19T10:00:00Z]}, {"foo", 10}, {"bar", 100}],
+        [{:time, ~U[2022-08-19T11:00:00Z]}, {"foo", 11}, {"bar", 101}]
+      ]
+    end
+
+    def query(:q2, _time_range, _variables) do
+      %{"foo" => 666}
+    end
+
+    def query(:q3, time_range, _variables) do
+      val =
+        if DateTime.compare(time_range.to, ~U[2022-09-24T20:59:59Z]) == :eq do
+          666
+        else
+          Decimal.new(0)
+        end
+
+      %{foo: val}
+    end
+
+    def query(:q4, _time_range, _variables) do
+      %{"foo" => 666}
+    end
+
+    def query(:q5, _time_range, _variables) do
+      %{"foo" => 66, "bar" => 88}
+    end
+
+    def query(:q6, _time_range, _variables) do
+      %{"str" => "Just show this"}
+    end
+
+    def query(:q7, _time_range, _variables) do
+      [
+        %{"label" => "row1", "foo" => 3, "bar" => 88},
+        %{"label" => "row2", "foo" => 4, "bar" => 99}
+      ]
+    end
+
+    def query(:q8, _time_range, _variables) do
+      11
+    end
+
+    def query(:q9, _time_range, _variables) do
+      []
+    end
+
+    def query(:q10, _time_range, _variables) do
+      [
+        {"foo", "452,64"},
+        {"bar", "260.238,4"}
+      ]
+    end
+
+    def query(:q11, _time_range, _variables) do
+      [{"foo", nil}]
+    end
+  end
 
   def set_dashboard(view, dashboard), do: send(view.pid, {self(), {:dashboard, dashboard}})
 
@@ -25,8 +100,7 @@ defmodule Luminous.LiveTest do
               "bar" => [type: :bar, unit: "μCKR"]
             }
           )
-        ],
-        variables: Variables.all()
+        ]
       ]
 
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
@@ -165,8 +239,7 @@ defmodule Luminous.LiveTest do
             title: "Panel 11 (nil stat)",
             queries: [Query.define(:q11, Queries)]
           )
-        ],
-        variables: Variables.all()
+        ]
       ]
 
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
@@ -233,8 +306,7 @@ defmodule Luminous.LiveTest do
               ]
             }
           )
-        ],
-        variables: Variables.all()
+        ]
       ]
 
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
@@ -304,8 +376,7 @@ defmodule Luminous.LiveTest do
               "foo" => [unit: "$", title: "Bar ($)"]
             }
           )
-        ],
-        variables: Variables.all()
+        ]
       ]
 
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
@@ -335,8 +406,7 @@ defmodule Luminous.LiveTest do
               foo: [unit: "$", title: "Bar ($)"]
             }
           )
-        ],
-        variables: Variables.all()
+        ]
       ]
 
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
@@ -363,7 +433,18 @@ defmodule Luminous.LiveTest do
     end
 
     test "when a time range preset is selected", %{conn: conn} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index,
+        variables: [
+          Variable.define!(id: :var1, label: "Var 1", module: Variables)
+        ]
+      ]
+
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+
+      set_dashboard(view, dashboard)
 
       view
       |> element("#time-range-preset-Yesterday")
@@ -383,8 +464,6 @@ defmodule Luminous.LiveTest do
         view,
         Routes.dashboard_path(conn, :index,
           var1: "a",
-          var2: 1,
-          multi_var: ["north", "south", "east", "west"],
           from: from,
           to: to
         )
@@ -394,14 +473,38 @@ defmodule Luminous.LiveTest do
 
   describe "variables" do
     test "displays all current variable values", %{conn: conn} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index,
+        variables: [
+          Variable.define!(id: :var1, label: "Var 1", module: Variables),
+          Variable.define!(id: :var2, label: "Var 2", module: Variables)
+        ]
+      ]
+
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+
+      set_dashboard(view, dashboard)
 
       assert has_element?(view, "#var1-dropdown li", "a")
       assert has_element?(view, "#var2-dropdown li", "1")
     end
 
     test "when a variable value is selected", %{conn: conn} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index,
+        variables: [
+          Variable.define!(id: :var1, label: "Var 1", module: Variables),
+          Variable.define!(id: :var2, label: "Var 2", module: Variables)
+        ]
+      ]
+
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+
+      set_dashboard(view, dashboard)
 
       view |> element("#var1-b") |> render_click()
 
@@ -413,7 +516,6 @@ defmodule Luminous.LiveTest do
         Routes.dashboard_path(conn, :index,
           var1: "b",
           var2: 1,
-          multi_var: ["north", "south", "east", "west"],
           from: DateTime.to_unix(default.from),
           to: DateTime.to_unix(default.to)
         )
@@ -426,7 +528,6 @@ defmodule Luminous.LiveTest do
         Routes.dashboard_path(conn, :index,
           var1: "b",
           var2: 3,
-          multi_var: ["north", "south", "east", "west"],
           from: DateTime.to_unix(default.from),
           to: DateTime.to_unix(default.to)
         )
@@ -453,6 +554,24 @@ defmodule Luminous.LiveTest do
       refute has_element?(view, "#var2-dropdown")
       assert has_element?(view, "#multi_var-dropdown")
     end
+
+    test "should handle current variable value that is nil", %{conn: conn} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index,
+        variables: [
+          Variable.define!(id: :var1, label: "Var 1", module: Variables),
+          Variable.define!(id: :empty, label: "Empty", module: Variables)
+        ]
+      ]
+
+      {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+
+      set_dashboard(view, dashboard)
+
+      assert view |> element("#empty-dropdown-label") |> render() =~ ">Empty: <"
+    end
   end
 
   describe "multi-select variables" do
@@ -464,7 +583,18 @@ defmodule Luminous.LiveTest do
     end
 
     test "when a single value is selected", %{conn: conn, from: from, to: to} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index,
+        variables: [
+          Variable.define!(id: :multi_var, type: :multi, label: "Multi", module: Variables)
+        ]
+      ]
+
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+
+      set_dashboard(view, dashboard)
 
       assert has_element?(view, "#multi_var-dropdown", "Multi: All")
 
@@ -475,8 +605,6 @@ defmodule Luminous.LiveTest do
       assert_patched(
         view,
         Routes.dashboard_path(conn, :index,
-          var1: "a",
-          var2: 1,
           multi_var: ["north"],
           from: from,
           to: to
@@ -487,7 +615,18 @@ defmodule Luminous.LiveTest do
     end
 
     test "when two values are selected", %{conn: conn, from: from, to: to} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index,
+        variables: [
+          Variable.define!(id: :multi_var, type: :multi, label: "Multi", module: Variables)
+        ]
+      ]
+
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+
+      set_dashboard(view, dashboard)
 
       assert has_element?(view, "#multi_var-dropdown", "Multi: All")
 
@@ -498,8 +637,6 @@ defmodule Luminous.LiveTest do
       assert_patched(
         view,
         Routes.dashboard_path(conn, :index,
-          var1: "a",
-          var2: 1,
           multi_var: ["north", "south"],
           from: from,
           to: to
@@ -510,7 +647,18 @@ defmodule Luminous.LiveTest do
     end
 
     test "when no value is selected", %{conn: conn, from: from, to: to} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index,
+        variables: [
+          Variable.define!(id: :multi_var, type: :multi, label: "Multi", module: Variables)
+        ]
+      ]
+
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+
+      set_dashboard(view, dashboard)
 
       assert has_element?(view, "#multi_var-dropdown", "Multi: All")
 
@@ -520,13 +668,7 @@ defmodule Luminous.LiveTest do
 
       assert_patched(
         view,
-        Routes.dashboard_path(conn, :index,
-          var1: "a",
-          var2: 1,
-          multi_var: "none",
-          from: from,
-          to: to
-        )
+        Routes.dashboard_path(conn, :index, multi_var: "none", from: from, to: to)
       )
 
       assert has_element?(view, "#multi_var-dropdown", "Multi: None")

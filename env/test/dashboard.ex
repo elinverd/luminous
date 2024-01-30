@@ -2,33 +2,17 @@ defmodule Luminous.Test.DashboardLive do
   @moduledoc false
 
   alias Luminous.Test.Router.Helpers, as: Routes
-  alias Luminous.{Dashboard, Variable, Query, Components}
-
-  defmodule Variables do
-    @moduledoc false
-
-    @behaviour Variable
-    @impl true
-    def variable(:var1, _), do: ["a", "b", "c"]
-    def variable(:var2, _), do: ["1", "2", "3"]
-    def variable(:multi_var, _), do: ["north", "south", "east", "west"]
-
-    def all(),
-      do: [
-        Variable.define!(id: :var1, label: "Var 1", module: __MODULE__),
-        Variable.define!(id: :var2, label: "Var 2", module: __MODULE__),
-        Variable.define!(id: :multi_var, label: "Multi", module: __MODULE__, type: :multi)
-      ]
-  end
+  alias Luminous.{Dashboard, Components}
 
   use Luminous.Live,
-    title: "Test Dashboard",
+    title: "This will be overriden by the tests",
     path: &Routes.dashboard_path/3,
     action: :index,
-    time_zone: "Europe/Athens",
-    variables: Variables.all()
+    time_zone: "Europe/Athens"
 
   @impl true
+  # this function will be called from the tests in order
+  # to set up the entire dashboard
   def handle_info({_task_ref, {:dashboard, schema}}, socket) do
     dashboard =
       schema
@@ -44,72 +28,6 @@ defmodule Luminous.Test.DashboardLive do
       |> push_patch(to: Dashboard.path(dashboard, socket, []))
 
     {:noreply, socket}
-  end
-
-  defmodule Queries do
-    @moduledoc false
-
-    @behaviour Query
-    @impl true
-    def query(:q1, _time_range, _variables) do
-      [
-        [{:time, ~U[2022-08-19T10:00:00Z]}, {"foo", 10}, {"bar", 100}],
-        [{:time, ~U[2022-08-19T11:00:00Z]}, {"foo", 11}, {"bar", 101}]
-      ]
-    end
-
-    def query(:q2, _time_range, _variables) do
-      %{"foo" => 666}
-    end
-
-    def query(:q3, time_range, _variables) do
-      val =
-        if DateTime.compare(time_range.to, ~U[2022-09-24T20:59:59Z]) == :eq do
-          666
-        else
-          Decimal.new(0)
-        end
-
-      %{foo: val}
-    end
-
-    def query(:q4, _time_range, _variables) do
-      %{"foo" => 666}
-    end
-
-    def query(:q5, _time_range, _variables) do
-      %{"foo" => 66, "bar" => 88}
-    end
-
-    def query(:q6, _time_range, _variables) do
-      %{"str" => "Just show this"}
-    end
-
-    def query(:q7, _time_range, _variables) do
-      [
-        %{"label" => "row1", "foo" => 3, "bar" => 88},
-        %{"label" => "row2", "foo" => 4, "bar" => 99}
-      ]
-    end
-
-    def query(:q8, _time_range, _variables) do
-      11
-    end
-
-    def query(:q9, _time_range, _variables) do
-      []
-    end
-
-    def query(:q10, _time_range, _variables) do
-      [
-        {"foo", "452,64"},
-        {"bar", "260.238,4"}
-      ]
-    end
-
-    def query(:q11, _time_range, _variables) do
-      [{"foo", nil}]
-    end
   end
 
   def render(assigns) do

@@ -266,8 +266,10 @@ defmodule Luminous.Components do
         class="lmn-variable-button"
         phx-click={show_dropdown("#{@variable.id}-dropdown-content")}
       >
-        <div class="lmn-variable-button-label">
-          <span class="lmn-variable-button-label-prefix"><%= "#{@variable.label}: " %></span><%= @variable.current.label %>
+        <div id={"#{@variable.id}-dropdown-label"} class="lmn-variable-button-label">
+          <span class="lmn-variable-button-label-prefix"><%= "#{@variable.label}: " %></span><%= Variable.get_current_label(
+            @variable
+          ) %>
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -327,7 +329,7 @@ defmodule Luminous.Components do
           )
         }
       >
-        <div class="lmn-variable-button-label">
+        <div id={"#{@variable.id}-dropdown-label"} class="lmn-variable-button-label">
           <span class="lmn-variable-button-label-prefix"><%= "#{@variable.label}: " %></span><%= Variable.get_current_label(
             @variable
           ) %>
