@@ -38,7 +38,9 @@ defmodule Luminous.Panel.Stat do
         <div id={"#{Utils.dom_id(@panel)}-stat-values"} class={stats_grid_structure(length(stats))}>
           <%= for column <- stats do %>
             <div class="flex flex-col items-center">
-              <div class="text-lg"><span><%= column.title %></span></div>
+              <div class="grow">
+                <p class="text-lg"><%= column.title %></p>
+              </div>
               <div>
                 <span class="text-4xl font-bold"><%= Utils.print_number(column.value) %></span>
                 <span class="text-2xl font-semibold"><%= column.unit %></span>
