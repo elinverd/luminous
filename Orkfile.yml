@@ -2,10 +2,14 @@ global:
   default: test
 
 tasks:
-  - name: deps
-    description: fetch all dependencies
+  - name: setup
+    description: fetch the basic dependencies
     actions:
       - mix install
+
+  - name: deps
+    description: fetch the project dependencies
+    actions:
       - mix deps.get
       - npm install --prefix ./assets
 
