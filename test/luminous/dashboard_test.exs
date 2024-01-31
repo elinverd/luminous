@@ -10,6 +10,38 @@ defmodule Luminous.DashboardTest do
   end
 
   describe "path/3" do
+    test "the path should include the non-hidden variables" do
+      dashboard =
+        Dashboard.define!(
+          title: "Test",
+          path: &Routes.dashboard_path/3,
+          action: :index,
+          variables: [
+            Variable.define!(hidden: false, id: :foo, label: "Foo", module: Variables)
+          ]
+        )
+        |> Dashboard.populate(%{})
+
+      assert Dashboard.path(dashboard, Luminous.Test.Endpoint) ==
+               Routes.dashboard_path(Luminous.Test.Endpoint, :index, foo: "a")
+    end
+
+    test "the path should exclude the hidden variables" do
+      dashboard =
+        Dashboard.define!(
+          title: "Test",
+          path: &Routes.dashboard_path/3,
+          action: :index,
+          variables: [
+            Variable.define!(hidden: true, id: :foo, label: "Foo", module: Variables)
+          ]
+        )
+        |> Dashboard.populate(%{})
+
+      assert Dashboard.path(dashboard, Luminous.Test.Endpoint) ==
+               Routes.dashboard_path(Luminous.Test.Endpoint, :index)
+    end
+
     test "when the current time range is nil and no time range is passed in params" do
       dashboard = Dashboard.define!(title: "Test", path: &Routes.dashboard_path/3, action: :index)
 

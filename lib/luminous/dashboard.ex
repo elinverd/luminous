@@ -50,7 +50,9 @@ defmodule Luminous.Dashboard do
   @spec path(t(), Phoenix.LiveView.Socket.t() | module(), Keyword.t()) :: binary()
   def path(dashboard, socket_or_endpoint, params \\ []) do
     var_params =
-      Enum.map(dashboard.variables, fn var ->
+      dashboard.variables
+      |> Enum.reject(& &1.hidden)
+      |> Enum.map(fn var ->
         {var.id, Keyword.get(params, var.id, Variable.extract_value(var.current))}
       end)
 
