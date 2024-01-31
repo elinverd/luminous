@@ -45,26 +45,27 @@ defmodule Luminous.Dashboard do
 
   @doc """
   Returns the LV path for the specific dashboard based on its configuration.
+  The second argument can be either the socket or the Phoenix.Endpoint
   """
-  @spec path(t(), Phoenix.LiveView.Socket.t(), Keyword.t()) :: binary()
-  def path(dashboard, socket, params) do
+  @spec path(t(), Phoenix.LiveView.Socket.t() | module(), Keyword.t()) :: binary()
+  def path(dashboard, socket_or_endpoint, params \\ []) do
     var_params =
       Enum.map(dashboard.variables, fn var ->
         {var.id, Keyword.get(params, var.id, Variable.extract_value(var.current))}
       end)
 
-    time_range_params = [
-      from:
-        params
-        |> Keyword.get(:from, dashboard.time_range_selector.current_time_range.from)
-        |> DateTime.to_unix(),
-      to:
-        params
-        |> Keyword.get(:to, dashboard.time_range_selector.current_time_range.to)
-        |> DateTime.to_unix()
-    ]
+    time_range_params =
+      params
+      |> Keyword.get(:from)
+      |> TimeRange.new(Keyword.get(params, :to))
+      |> TimeRange.to_unix(get_current_time_range(dashboard))
+      |> Keyword.new()
 
-    dashboard.path.(socket, dashboard.action, Keyword.merge(var_params, time_range_params))
+    dashboard.path.(
+      socket_or_endpoint,
+      dashboard.action,
+      Keyword.merge(var_params, time_range_params)
+    )
   end
 
   @doc """
@@ -98,4 +99,11 @@ defmodule Luminous.Dashboard do
           TimeRangeSelector.update_current(dashboard.time_range_selector, time_range)
     }
   end
+
+  @doc """
+  Get the dashboard's current time range
+  """
+  @spec get_current_time_range(t()) :: TimeRange.t() | nil
+  def get_current_time_range(dashboard),
+    do: TimeRangeSelector.get_current(dashboard.time_range_selector)
 end

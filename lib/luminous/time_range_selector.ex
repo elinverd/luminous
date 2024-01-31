@@ -41,6 +41,12 @@ defmodule Luminous.TimeRangeSelector do
   end
 
   @doc """
+  Get the selector's current time range value
+  """
+  @spec get_current(t()) :: TimeRange.t() | nil
+  def get_current(selector), do: selector.current_time_range
+
+  @doc """
   Returns a list with the available time range presets.
   """
   @spec presets() :: [preset()]

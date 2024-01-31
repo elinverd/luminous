@@ -46,6 +46,27 @@ defmodule Luminous.TimeRange do
     new(from, to)
   end
 
+  @doc """
+  Convert the time range to a map of unix timestamps.
+
+  If the time range or any of its attributes (from, to) is nil
+  then convert the second (default) argument to unix timestamps.
+
+  If the default is also nil, then return an empty map.
+  """
+  @spec to_unix(t() | nil, t() | nil) :: %{from: non_neg_integer(), to: non_neg_integer()} | %{}
+
+  def to_unix(_, default \\ nil)
+
+  def to_unix(nil, nil), do: %{}
+  def to_unix(nil, default), do: to_unix(default)
+
+  def to_unix(%{from: from, to: to}, default) when is_nil(from) or is_nil(to),
+    do: to_unix(default)
+
+  def to_unix(%{from: from, to: to}, _),
+    do: %{from: DateTime.to_unix(from), to: DateTime.to_unix(to)}
+
   @spec to_map(t()) :: map()
   def to_map(time_range), do: Map.from_struct(time_range)
 
