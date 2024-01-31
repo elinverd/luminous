@@ -225,6 +225,13 @@ second argument, however it is important to note that the `variable/2`
 callback is executed once when the dashboard is loaded for populating
 the dropdown values.
 
+A `Variable` can be marked as hidden by passing `hidden: true` to
+`Variable.define!/1`. Hidden variables are a means for framework
+clients to store some kind of state expecially in the case of custom
+Panels (a typical use case is pagination). As such, hidden variables
+are not rendered as dropdowns in the dashboard and are not included in
+URL params.
+
 ### Demo
 
 Luminous provides a demo dashboard that showcases some of Luminous'

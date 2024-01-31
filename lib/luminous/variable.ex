@@ -12,7 +12,15 @@ defmodule Luminous.Variable do
   - `single`: only one value can be selected by the user (default type)
   - `multi`: multiple values can be selected by the user
 
+  A Variable can also be hidden in which case:
+  - it will not be rendered as a dropdown in the dashboard
+  - it will not be included in the URL params
+
+  Hidden variables are a means for keeping some kind of state for
+  framework clients. A typical use case is implementing custom panels
+  which need some state (e.g. pagination).
   """
+
   alias Luminous.Attributes
 
   @doc """
