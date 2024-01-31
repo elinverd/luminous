@@ -54,7 +54,7 @@ The package can be installed from `hex.pm` as follows:
 ```elixir
 def deps do
   [
-    {:luminous, "~> 2.4.0"}
+    {:luminous, "~> 2.5.0"}
   ]
 end
 ```
