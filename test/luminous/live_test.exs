@@ -1,7 +1,8 @@
 defmodule Luminous.LiveTest do
+  alias Luminous.TimeRange
   use Luminous.ConnCase, async: true
 
-  alias Luminous.{Attributes, Query, Panel, Variable}
+  alias Luminous.{Attributes, Query, Panel, TimeRange, Variable}
 
   defmodule Variables do
     @moduledoc false
@@ -498,6 +499,32 @@ defmodule Luminous.LiveTest do
           var1: "a",
           from: from,
           to: to
+        )
+      )
+    end
+
+    test "when the default time range preset is selected", %{conn: conn} do
+      dashboard = [
+        title: "Test",
+        path: &Routes.dashboard_path/3,
+        action: :index
+      ]
+
+      {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
+
+      set_dashboard(view, dashboard)
+
+      view
+      |> element("#time-range-preset-Default")
+      |> render_click()
+
+      default = TimeRange.default(TimeRange.default_time_zone())
+
+      assert_patched(
+        view,
+        Routes.dashboard_path(conn, :index,
+          from: DateTime.to_unix(default.from),
+          to: DateTime.to_unix(default.to)
         )
       )
     end

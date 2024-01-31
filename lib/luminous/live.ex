@@ -85,7 +85,7 @@ defmodule Luminous.Live do
           ) do
         time_range =
           case Luminous.TimeRangeSelector.get_time_range_for(preset, dashboard.time_zone) do
-            nil -> lmn_get_default_time_range(dashboard.time_zone)
+            nil -> lmn_get_default_time_range(dashboard)
             time_range -> time_range
           end
 
