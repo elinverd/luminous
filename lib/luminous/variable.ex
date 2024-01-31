@@ -140,14 +140,32 @@ defmodule Luminous.Variable do
   def update_current(var, nil), do: var
   def update_current(%{type: :multi} = var, "none"), do: %{var | current: []}
 
-  def update_current(var, new_value) when is_binary(new_value) do
-    new_val = Enum.find(var.values, fn val -> val.value == new_value end)
+  def update_current(%{hidden: hidden} = var, new_value) when is_binary(new_value) do
+    new_val =
+      if hidden do
+        %{value: new_value, label: new_value}
+      else
+        Enum.find(var.values, fn val -> val.value == new_value end)
+      end
 
     if is_nil(new_val), do: var, else: %{var | current: new_val}
   end
 
-  def update_current(var, new_values) when is_list(new_values) do
-    new_values = Enum.filter(var.values, &(&1.value in new_values))
+  def update_current(%{hidden: hidden} = var, new_values) when is_list(new_values) do
+    new_values = Enum.map(new_values, fn v -> %{value: v, label: v} end)
+
+    new_values =
+      if hidden do
+        new_values
+      else
+        legitimate_values = Enum.map(var.values, & &1.value)
+
+        if Enum.all?(new_values, &(&1.value in legitimate_values)) do
+          new_values
+        else
+          var.current
+        end
+      end
 
     %{var | current: new_values}
   end
