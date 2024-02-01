@@ -33,7 +33,7 @@ defmodule Luminous.Live do
             variables =
               Enum.map(
                 socket.assigns.dashboard.variables,
-                &Luminous.Variable.update_current(&1, params["#{&1.id}"])
+                &Luminous.Variable.update_current(&1, params["#{&1.id}"], socket.assigns)
               )
 
             # update dashboard

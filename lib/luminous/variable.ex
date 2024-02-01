@@ -144,11 +144,11 @@ defmodule Luminous.Variable do
   The special "none" case is for when the variable's type is :multi and none of the
   values are selected (empty list)
   """
-  @spec update_current(t(), nil | binary() | [binary()]) :: t()
-  def update_current(var, nil), do: var
-  def update_current(%{type: :multi} = var, "none"), do: %{var | current: []}
+  @spec update_current(t(), nil | binary() | [binary()], map()) :: t()
+  def update_current(var, nil, assigns), do: populate(var, assigns)
+  def update_current(%{type: :multi} = var, "none", _), do: %{var | current: []}
 
-  def update_current(%{hidden: hidden} = var, new_value) when is_binary(new_value) do
+  def update_current(%{hidden: hidden} = var, new_value, _) when is_binary(new_value) do
     new_val =
       if hidden do
         %{value: new_value, label: new_value}
@@ -159,7 +159,7 @@ defmodule Luminous.Variable do
     if is_nil(new_val), do: var, else: %{var | current: new_val}
   end
 
-  def update_current(%{hidden: hidden} = var, new_values) when is_list(new_values) do
+  def update_current(%{hidden: hidden} = var, new_values, _) when is_list(new_values) do
     new_values = Enum.map(new_values, fn v -> %{value: v, label: v} end)
 
     new_values =

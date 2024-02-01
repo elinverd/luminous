@@ -31,7 +31,7 @@ defmodule Luminous.VariableTest do
       assert [id: :foo, label: "Foo", module: Variables, type: :single]
              |> Variable.define!()
              |> Variable.populate(%{})
-             |> Variable.update_current("b")
+             |> Variable.update_current("b", %{})
              |> Variable.get_current()
              |> Variable.extract_value() == "b"
     end
@@ -40,7 +40,7 @@ defmodule Luminous.VariableTest do
       assert [id: :foo, label: "Foo", module: Variables, type: :single]
              |> Variable.define!()
              |> Variable.populate(%{})
-             |> Variable.update_current("invalid value")
+             |> Variable.update_current("invalid value", %{})
              |> Variable.get_current()
              |> Variable.extract_value() == "a"
     end
@@ -49,7 +49,7 @@ defmodule Luminous.VariableTest do
       assert [id: :foo, label: "Foo", module: Variables, type: :multi]
              |> Variable.define!()
              |> Variable.populate(%{})
-             |> Variable.update_current(["invalid value 1", "invalid value 2"])
+             |> Variable.update_current(["invalid value 1", "invalid value 2"], %{})
              |> Variable.get_current()
              |> Variable.extract_value() == ["a", "b"]
     end
@@ -58,7 +58,7 @@ defmodule Luminous.VariableTest do
       assert [id: :foo, label: "Foo", module: Variables, type: :single, hidden: true]
              |> Variable.define!()
              |> Variable.populate(%{})
-             |> Variable.update_current("arbitrary value 1")
+             |> Variable.update_current("arbitrary value 1", %{})
              |> Variable.get_current()
              |> Variable.extract_value() == "arbitrary value 1"
     end
@@ -67,7 +67,7 @@ defmodule Luminous.VariableTest do
       assert [id: :foo, label: "Foo", module: Variables, type: :multi, hidden: true]
              |> Variable.define!()
              |> Variable.populate(%{})
-             |> Variable.update_current(["arbitrary value 1", "arbitrary value 2"])
+             |> Variable.update_current(["arbitrary value 1", "arbitrary value 2"], %{})
              |> Variable.get_current()
              |> Variable.extract_value() == ["arbitrary value 1", "arbitrary value 2"]
     end
@@ -76,9 +76,22 @@ defmodule Luminous.VariableTest do
       assert [id: :foo, label: "Foo", module: Variables, type: :multi]
              |> Variable.define!()
              |> Variable.populate(%{})
-             |> Variable.update_current("none")
+             |> Variable.update_current("none", %{})
              |> Variable.get_current()
              |> Variable.extract_value() == []
+    end
+
+    test "should return the default value when the new value is nil" do
+      var =
+        [id: :foo, label: "Foo", module: Variables, type: :single]
+        |> Variable.define!()
+        |> Variable.populate(%{})
+        |> Variable.update_current("b", %{})
+
+      assert var
+             |> Variable.update_current(nil, %{})
+             |> Variable.get_current()
+             |> Variable.extract_value() == "a"
     end
   end
 end
