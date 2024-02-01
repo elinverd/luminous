@@ -11,6 +11,7 @@ defmodule Luminous.Live do
   defmacro __using__(opts) do
     quote do
       use Phoenix.LiveView
+      use Luminous.Dashboard
 
       defp __init__(), do: Luminous.Dashboard.define!(unquote(opts))
 
@@ -71,11 +72,10 @@ defmodule Luminous.Live do
           Luminous.TimeRange.from_iso(from_iso, to_iso)
           |> Luminous.TimeRange.shift_zone!(dashboard.time_zone)
 
-        {:noreply,
-         push_patch(socket,
-           to:
-             Luminous.Dashboard.path(dashboard, socket, from: time_range.from, to: time_range.to)
-         )}
+        url_params =
+          Luminous.Dashboard.url_params(dashboard, from: time_range.from, to: time_range.to)
+
+        {:noreply, push_patch(socket, to: dashboard_path(socket, url_params))}
       end
 
       def handle_event(
@@ -89,11 +89,10 @@ defmodule Luminous.Live do
             time_range -> time_range
           end
 
-        {:noreply,
-         push_patch(socket,
-           to:
-             Luminous.Dashboard.path(dashboard, socket, from: time_range.from, to: time_range.to)
-         )}
+        url_params =
+          Luminous.Dashboard.url_params(dashboard, from: time_range.from, to: time_range.to)
+
+        {:noreply, push_patch(socket, to: dashboard_path(socket, url_params))}
       end
 
       def handle_event(
@@ -103,13 +102,12 @@ defmodule Luminous.Live do
           ) do
         value = if value == [], do: "none", else: value
 
-        {:noreply,
-         push_patch(socket,
-           to:
-             Luminous.Dashboard.path(dashboard, socket, [
-               {String.to_existing_atom(variable), value}
-             ])
-         )}
+        url_params =
+          Luminous.Dashboard.url_params(dashboard, [
+            {String.to_existing_atom(variable), value}
+          ])
+
+        {:noreply, push_patch(socket, to: dashboard_path(socket, url_params))}
       end
 
       @impl true

@@ -10,11 +10,18 @@ defmodule Luminous.Dashboard do
   alias Luminous.{Attributes, TimeRange, TimeRangeSelector, Variable}
 
   @type t :: map()
+  @type url_params :: keyword()
+
+  defmacro __using__(_opts) do
+    quote do
+      @behaviour Luminous.Dashboard
+    end
+  end
+
+  @callback dashboard_path(Phoenix.LiveView.Socket.t(), url_params()) :: binary()
 
   @attributes [
     title: [type: :string, required: true],
-    path: [type: {:fun, 3}, required: true],
-    action: [type: :atom, required: true],
     panels: [type: {:list, :map}, default: []],
     variables: [type: {:list, :map}, default: []],
     time_range_selector: [type: {:struct, TimeRangeSelector}, default: %TimeRangeSelector{}],
@@ -44,11 +51,11 @@ defmodule Luminous.Dashboard do
   end
 
   @doc """
-  Returns the LV path for the specific dashboard based on its configuration.
-  The second argument can be either the socket or the Phoenix.Endpoint
+  Returns the dashboard's URL parameters as a keyword list based on the supplied params
+  and the dashboard's current state
   """
-  @spec path(t(), Phoenix.LiveView.Socket.t() | module(), Keyword.t()) :: binary()
-  def path(dashboard, socket_or_endpoint, params \\ []) do
+  @spec url_params(t(), Keyword.t()) :: url_params()
+  def url_params(dashboard, params \\ []) do
     var_params =
       dashboard.variables
       |> Enum.reject(& &1.hidden)
@@ -63,11 +70,7 @@ defmodule Luminous.Dashboard do
       |> TimeRange.to_unix(get_current_time_range(dashboard))
       |> Keyword.new()
 
-    dashboard.path.(
-      socket_or_endpoint,
-      dashboard.action,
-      Keyword.merge(var_params, time_range_params)
-    )
+    Keyword.merge(var_params, time_range_params)
   end
 
   @doc """

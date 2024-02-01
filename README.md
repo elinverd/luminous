@@ -100,8 +100,6 @@ defmodule ClientApp.DashboardLive do
 
   use Luminous.Live,
     title: "My Title",
-    path: &Routes.dashboard_path/3,
-    action: :index,
     time_zone: "Europe/Paris",
     panels: [
       ...
@@ -116,6 +114,12 @@ defmodule ClientApp.DashboardLive do
     ~H"""
     <Luminous.Components.dashboard dashboard={@dashboard} />
     """
+  end
+
+  # we also need to implement the function that generates the LV path
+  @impl Luminous.Dashboard
+  def dashboard_path(socket, url_params) do
+    Routes.dashboard_path(socket, :index, url_params)
   end
 end
 ```

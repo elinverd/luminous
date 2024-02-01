@@ -6,8 +6,6 @@ defmodule Luminous.Test.DashboardLive do
 
   use Luminous.Live,
     title: "This will be overriden by the tests",
-    path: &Routes.dashboard_path/3,
-    action: :index,
     time_zone: "Europe/Athens"
 
   @impl true
@@ -25,10 +23,13 @@ defmodule Luminous.Test.DashboardLive do
     socket =
       socket
       |> assign(dashboard: dashboard)
-      |> push_patch(to: Dashboard.path(dashboard, socket, []))
+      |> push_patch(to: dashboard_path(socket, []))
 
     {:noreply, socket}
   end
+
+  @impl Dashboard
+  def dashboard_path(socket, url_params), do: Routes.dashboard_path(socket, :index, url_params)
 
   def render(assigns) do
     ~H"""

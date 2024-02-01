@@ -9,54 +9,45 @@ defmodule Luminous.DashboardTest do
     def variable(:foo, _), do: ["a"]
   end
 
-  describe "path/3" do
-    test "the path should include the non-hidden variables" do
+  describe "url_params/2" do
+    test "the url params should include the non-hidden variables" do
       dashboard =
         Dashboard.define!(
           title: "Test",
-          path: &Routes.dashboard_path/3,
-          action: :index,
           variables: [
             Variable.define!(hidden: false, id: :foo, label: "Foo", module: Variables)
           ]
         )
         |> Dashboard.populate(%{})
 
-      assert Dashboard.path(dashboard, Luminous.Test.Endpoint) ==
-               Routes.dashboard_path(Luminous.Test.Endpoint, :index, foo: "a")
+      assert [foo: "a"] = Dashboard.url_params(dashboard)
     end
 
     test "the path should exclude the hidden variables" do
       dashboard =
         Dashboard.define!(
           title: "Test",
-          path: &Routes.dashboard_path/3,
-          action: :index,
           variables: [
             Variable.define!(hidden: true, id: :foo, label: "Foo", module: Variables)
           ]
         )
         |> Dashboard.populate(%{})
 
-      assert Dashboard.path(dashboard, Luminous.Test.Endpoint) ==
-               Routes.dashboard_path(Luminous.Test.Endpoint, :index)
+      assert Enum.empty?(Dashboard.url_params(dashboard))
     end
 
     test "when the current time range is nil and no time range is passed in params" do
-      dashboard = Dashboard.define!(title: "Test", path: &Routes.dashboard_path/3, action: :index)
+      dashboard = Dashboard.define!(title: "Test")
 
       assert dashboard |> Dashboard.get_current_time_range() |> is_nil()
 
-      assert Dashboard.path(dashboard, Luminous.Test.Endpoint) ==
-               Routes.dashboard_path(Luminous.Test.Endpoint, :index)
+      assert Enum.empty?(Dashboard.url_params(dashboard))
     end
 
     test "the current time range should be preserved if not overriden in params" do
       dashboard =
         Dashboard.define!(
           title: "Test",
-          path: &Routes.dashboard_path/3,
-          action: :index,
           variables: [
             Variable.define!(id: :foo, label: "Foo", module: Variables)
           ]
@@ -67,42 +58,25 @@ defmodule Luminous.DashboardTest do
       dashboard = Dashboard.update_current_time_range(dashboard, current)
       assert Dashboard.get_current_time_range(dashboard) == current
 
-      current_unix = TimeRange.to_unix(current)
+      %{from: from, to: to} = TimeRange.to_unix(current)
 
-      expected_path =
-        Routes.dashboard_path(Luminous.Test.Endpoint, :index,
-          foo: "bar",
-          from: current_unix.from,
-          to: current_unix.to
-        )
-
-      assert Dashboard.path(dashboard, Luminous.Test.Endpoint, foo: "bar") == expected_path
+      assert [foo: "bar", from: ^from, to: ^to] = Dashboard.url_params(dashboard, foo: "bar")
     end
 
     test "the current time range should be updated if overriden in params" do
-      dashboard = Dashboard.define!(title: "Test", path: &Routes.dashboard_path/3, action: :index)
+      dashboard = Dashboard.define!(title: "Test")
 
       # let's set a value first
       current = TimeRange.last_n_days(7, dashboard.time_zone)
       dashboard = Dashboard.update_current_time_range(dashboard, current)
       assert Dashboard.get_current_time_range(dashboard) == current
 
-      # let's call path with new values
-      new_current = TimeRange.last_month(dashboard.time_zone)
-      new_current_unix = TimeRange.to_unix(new_current)
+      # let's update the "current"
+      %{from: nc_from, to: nc_to} = nc = TimeRange.last_month(dashboard.time_zone)
+      %{from: ncu_from, to: ncu_to} = TimeRange.to_unix(nc)
 
-      expected_path =
-        Routes.dashboard_path(Luminous.Test.Endpoint, :index,
-          from: new_current_unix.from,
-          to: new_current_unix.to
-        )
-
-      assert Dashboard.path(
-               dashboard,
-               Luminous.Test.Endpoint,
-               from: new_current.from,
-               to: new_current.to
-             ) == expected_path
+      assert [from: ^ncu_from, to: ^ncu_to] =
+               Dashboard.url_params(dashboard, from: nc_from, to: nc_to)
     end
   end
 end

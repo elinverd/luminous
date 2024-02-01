@@ -87,8 +87,6 @@ defmodule Luminous.LiveTest do
     test "sends the correct data to the chart panel", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         panels: [
           Panel.define!(
             type: Panel.Chart,
@@ -177,8 +175,6 @@ defmodule Luminous.LiveTest do
     test "renders the correct data in the stat panels", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         panels: [
           Panel.define!(
             type: Panel.Stat,
@@ -283,8 +279,6 @@ defmodule Luminous.LiveTest do
     test "does not push the event in the case of the stat panel", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         panels: [
           Panel.define!(
             type: Panel.Stat,
@@ -315,8 +309,6 @@ defmodule Luminous.LiveTest do
     test "sends the correct data to the table panel", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         panels: [
           Panel.define!(
             type: Panel.Table,
@@ -386,8 +378,6 @@ defmodule Luminous.LiveTest do
     test "sends the loading/loaded event to all panels", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         panels: [
           Panel.define!(
             type: Panel.Chart,
@@ -427,8 +417,6 @@ defmodule Luminous.LiveTest do
     test "when the selected time range changes", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         panels: [
           Panel.define!(
             type: Panel.Stat,
@@ -468,8 +456,6 @@ defmodule Luminous.LiveTest do
     test "when a time range preset is selected", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         variables: [
           Variable.define!(id: :var1, label: "Var 1", module: Variables)
         ]
@@ -505,9 +491,7 @@ defmodule Luminous.LiveTest do
 
     test "when the default time range preset is selected", %{conn: conn} do
       dashboard = [
-        title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index
+        title: "Test"
       ]
 
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
@@ -534,8 +518,6 @@ defmodule Luminous.LiveTest do
     test "displays all current variable values", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         variables: [
           Variable.define!(id: :var1, label: "Var 1", module: Variables),
           Variable.define!(id: :var2, label: "Var 2", module: Variables)
@@ -553,8 +535,6 @@ defmodule Luminous.LiveTest do
     test "when a variable value is selected", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         variables: [
           Variable.define!(id: :var1, label: "Var 1", module: Variables),
           Variable.define!(id: :var2, label: "Var 2", module: Variables)
@@ -596,8 +576,6 @@ defmodule Luminous.LiveTest do
     test "should not display hidden variables", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         variables: [
           Variable.define!(id: :var1, label: "Var 1", module: Variables),
           Variable.define!(id: :var2, label: "Var 2", module: Variables, hidden: true),
@@ -617,8 +595,6 @@ defmodule Luminous.LiveTest do
     test "should handle current variable value that is nil", %{conn: conn} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         variables: [
           Variable.define!(id: :var1, label: "Var 1", module: Variables),
           Variable.define!(id: :empty, label: "Empty", module: Variables)
@@ -644,8 +620,6 @@ defmodule Luminous.LiveTest do
     test "when a single value is selected", %{conn: conn, from: from, to: to} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         variables: [
           Variable.define!(id: :multi_var, type: :multi, label: "Multi", module: Variables)
         ]
@@ -676,8 +650,6 @@ defmodule Luminous.LiveTest do
     test "when two values are selected", %{conn: conn, from: from, to: to} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         variables: [
           Variable.define!(id: :multi_var, type: :multi, label: "Multi", module: Variables)
         ]
@@ -708,8 +680,6 @@ defmodule Luminous.LiveTest do
     test "when no value is selected", %{conn: conn, from: from, to: to} do
       dashboard = [
         title: "Test",
-        path: &Routes.dashboard_path/3,
-        action: :index,
         variables: [
           Variable.define!(id: :multi_var, type: :multi, label: "Multi", module: Variables)
         ]

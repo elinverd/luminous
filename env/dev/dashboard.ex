@@ -181,8 +181,6 @@ defmodule Luminous.Dev.DashboardLive do
   # arbitrary time windows.
   use Luminous.Live,
     title: "Demo Dashboard",
-    path: &Routes.dashboard_path/3,
-    action: :index,
     time_zone: "UTC",
     panels: [
       Panel.define!(
@@ -301,6 +299,9 @@ defmodule Luminous.Dev.DashboardLive do
       Variable.define!(id: :interval_var, label: "Interval", module: Variables),
       Variable.define!(id: :region_var, label: "Region", module: Variables, type: :multi)
     ]
+
+  @impl Luminous.Dashboard
+  def dashboard_path(socket, url_params), do: Routes.dashboard_path(socket, :index, url_params)
 
   @doc false
   # Here, we make use of the default component (`dashboard`) that
