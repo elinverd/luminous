@@ -65,8 +65,9 @@ defmodule Luminous.Panel.Table do
       |> Enum.map(&Map.get(&1, :rows))
       |> Enum.zip()
       |> Enum.map(&Tuple.to_list/1)
-      |> Enum.map(fn maps ->
-        Enum.reduce(maps, %{}, &Map.merge(&2, &1))
+      |> Enum.map(fn
+        [m | _] = maps when is_map(m) -> Enum.reduce(maps, %{}, &Map.merge(&2, &1))
+        [l | _] = lists when is_list(l) -> lists |> Enum.concat() |> Map.new()
       end)
 
     %{rows: datasets, columns: columns}
@@ -86,7 +87,10 @@ defmodule Luminous.Panel.Table do
 
   defp extract_labels(rows) when is_list(rows) do
     rows
-    |> Enum.flat_map(&Map.keys/1)
+    |> Enum.flat_map(fn
+      m when is_map(m) -> Map.keys(m)
+      l when is_list(l) -> Enum.map(l, &elem(&1, 0))
+    end)
     |> Enum.uniq()
   end
 
