@@ -22,7 +22,8 @@ defmodule Luminous.Panel.Table do
   @impl true
   def panel_attributes(),
     do: [
-      hook: [type: :string, default: "TableHook"]
+      hook: [type: :string, default: "TableHook"],
+      page_size: [type: :pos_integer, default: 10]
     ]
 
   @impl true
@@ -57,7 +58,7 @@ defmodule Luminous.Panel.Table do
   end
 
   @impl true
-  def reduce(datasets, _panel, _dashboard) do
+  def reduce(datasets, panel, _dashboard) do
     columns = Enum.flat_map(datasets, &Map.get(&1, :columns))
 
     datasets =
@@ -70,7 +71,7 @@ defmodule Luminous.Panel.Table do
         [l | _] = lists when is_list(l) -> lists |> Enum.concat() |> Map.new()
       end)
 
-    %{rows: datasets, columns: columns}
+    %{rows: datasets, columns: columns, attributes: %{page_size: panel.page_size}}
   end
 
   @impl true

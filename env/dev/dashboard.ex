@@ -253,6 +253,7 @@ defmodule Luminous.Dev.DashboardLive do
         id: :variable_columns,
         title: "Tabular data with variable columns",
         queries: [Query.define(:variable_columns, Queries)],
+        page_size: 24,
         description: """
         This is a panel with tabular data and variable number of columns.
         If the dataset is a list of maps, the maps' keys will be used as column titles.
