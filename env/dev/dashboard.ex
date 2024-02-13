@@ -156,6 +156,10 @@ defmodule Luminous.Dev.DashboardLive do
       end
     end
 
+    def query(:variable_columns, time_range, _variables) do
+      Luminous.Generator.generate(time_range, 100, :hour, ["var1", "var2"])
+    end
+
     defp multiple_time_series(time_range, variables) do
       interval =
         variables
@@ -243,6 +247,20 @@ defmodule Luminous.Dev.DashboardLive do
           "label" => [title: "Label", order: 0],
           "value" => [title: "Value", order: 1]
         }
+      ),
+      Panel.define!(
+        type: Panel.Table,
+        id: :variable_columns,
+        title: "Tabular data with variable columns",
+        queries: [Query.define(:variable_columns, Queries)],
+        description: """
+        This is a panel with tabular data and variable number of columns.
+        If the dataset is a list of maps, the maps' keys will be used as column titles.
+        If the dataset is a list of lists of tuples, the tuples' first element will be
+        used as column titles.
+        In the latter case, the ordering of the tuples inside the lists will determine
+        the ordering of the columns.
+        """
       ),
       Panel.define!(
         type: Panel.Stat,

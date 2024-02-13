@@ -349,6 +349,10 @@ defmodule Luminous.PanelTest do
     def query(:table_2, _time_range, _variables) do
       [%{"baz" => 1}, %{"baz" => 2}]
     end
+
+    def query(:column_ordering, _time_range, _variables) do
+      [[{:time, 1}, {"bar", 1}, {"baz", 1}], [{:time, 2}, {"bar", 2}]]
+    end
   end
 
   describe "Table panel" do
@@ -404,6 +408,38 @@ defmodule Luminous.PanelTest do
 
       assert Enum.find(columns, &(&1.field == "baz"))
       assert row["baz"] == 1
+    end
+
+    test "column ordering should be preserved when no data attributes are defined" do
+      panel =
+        Panel.define!(
+          type: Panel.Table,
+          id: :ttt,
+          queries: [Query.define(:column_ordering, TableQueries)]
+        )
+
+      assert %{rows: [row | _], columns: columns} =
+               panel
+               |> Panel.refresh([], nil)
+               |> Panel.Table.reduce(panel, nil)
+
+      assert row[:time] == 1
+      assert row["bar"] == 1
+      assert row["baz"] == 1
+
+      assert 3 == length(columns)
+
+      col = Enum.at(columns, 0)
+      assert col.field == :time
+      assert col.title == "time"
+
+      col = Enum.at(columns, 1)
+      assert col.field == "bar"
+      assert col.title == "bar"
+
+      col = Enum.at(columns, 2)
+      assert col.field == "baz"
+      assert col.title == "baz"
     end
   end
 end
