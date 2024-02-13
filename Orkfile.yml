@@ -1,5 +1,4 @@
-global:
-  default: test
+default: test
 
 tasks:
   - name: setup
