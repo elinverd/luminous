@@ -369,7 +369,8 @@ defmodule Luminous.LiveTest do
         rows: [
           %{"bar" => 88, "foo" => 3, "label" => "row1"},
           %{"bar" => 99, "foo" => 4, "label" => "row2"}
-        ]
+        ],
+        attributes: %{page_size: 10}
       }
 
       assert_push_event(view, "panel-p7::refresh-data", ^expected_data)

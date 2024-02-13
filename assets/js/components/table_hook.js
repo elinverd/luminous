@@ -15,17 +15,17 @@ function TableHook() {
 
   this.handler = function() {
     return (payload) => {
-      this.createOrUpdateTable(payload.rows, payload.columns);
+      this.createOrUpdateTable(payload.rows, payload.columns, payload.attributes);
     }
   }
 
-  this.createOrUpdateTable = function(rows, columns) {
+  this.createOrUpdateTable = function(rows, columns, attributes) {
     if (this.table === null) {
       this.table = new Tabulator(this.id, {
         placeholder: "No data available",
         minHeight: 50,
         pagination: true,
-        paginationSize: 10,
+        paginationSize: attributes.page_size,
         data: rows,
         columns: columns,
         layout: "fitColumns"
