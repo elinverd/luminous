@@ -26,7 +26,6 @@ defmodule Luminous.Attributes do
         hook: [type: {:or, [:string, nil]}, default: nil],
         queries: [type: {:list, {:struct, Query}}],
         description: [type: {:or, [:string, nil]}, default: nil],
-        attributes: [type: :keyword_list, default: []],
         data_attributes: [type: {:map, {:or, [:atom, :string]}, :keyword_list}, default: %{}]
       ]
 
