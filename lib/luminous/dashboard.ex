@@ -84,13 +84,13 @@ defmodule Luminous.Dashboard do
   @doc """
   Update the dashboard's panel data
   """
-  @spec update_data(t(), :atom, any()) :: t()
+  @spec update_data(t(), atom(), any()) :: t()
   def update_data(dashboard, panel_id, data), do: put_in(dashboard, [:data, panel_id], data)
 
   @doc """
   return the panel data for the specified panel
   """
-  @spec get_data(t(), :atom) :: any()
+  @spec get_data(t(), atom()) :: any()
   def get_data(dashboard, panel_id), do: get_in(dashboard, [:data, panel_id])
 
   @doc """
