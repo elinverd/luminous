@@ -23,7 +23,7 @@ function TableHook() {
     if (this.table === null) {
       this.table = new Tabulator(this.id, {
         placeholder: "No data available",
-        minHeight: 50,
+        minHeight: rows.length == 0 ? 50 : false,
         pagination: true,
         paginationSize: attributes.page_size,
         data: rows,
