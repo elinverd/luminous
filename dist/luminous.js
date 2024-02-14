@@ -41344,7 +41344,7 @@ function TableHook() {
     if (this.table === null) {
       this.table = new TabulatorFull(this.id, {
         placeholder: "No data available",
-        minHeight: 50,
+        minHeight: rows3.length == 0 ? 50 : false,
         pagination: true,
         paginationSize: attributes.page_size,
         data: rows3,
