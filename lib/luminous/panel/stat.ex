@@ -59,5 +59,5 @@ defmodule Luminous.Panel.Stat do
   defp stats_grid_structure(1), do: "grid grid-cols-1 w-full"
   defp stats_grid_structure(2), do: "grid grid-cols-2 w-full"
   defp stats_grid_structure(3), do: "grid grid-cols-3 w-full"
-  defp stats_grid_structure(_), do: "grid grid-cols-4 w-full"
+  defp stats_grid_structure(_), do: "grid grid-cols-2 gap-2 w-full"
 end
