@@ -193,6 +193,7 @@ defmodule Luminous.Components do
   """
   attr :time_zone, :string, required: true
   attr :presets, :list, required: false, default: nil
+  attr :class, :string, required: false, default: ""
 
   def time_range(assigns) do
     presets =
@@ -201,7 +202,7 @@ defmodule Luminous.Components do
     assigns = assign(assigns, presets: presets)
 
     ~H"""
-    <div class="lmn-time-range-compound">
+    <div class={"lmn-time-range-compound #{@class}"}>
       <div class="lmn-time-range-selector">
         <!-- Date picker -->
         <input
