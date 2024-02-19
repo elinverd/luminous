@@ -192,8 +192,14 @@ defmodule Luminous.Components do
   It consists of a date range picker and a presets dropdown.
   """
   attr :time_zone, :string, required: true
+  attr :presets, :list, required: false, default: nil
 
   def time_range(assigns) do
+    presets =
+      if is_nil(assigns.presets), do: Luminous.TimeRangeSelector.presets(), else: assigns.presets
+
+    assigns = assign(assigns, presets: presets)
+
     ~H"""
     <div class="lmn-time-range-compound">
       <div class="lmn-time-range-selector">
@@ -224,7 +230,7 @@ defmodule Luminous.Components do
           </button>
           <div id="preset-dropdown" class="absolute hidden top-10 right-0">
             <ul class="lmn-time-range-presets-dropdown">
-              <%= for preset <- Luminous.TimeRangeSelector.presets() do %>
+              <%= for preset <- @presets do %>
                 <li class="lmn-time-range-presets-dropdown-item-container">
                   <div
                     class="lmn-time-range-presets-dropdown-item-content"
