@@ -54,7 +54,7 @@ defmodule Luminous.Components do
           </div>
 
           <div class="flex space-x-2 items-center">
-            <.time_range dashboard={@dashboard} />
+            <.time_range time_zone={@dashboard.time_zone} />
           </div>
         </div>
       </div>
@@ -191,7 +191,7 @@ defmodule Luminous.Components do
   This component is responsible for rendering the `Luminous.TimeRange` component.
   It consists of a date range picker and a presets dropdown.
   """
-  attr :dashboard, :map, required: true
+  attr :time_zone, :string, required: true
 
   def time_range(assigns) do
     ~H"""
@@ -244,7 +244,7 @@ defmodule Luminous.Components do
         </div>
       </div>
       <div class="lmn-time-zone">
-        <%= @dashboard.time_zone |> DateTime.now!() |> Calendar.strftime("%Z") %>
+        <%= @time_zone |> DateTime.now!() |> Calendar.strftime("%Z") %>
       </div>
     </div>
     """
