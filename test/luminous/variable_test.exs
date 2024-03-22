@@ -17,12 +17,21 @@ defmodule Luminous.VariableTest do
              |> Variable.extract_value() == "a"
     end
 
-    test "the default value of a multi variable is the selection of all list elements" do
+    test "the default value of a multi variable is the selection of all list elements by default" do
       assert [id: :foo, label: "Foo", module: Variables, type: :multi]
              |> Variable.define!()
              |> Variable.populate(%{})
              |> Variable.get_current()
              |> Variable.extract_value() == ["a", "b"]
+    end
+
+    test "the default value of a multi variable is an empty list when specified as such" do
+      assert [id: :foo, label: "Foo", module: Variables, type: :multi, multi_default: :none]
+             |> Variable.define!()
+             |> Variable.populate(%{})
+             |> Variable.get_current()
+             |> Variable.extract_value()
+             |> Enum.empty?()
     end
   end
 

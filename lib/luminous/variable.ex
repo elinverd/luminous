@@ -39,6 +39,7 @@ defmodule Luminous.Variable do
     label: [type: :string, required: true],
     module: [type: :atom, required: true],
     type: [type: {:in, [:single, :multi]}, default: :single],
+    multi_default: [type: {:in, [:all, :none]}, default: :all],
     hidden: [type: :boolean, default: false]
   ]
 
@@ -86,9 +87,15 @@ defmodule Luminous.Variable do
         |> Map.put(:current, List.first(values))
 
       :multi ->
+        current =
+          case var.multi_default do
+            :all -> values
+            :none -> []
+          end
+
         var
         |> Map.put(:values, values)
-        |> Map.put(:current, values)
+        |> Map.put(:current, current)
     end
   end
 
