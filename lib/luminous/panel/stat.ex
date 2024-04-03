@@ -36,13 +36,15 @@ defmodule Luminous.Panel.Stat do
     <%= case Dashboard.get_data(@dashboard, @panel.id) do %>
       <% %{stats: [_ | _] = stats} -> %>
         <div id={"#{Utils.dom_id(@panel)}-stat-values"} class={stats_grid_structure(length(stats))}>
-          <%= for column <- stats do %>
+          <%= for {column, index} <- Enum.with_index(stats) do %>
             <div class="flex flex-col items-center">
               <div class="grow">
                 <p class="text-lg"><%= column.title %></p>
               </div>
               <div>
-                <span class="text-4xl font-bold"><%= Utils.print_number(column.value) %></span>
+                <span id={"#{@panel.id}-stat-#{index}-value"} class="text-4xl font-bold">
+                  <%= Utils.print_number(column.value) %>
+                </span>
                 <span class="text-2xl font-semibold"><%= column.unit %></span>
               </div>
             </div>
