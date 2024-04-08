@@ -48,7 +48,8 @@ defmodule Luminous.Panel.Table do
           field: label,
           title: attrs.title,
           hozAlign: attrs.halign,
-          headerHozAlign: attrs.halign
+          headerHozAlign: attrs.halign,
+          formatter: "textarea"
         }
         |> add_table_totals_option(attrs)
         |> add_number_formatting_option(attrs)
