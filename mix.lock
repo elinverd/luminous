@@ -1,4 +1,6 @@
 %{
+  "assert_eventually": {:hex, :assert_eventually, "1.0.0", "f1539f28ba3ffa99a712433c77723c7103986932aa341d05eee94c333a920d15", [:mix], [{:ex_doc, ">= 0.0.0", [hex: :ex_doc, repo: "hexpm", optional: true]}], "hexpm", "c658ac4103c8bd82d0cf72a2fdb77477ba3fbc6b15228c5c801003d239625c69"},
+  "assert_html": {:hex, :assert_html, "0.1.4", "e8bc89f4cfdb5d686b75c2509e4e3cbce364f8d13a345bd88075b6134ccf32df", [:mix], [{:floki, "~> 0.21", [hex: :floki, repo: "hexpm", optional: false]}], "hexpm", "9cbe2792bce2535ed343d9ebc4eebef23f0c9bf75a27c740d9b7b05d44ea213b"},
   "castore": {:hex, :castore, "1.0.5", "9eeebb394cc9a0f3ae56b813459f990abb0a3dedee1be6b27fdb50301930502f", [:mix], [], "hexpm", "8d7c597c3e4a64c395980882d4bca3cebb8d74197c590dc272cfd3b6a6310578"},
   "certifi": {:hex, :certifi, "2.9.0", "6f2a475689dd47f19fb74334859d460a2dc4e3252a3324bd2111b8f0429e7e21", [:rebar3], [], "hexpm", "266da46bdb06d6c6d35fde799bcb28d36d985d424ad7c08b5bb48f5b5cdd4641"},
   "cowboy": {:hex, :cowboy, "2.10.0", "ff9ffeff91dae4ae270dd975642997afe2a1179d94b1887863e43f681a203e26", [:make, :rebar3], [{:cowlib, "2.12.1", [hex: :cowlib, repo: "hexpm", optional: false]}, {:ranch, "1.8.0", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm", "3afdccb7183cc6f143cb14d3cf51fa00e53db9ec80cdcd525482f5e99bc41d6b"},

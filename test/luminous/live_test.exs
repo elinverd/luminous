@@ -1,6 +1,8 @@
 defmodule Luminous.LiveTest do
   alias Luminous.TimeRange
   use Luminous.ConnCase, async: true
+  use AssertHTML
+  use AssertEventually, timeout: 500, interval: 10
 
   alias Luminous.{Attributes, Query, Panel, TimeRange, Variable}
 
@@ -242,38 +244,44 @@ defmodule Luminous.LiveTest do
       {:ok, view, _} = live(conn, Routes.dashboard_path(conn, :index))
       set_dashboard(view, dashboard)
 
-      assert view |> element("#panel-p2-title") |> render() =~ "Panel 2"
-      assert view |> element("#panel-p2-stat-values") |> render() =~ ">666<"
-      assert view |> element("#panel-p2-stat-values") |> render() =~ ">$<"
-      assert view |> element("#panel-p2-stat-values") |> render() =~ "Bar ($)"
+      view
+      |> render()
+      |> assert_html("#panel-p2-stat-0-value", text: "666")
+      |> assert_eventually()
 
-      assert view |> element("#panel-p4-title") |> render() =~ "Panel 4"
-      assert view |> element("#panel-p4-stat-values") |> render() =~ ">666<"
-      assert view |> element("#panel-p4-stat-values") |> render() =~ ">$<"
+      html = render(view)
 
-      assert view |> element("#panel-p5-title") |> render() =~ "Panel 5"
-      assert view |> element("#panel-p5-stat-values") |> render() =~ ">66<"
-      assert view |> element("#panel-p5-stat-values") |> render() =~ ">$<"
-      assert view |> element("#panel-p5-stat-values") |> render() =~ ">88<"
-      assert view |> element("#panel-p5-stat-values") |> render() =~ ">€<"
+      assert_html(html, "#panel-p2-title", text: "Panel 2")
+      assert_html(html, "#panel-p2-stat-0-unit", text: "$")
+      assert_html(html, "#panel-p2-stat-0-column-title", text: "Bar ($)")
 
-      assert view |> element("#panel-p6-title") |> render() =~ "Panel 6"
-      assert view |> element("#panel-p6-stat-values") |> render() =~ ">Just show this<"
+      assert_html(html, "#panel-p4-title", text: "Panel 4")
+      assert_html(html, "#panel-p4-stat-0-value", text: "666")
+      assert_html(html, "#panel-p4-stat-0-unit", text: "$")
 
-      assert view |> element("#panel-p8-title") |> render() =~ "Panel 8"
-      assert view |> element("#panel-p8-stat-values") |> render() =~ ">11<"
+      assert_html(html, "#panel-p5-title", text: "Panel 5")
+      assert_html(html, "#panel-p5-stat-0-value", text: "88")
+      assert_html(html, "#panel-p5-stat-0-unit", text: "€")
+      assert_html(html, "#panel-p5-stat-1-value", text: "66")
+      assert_html(html, "#panel-p5-stat-1-unit", text: "$")
 
-      assert view |> element("#panel-p9-title") |> render() =~ "Panel 9"
-      assert view |> element("#panel-p9-stat-values") |> render() =~ ">-<"
+      assert_html(html, "#panel-p6-title", text: "Panel 6")
+      assert_html(html, "#panel-p6-stat-0-value", text: "Just show this")
 
-      assert view |> element("#panel-p10-title") |> render() =~ "Panel 10"
-      assert view |> element("#panel-p10-stat-values") |> render() =~ ">452,64<"
-      assert view |> element("#panel-p10-stat-values") |> render() =~ ">$<"
-      assert view |> element("#panel-p10-stat-values") |> render() =~ ">260.238,4<"
-      assert view |> element("#panel-p10-stat-values") |> render() =~ ">€<"
+      assert_html(html, "#panel-p8-title", text: "Panel 8 (stat with simple value)")
+      assert_html(html, "#panel-p8-stat-0-value", text: "11")
 
-      assert view |> element("#panel-p11-title") |> render() =~ "Panel 11"
-      assert view |> element("#panel-p11-stat-values") |> render() =~ ">-<"
+      assert_html(html, "#panel-p9-title", text: "Panel 9 (empty stat)")
+      assert_html(html, "#panel-p9-stat-values", text: "-")
+
+      assert_html(html, "#panel-p10-title", text: "Panel 10 (stats as list of 2-tuples)")
+      assert_html(html, "#panel-p10-stat-0-value", text: "452,64")
+      assert_html(html, "#panel-p10-stat-0-unit", text: "$")
+      assert_html(html, "#panel-p10-stat-1-value", text: "260.238,4")
+      assert_html(html, "#panel-p10-stat-1-unit", text: "€")
+
+      assert_html(html, "#panel-p11-title", text: "Panel 11 (nil stat)")
+      assert_html(html, "#panel-p11-stat-0-value", text: "-")
     end
 
     test "does not push the event in the case of the stat panel", %{conn: conn} do
@@ -345,14 +353,16 @@ defmodule Luminous.LiveTest do
             field: "label",
             headerHozAlign: :center,
             hozAlign: :center,
-            title: "Label"
+            title: "Label",
+            formatter: "textarea"
           },
           %{
             field: "foo",
             headerHozAlign: :right,
             hozAlign: :right,
             title: "Foo",
-            bottomCalc: :sum
+            bottomCalc: :sum,
+            formatter: "textarea"
           },
           %{
             field: "bar",

@@ -58,7 +58,9 @@ defmodule Luminous.MixProject do
       {:plug_cowboy, "~> 2.0", only: :dev},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:floki, ">= 0.30.0", only: :test},
-      {:ex_doc, "~> 0.27", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false},
+      {:assert_html, ">= 0.1.2", only: :test},
+      {:assert_eventually, "~> 1.0", only: :test}
     ]
   end
 
