@@ -43773,6 +43773,17 @@ function MultiSelectVariableHook() {
         this.pushEventTo("#" + this.el.id, "lmn_variable_updated", { variable: e.detail.var_id, value: this.state.values });
       }
     });
+    document.getElementById(this.el.id).addEventListener("itemSearch", (e) => {
+      const input2 = document.getElementById(e.detail.input_id);
+      for (const li of input2.parentElement.parentElement.getElementsByTagName("li")) {
+        const label_text = li.querySelector("label span").textContent.toLowerCase();
+        if (label_text.includes(input2.value.toLowerCase())) {
+          li.style.display = "list-item";
+        } else {
+          li.style.display = "none";
+        }
+      }
+    });
   };
 }
 var multi_select_variable_hook_default = MultiSelectVariableHook;

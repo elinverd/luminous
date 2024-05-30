@@ -355,34 +355,55 @@ defmodule Luminous.Components do
         </svg>
       </button>
       <!-- Dropdown content -->
-      <div id={"#{@variable.id}-dropdown-content"} class="absolute hidden">
-        <ul class="lmn-variable-dropdown">
-          <%= for %{label: label, value: value} <- @variable.values do %>
-            <li id={"#{@variable.id}-#{value}"} class="">
-              <label
-                for={"#{@variable.id}-#{value}-checkbox"}
-                class="lmn-multi-variable-dropdown-item-container"
-              >
-                <%= if value in Variable.extract_value(@variable.current) do %>
-                  <input
-                    type="checkbox"
-                    id={"#{@variable.id}-#{value}-checkbox"}
-                    phx-click={JS.dispatch("valueClicked", detail: %{"value" => value})}
-                    class="lmn-multi-variable-dropdown-checkbox"
-                    checked
-                  />
-                <% else %>
-                  <input
-                    type="checkbox"
-                    id={"#{@variable.id}-#{value}-checkbox"}
-                    phx-click={JS.dispatch("valueClicked", detail: %{"value" => value})}
-                    class="lmn-multi-variable-dropdown-checkbox"
-                  />
-                <% end %>
-                <span class="select-none"><%= label %></span>
-              </label>
-            </li>
-          <% end %>
+      <div id={"#{@variable.id}-dropdown-content"} class="lmn-multi-variable-dropdown-container">
+        <div :if={Variable.show_search?(@variable)} class="lmn-multi-variable-dropdown-search">
+          <input
+            id={"#{@variable.id}-dropdown-search-input"}
+            type="text"
+            placeholder={"Search #{String.downcase(@variable.label)}..."}
+            class="lmn-multi-variable-dropdown-search-input"
+            autocomplete="off"
+            phx-change={
+              JS.dispatch("itemSearch",
+                detail: %{"input_id" => "#{@variable.id}-dropdown-search-input"}
+              )
+            }
+          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="lmn-multi-variable-dropdown-search-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+            />
+          </svg>
+        </div>
+        <ul class="flex flex-col max-h-96 overflow-auto">
+          <li
+            :for={%{label: label, value: value} <- @variable.values}
+            class="inline-block w-max"
+            id={"#{@variable.id}-#{label}"}
+          >
+            <label
+              for={"#{@variable.id}-#{value}-checkbox"}
+              class="lmn-multi-variable-dropdown-item-container"
+            >
+              <input
+                type="checkbox"
+                id={"#{@variable.id}-#{value}-checkbox"}
+                phx-click={JS.dispatch("valueClicked", detail: %{"value" => value})}
+                class="lmn-multi-variable-dropdown-checkbox"
+                checked={value in Variable.extract_value(@variable.current)}
+              />
+              <span class="select-none"><%= label %></span>
+            </label>
+          </li>
         </ul>
       </div>
     </div>

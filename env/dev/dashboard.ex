@@ -28,7 +28,18 @@ defmodule Luminous.Dev.DashboardLive do
 
     def variable(:interval_var, _), do: ["hour", "day"]
 
-    def variable(:region_var, _), do: ["north", "south", "east", "west"]
+    def variable(:region_var, _),
+      do: [
+        "north",
+        "south",
+        "east",
+        "west",
+        "north west",
+        "south west",
+        "north east",
+        "south east"
+      ]
+
     def variable(:region_var2, _), do: ["north2", "south2", "east2", "west2"]
   end
 
@@ -316,7 +327,13 @@ defmodule Luminous.Dev.DashboardLive do
     variables: [
       Variable.define!(id: :multiplier_var, label: "Multiplier", module: Variables),
       Variable.define!(id: :interval_var, label: "Interval", module: Variables),
-      Variable.define!(id: :region_var, label: "Region", module: Variables, type: :multi)
+      Variable.define!(
+        id: :region_var,
+        label: "Region",
+        module: Variables,
+        type: :multi,
+        search: true
+      )
     ]
 
   @impl Luminous.Dashboard

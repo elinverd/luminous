@@ -25,6 +25,19 @@ function MultiSelectVariableHook() {
         this.pushEventTo("#" + this.el.id, "lmn_variable_updated", {variable: e.detail.var_id, value: this.state.values})
       }
     })
+
+    document.getElementById(this.el.id).addEventListener('itemSearch', (e) => {
+      const input = document.getElementById(e.detail.input_id)
+
+      for (const li of input.parentElement.parentElement.getElementsByTagName("li")) {
+        const label_text = li.querySelector("label span").textContent.toLowerCase()
+        if (label_text.includes(input.value.toLowerCase())) {
+          li.style.display = 'list-item'
+        } else {
+          li.style.display = 'none'
+        }
+      }
+    })
   }
 }
 
