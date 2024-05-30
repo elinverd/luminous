@@ -37,9 +37,6 @@ defmodule Luminous.Panel.Stat do
       <% %{stats: [_ | _] = stats} -> %>
         <div id={"#{Utils.dom_id(@panel)}-stat-values"} class={stats_grid_structure(length(stats))}>
           <%= for {column, index} <- Enum.with_index(stats) do %>
-            <%= if Utils.dom_id(@panel) == "panel-p11" do %>
-              <% IO.inspect(stats) %>
-            <% end %>
             <div class="flex flex-col items-center">
               <div class="grow">
                 <p id={"#{Utils.dom_id(@panel)}-stat-#{index}-column-title"} class="text-lg">
