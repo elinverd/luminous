@@ -40,6 +40,7 @@ defmodule Luminous.Variable do
     module: [type: :atom, required: true],
     type: [type: {:in, [:single, :multi]}, default: :single],
     multi_default: [type: {:in, [:all, :none]}, default: :all],
+    search: [type: :boolean, default: false],
     hidden: [type: :boolean, default: false]
   ]
 
@@ -184,4 +185,11 @@ defmodule Luminous.Variable do
 
     %{var | current: new_values}
   end
+
+  @doc """
+  Returns true if the variable was declared to include a search field for the listed items,
+  otherwise false.
+  """
+  @spec show_search?(t()) :: boolean()
+  def show_search?(%{search: value}), do: value
 end
