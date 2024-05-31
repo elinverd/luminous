@@ -21944,7 +21944,7 @@ function ChartJSHook() {
       });
       csvRows = ["sep=,", '"time",' + labels.join(",")];
       rows.forEach((values2, time2) => {
-        row = DateTime.fromMillis(time2).toFormat("yyyy-MM-dd'T'HH:mm:ssZZZ");
+        row = DateTime.fromMillis(time2).toFormat("yyyy/MM/dd'T'HH:mm:ssZZZ");
         csvRows.push(row + "," + values2.join(","));
       });
       csv = csvRows.join("\r\n");

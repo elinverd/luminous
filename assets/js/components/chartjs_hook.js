@@ -297,7 +297,7 @@ function ChartJSHook() {
       // the first row is for excel to automatically recognize the field separator
       csvRows = ['sep=,', '\"time\",' + labels.join(',')]
       rows.forEach((values, time) => {
-        row = DateTime.fromMillis(time).toFormat("yyyy-MM-dd'T'HH:mm:ssZZZ")
+        row = DateTime.fromMillis(time).toFormat("yyyy/MM/dd'T'HH:mm:ssZZZ")
         csvRows.push(row + ',' + values.join(','))
       })
       csv = csvRows.join('\r\n')
