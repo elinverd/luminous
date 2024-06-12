@@ -365,7 +365,10 @@ defmodule Luminous.Components do
             autocomplete="off"
             phx-change={
               JS.dispatch("itemSearch",
-                detail: %{"input_id" => "#{@variable.id}-dropdown-search-input"}
+                detail: %{
+                  "input_id" => "#{@variable.id}-dropdown-search-input",
+                  "list_id" => "#{@variable.id}-items-list"
+                }
               )
             }
           />
@@ -384,7 +387,7 @@ defmodule Luminous.Components do
             />
           </svg>
         </div>
-        <ul class="flex flex-col max-h-96 overflow-auto">
+        <ul id={"#{@variable.id}-items-list"} class="flex flex-col max-h-96 overflow-auto">
           <li
             :for={%{label: label, value: value} <- @variable.values}
             class="inline-block w-max"

@@ -27,14 +27,14 @@ function MultiSelectVariableHook() {
     })
 
     document.getElementById(this.el.id).addEventListener('itemSearch', (e) => {
-      const input = document.getElementById(e.detail.input_id)
+      const text_to_search = document.getElementById(e.detail.input_id).value.toLowerCase()
+      const list = document.getElementById(e.detail.list_id)
 
-      for (const li of input.parentElement.parentElement.getElementsByTagName("li")) {
-        const label_text = li.querySelector("label span").textContent.toLowerCase()
-        if (label_text.includes(input.value.toLowerCase())) {
-          li.style.display = 'list-item'
+      for (const list_item of list.children) {
+        if (list_item.textContent.toLowerCase().includes(text_to_search)) {
+          list_item.style.display = 'list-item'
         } else {
-          li.style.display = 'none'
+          list_item.style.display = 'none'
         }
       }
     })
