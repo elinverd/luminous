@@ -1,6 +1,6 @@
 function MultiSelectVariableHook() {
   this.mounted = function() {
-    this.state = {open: false, values: null}
+    this.state = {open: false, values: []}
 
     document.getElementById(this.el.id).addEventListener('dropdownOpen', (e) => {
       this.state.open = true
@@ -35,6 +35,16 @@ function MultiSelectVariableHook() {
           list_item.style.display = 'list-item'
         } else {
           list_item.style.display = 'none'
+        }
+      }
+    })
+
+    document.getElementById(this.el.id).addEventListener('clearSelection', (e) => {
+      const list = document.getElementById(e.detail.list_id)
+
+      for (const input of list.getElementsByTagName("input")) {
+        if (input.getAttribute("type") === "checkbox" && input.checked === true) {
+          input.click()
         }
       }
     })

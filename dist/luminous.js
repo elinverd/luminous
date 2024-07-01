@@ -43754,7 +43754,7 @@ var time_range_hook_default = TimeRangeHook;
 // js/components/multi_select_variable_hook.js
 function MultiSelectVariableHook() {
   this.mounted = function() {
-    this.state = { open: false, values: null };
+    this.state = { open: false, values: [] };
     document.getElementById(this.el.id).addEventListener("dropdownOpen", (e) => {
       this.state.open = true;
       this.state.values = e.detail.values;
@@ -43774,13 +43774,21 @@ function MultiSelectVariableHook() {
       }
     });
     document.getElementById(this.el.id).addEventListener("itemSearch", (e) => {
-      const input2 = document.getElementById(e.detail.input_id);
-      for (const li of input2.parentElement.parentElement.getElementsByTagName("li")) {
-        const label_text = li.querySelector("label span").textContent.toLowerCase();
-        if (label_text.includes(input2.value.toLowerCase())) {
-          li.style.display = "list-item";
+      const text_to_search = document.getElementById(e.detail.input_id).value.toLowerCase();
+      const list2 = document.getElementById(e.detail.list_id);
+      for (const list_item of list2.children) {
+        if (list_item.textContent.toLowerCase().includes(text_to_search)) {
+          list_item.style.display = "list-item";
         } else {
-          li.style.display = "none";
+          list_item.style.display = "none";
+        }
+      }
+    });
+    document.getElementById(this.el.id).addEventListener("clearSelection", (e) => {
+      const list2 = document.getElementById(e.detail.list_id);
+      for (const input2 of list2.getElementsByTagName("input")) {
+        if (input2.getAttribute("type") === "checkbox" && input2.checked === true) {
+          input2.click();
         }
       }
     });

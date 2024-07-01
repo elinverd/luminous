@@ -356,38 +356,48 @@ defmodule Luminous.Components do
       </button>
       <!-- Dropdown content -->
       <div id={"#{@variable.id}-dropdown-content"} class="lmn-multi-variable-dropdown-container">
-        <div :if={Variable.show_search?(@variable)} class="lmn-multi-variable-dropdown-search">
-          <input
-            id={"#{@variable.id}-dropdown-search-input"}
-            type="text"
-            placeholder={"Search #{String.downcase(@variable.label)}..."}
-            class="lmn-multi-variable-dropdown-search-input"
-            autocomplete="off"
-            phx-change={
-              JS.dispatch("itemSearch",
-                detail: %{
-                  "input_id" => "#{@variable.id}-dropdown-search-input",
-                  "list_id" => "#{@variable.id}-items-list"
-                }
-              )
-            }
-          />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="lmn-multi-variable-dropdown-search-icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+        <div :if={Variable.show_search?(@variable)}>
+          <div class="lmn-multi-variable-dropdown-searchbox">
+            <input
+              id={"#{@variable.id}-dropdown-search-input"}
+              type="text"
+              placeholder={"Search #{String.downcase(@variable.label)}..."}
+              class="lmn-multi-variable-dropdown-search-input"
+              autocomplete="off"
+              phx-change={
+                JS.dispatch("itemSearch",
+                  detail: %{
+                    "input_id" => "#{@variable.id}-dropdown-search-input",
+                    "list_id" => "#{@variable.id}-items-list"
+                  }
+                )
+              }
             />
-          </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="lmn-multi-variable-dropdown-search-icon"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+              />
+            </svg>
+          </div>
+          <button
+            phx-click={
+              JS.dispatch("clearSelection", detail: %{"list_id" => "#{@variable.id}-items-list"})
+            }
+            class="lmn-multi-variable-dropdown-search-clear"
+          >
+            Clear selection
+          </button>
         </div>
-        <ul id={"#{@variable.id}-items-list"} class="flex flex-col max-h-96 overflow-auto">
+        <ul id={"#{@variable.id}-items-list"} class="flex flex-col max-h-96 overflow-auto mt-2">
           <li
             :for={%{label: label, value: value} <- @variable.values}
             class="inline-block w-max"
