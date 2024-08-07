@@ -8,7 +8,4 @@ module.exports = {
     backgroundOpacity: false,
     borderOpacity: false
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-  ]
 }
