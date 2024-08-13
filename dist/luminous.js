@@ -4438,7 +4438,7 @@ var Animator = class {
       }
       const items = anims.items;
       let i2 = items.length - 1;
-      let draw3 = false;
+      let draw2 = false;
       let item;
       for (; i2 >= 0; --i2) {
         item = items[i2];
@@ -4447,13 +4447,13 @@ var Animator = class {
             anims.duration = item._total;
           }
           item.tick(date2);
-          draw3 = true;
+          draw2 = true;
         } else {
           items[i2] = items[items.length - 1];
           items.pop();
         }
       }
-      if (draw3) {
+      if (draw2) {
         chart.draw();
         this._notify(chart, anims, date2, "progress");
       }
@@ -11985,7 +11985,7 @@ var index = {
     }
   },
   beforeDraw(chart, _args, options) {
-    const draw3 = options.drawTime === "beforeDraw";
+    const draw2 = options.drawTime === "beforeDraw";
     const metasets = chart.getSortedVisibleDatasetMetas();
     const area = chart.chartArea;
     for (let i2 = metasets.length - 1; i2 >= 0; --i2) {
@@ -11994,7 +11994,7 @@ var index = {
         continue;
       }
       source.line.updateControlPoints(area, source.axis);
-      if (draw3 && source.fill) {
+      if (draw2 && source.fill) {
         _drawfill(chart.ctx, source, area);
       }
     }
@@ -15542,16 +15542,6 @@ function systemLocale() {
     return sysLocaleCache;
   }
 }
-var weekInfoCache = {};
-function getCachedWeekInfo(locString) {
-  let data = weekInfoCache[locString];
-  if (!data) {
-    const locale = new Intl.Locale(locString);
-    data = "getWeekInfo" in locale ? locale.getWeekInfo() : locale.weekInfo;
-    weekInfoCache[locString] = data;
-  }
-  return data;
-}
 function parseLocaleString(localeStr) {
   const xIndex = localeStr.indexOf("-x-");
   if (xIndex !== -1) {
@@ -15594,7 +15584,7 @@ function intlConfigString(localeStr, numberingSystem, outputCalendar) {
 function mapMonths(f) {
   const ms = [];
   for (let i2 = 1; i2 <= 12; i2++) {
-    const dt = DateTime.utc(2009, i2, 1);
+    const dt = DateTime.utc(2016, i2, 1);
     ms.push(f(dt));
   }
   return ms;
@@ -15607,8 +15597,8 @@ function mapWeekdays(f) {
   }
   return ms;
 }
-function listStuff(loc, length, englishFn, intlFn) {
-  const mode = loc.listingMode();
+function listStuff(loc, length, defaultOK, englishFn, intlFn) {
+  const mode = loc.listingMode(defaultOK);
   if (mode === "error") {
     return null;
   } else if (mode === "en") {
@@ -15729,28 +15719,16 @@ var PolyRelFormatter = class {
     }
   }
 };
-var fallbackWeekSettings = {
-  firstDay: 1,
-  minimalDays: 4,
-  weekend: [6, 7]
-};
 var Locale = class {
   static fromOpts(opts) {
-    return Locale.create(
-      opts.locale,
-      opts.numberingSystem,
-      opts.outputCalendar,
-      opts.weekSettings,
-      opts.defaultToEN
-    );
+    return Locale.create(opts.locale, opts.numberingSystem, opts.outputCalendar, opts.defaultToEN);
   }
-  static create(locale, numberingSystem, outputCalendar, weekSettings, defaultToEN = false) {
+  static create(locale, numberingSystem, outputCalendar, defaultToEN = false) {
     const specifiedLocale = locale || Settings.defaultLocale;
     const localeR = specifiedLocale || (defaultToEN ? "en-US" : systemLocale());
     const numberingSystemR = numberingSystem || Settings.defaultNumberingSystem;
     const outputCalendarR = outputCalendar || Settings.defaultOutputCalendar;
-    const weekSettingsR = validateWeekSettings(weekSettings) || Settings.defaultWeekSettings;
-    return new Locale(localeR, numberingSystemR, outputCalendarR, weekSettingsR, specifiedLocale);
+    return new Locale(localeR, numberingSystemR, outputCalendarR, specifiedLocale);
   }
   static resetCache() {
     sysLocaleCache = null;
@@ -15758,15 +15736,14 @@ var Locale = class {
     intlNumCache = {};
     intlRelCache = {};
   }
-  static fromObject({ locale, numberingSystem, outputCalendar, weekSettings } = {}) {
-    return Locale.create(locale, numberingSystem, outputCalendar, weekSettings);
+  static fromObject({ locale, numberingSystem, outputCalendar } = {}) {
+    return Locale.create(locale, numberingSystem, outputCalendar);
   }
-  constructor(locale, numbering, outputCalendar, weekSettings, specifiedLocale) {
+  constructor(locale, numbering, outputCalendar, specifiedLocale) {
     const [parsedLocale, parsedNumberingSystem, parsedOutputCalendar] = parseLocaleString(locale);
     this.locale = parsedLocale;
     this.numberingSystem = numbering || parsedNumberingSystem || null;
     this.outputCalendar = outputCalendar || parsedOutputCalendar || null;
-    this.weekSettings = weekSettings;
     this.intl = intlConfigString(this.locale, this.numberingSystem, this.outputCalendar);
     this.weekdaysCache = { format: {}, standalone: {} };
     this.monthsCache = { format: {}, standalone: {} };
@@ -15794,7 +15771,6 @@ var Locale = class {
         alts.locale || this.specifiedLocale,
         alts.numberingSystem || this.numberingSystem,
         alts.outputCalendar || this.outputCalendar,
-        validateWeekSettings(alts.weekSettings) || this.weekSettings,
         alts.defaultToEN || false
       );
     }
@@ -15805,8 +15781,8 @@ var Locale = class {
   redefaultToSystem(alts = {}) {
     return this.clone(__spreadProps(__spreadValues({}, alts), { defaultToEN: false }));
   }
-  months(length, format = false) {
-    return listStuff(this, length, months, () => {
+  months(length, format = false, defaultOK = true) {
+    return listStuff(this, length, defaultOK, months, () => {
       const intl = format ? { month: length, day: "numeric" } : { month: length }, formatStr = format ? "format" : "standalone";
       if (!this.monthsCache[formatStr][length]) {
         this.monthsCache[formatStr][length] = mapMonths((dt) => this.extract(dt, intl, "month"));
@@ -15814,8 +15790,8 @@ var Locale = class {
       return this.monthsCache[formatStr][length];
     });
   }
-  weekdays(length, format = false) {
-    return listStuff(this, length, weekdays, () => {
+  weekdays(length, format = false, defaultOK = true) {
+    return listStuff(this, length, defaultOK, weekdays, () => {
       const intl = format ? { weekday: length, year: "numeric", month: "long", day: "numeric" } : { weekday: length }, formatStr = format ? "format" : "standalone";
       if (!this.weekdaysCache[formatStr][length]) {
         this.weekdaysCache[formatStr][length] = mapWeekdays(
@@ -15825,10 +15801,11 @@ var Locale = class {
       return this.weekdaysCache[formatStr][length];
     });
   }
-  meridiems() {
+  meridiems(defaultOK = true) {
     return listStuff(
       this,
       void 0,
+      defaultOK,
       () => meridiems,
       () => {
         if (!this.meridiemCache) {
@@ -15841,8 +15818,8 @@ var Locale = class {
       }
     );
   }
-  eras(length) {
-    return listStuff(this, length, eras, () => {
+  eras(length, defaultOK = true) {
+    return listStuff(this, length, defaultOK, eras, () => {
       const intl = { era: length };
       if (!this.eraCache[length]) {
         this.eraCache[length] = [DateTime.utc(-40, 1, 1), DateTime.utc(2017, 1, 1)].map(
@@ -15870,24 +15847,6 @@ var Locale = class {
   }
   isEnglish() {
     return this.locale === "en" || this.locale.toLowerCase() === "en-us" || new Intl.DateTimeFormat(this.intl).resolvedOptions().locale.startsWith("en-us");
-  }
-  getWeekSettings() {
-    if (this.weekSettings) {
-      return this.weekSettings;
-    } else if (!hasLocaleWeekInfo()) {
-      return fallbackWeekSettings;
-    } else {
-      return getCachedWeekInfo(this.locale);
-    }
-  }
-  getStartOfWeek() {
-    return this.getWeekSettings().firstDay;
-  }
-  getMinDaysInFirstWeek() {
-    return this.getWeekSettings().minimalDays;
-  }
-  getWeekendDays() {
-    return this.getWeekSettings().weekend;
   }
   equals(other) {
     return this.locale === other.locale && this.numberingSystem === other.numberingSystem && this.outputCalendar === other.outputCalendar;
@@ -16036,7 +15995,7 @@ function normalizeZone(input2, defaultZone2) {
       return FixedOffsetZone.parseSpecifier(lowered) || IANAZone.create(input2);
   } else if (isNumber2(input2)) {
     return FixedOffsetZone.instance(input2);
-  } else if (typeof input2 === "object" && "offset" in input2 && typeof input2.offset === "function") {
+  } else if (typeof input2 === "object" && input2.offset && typeof input2.offset === "number") {
     return input2;
   } else {
     return new InvalidZone(input2);
@@ -16051,7 +16010,6 @@ var defaultNumberingSystem = null;
 var defaultOutputCalendar = null;
 var twoDigitCutoffYear = 60;
 var throwOnInvalid;
-var defaultWeekSettings = null;
 var Settings = class {
   /**
    * Get the callback for returning the current timestamp.
@@ -16129,28 +16087,6 @@ var Settings = class {
     defaultOutputCalendar = outputCalendar;
   }
   /**
-   * @typedef {Object} WeekSettings
-   * @property {number} firstDay
-   * @property {number} minimalDays
-   * @property {number[]} weekend
-   */
-  /**
-   * @return {WeekSettings|null}
-   */
-  static get defaultWeekSettings() {
-    return defaultWeekSettings;
-  }
-  /**
-   * Allows overriding the default locale week settings, i.e. the start of the week, the weekend and
-   * how many days are required in the first week of a year.
-   * Does not affect existing instances.
-   *
-   * @param {WeekSettings|null} weekSettings
-   */
-  static set defaultWeekSettings(weekSettings) {
-    defaultWeekSettings = validateWeekSettings(weekSettings);
-  }
-  /**
    * Get the cutoff year after which a string encoding a year as two digits is interpreted to occur in the current century.
    * @type {number}
    */
@@ -16160,10 +16096,10 @@ var Settings = class {
   /**
    * Set the cutoff year after which a string encoding a year as two digits is interpreted to occur in the current century.
    * @type {number}
-   * @example Settings.twoDigitCutoffYear = 0 // cut-off year is 0, so all 'yy' are interpreted as current century
+   * @example Settings.twoDigitCutoffYear = 0 // cut-off year is 0, so all 'yy' are interpretted as current century
    * @example Settings.twoDigitCutoffYear = 50 // '49' -> 1949; '50' -> 2050
-   * @example Settings.twoDigitCutoffYear = 1950 // interpreted as 50
-   * @example Settings.twoDigitCutoffYear = 2050 // ALSO interpreted as 50
+   * @example Settings.twoDigitCutoffYear = 1950 // interpretted as 50
+   * @example Settings.twoDigitCutoffYear = 2050 // ALSO interpretted as 50
    */
   static set twoDigitCutoffYear(cutoffYear) {
     twoDigitCutoffYear = cutoffYear % 100;
@@ -16192,163 +16128,6 @@ var Settings = class {
   }
 };
 
-// node_modules/luxon/src/impl/invalid.js
-var Invalid = class {
-  constructor(reason, explanation) {
-    this.reason = reason;
-    this.explanation = explanation;
-  }
-  toMessage() {
-    if (this.explanation) {
-      return `${this.reason}: ${this.explanation}`;
-    } else {
-      return this.reason;
-    }
-  }
-};
-
-// node_modules/luxon/src/impl/conversions.js
-var nonLeapLadder = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-var leapLadder = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
-function unitOutOfRange(unit, value) {
-  return new Invalid(
-    "unit out of range",
-    `you specified ${value} (of type ${typeof value}) as a ${unit}, which is invalid`
-  );
-}
-function dayOfWeek(year, month, day) {
-  const d = new Date(Date.UTC(year, month - 1, day));
-  if (year < 100 && year >= 0) {
-    d.setUTCFullYear(d.getUTCFullYear() - 1900);
-  }
-  const js = d.getUTCDay();
-  return js === 0 ? 7 : js;
-}
-function computeOrdinal(year, month, day) {
-  return day + (isLeapYear(year) ? leapLadder : nonLeapLadder)[month - 1];
-}
-function uncomputeOrdinal(year, ordinal) {
-  const table = isLeapYear(year) ? leapLadder : nonLeapLadder, month0 = table.findIndex((i2) => i2 < ordinal), day = ordinal - table[month0];
-  return { month: month0 + 1, day };
-}
-function isoWeekdayToLocal(isoWeekday, startOfWeek) {
-  return (isoWeekday - startOfWeek + 7) % 7 + 1;
-}
-function gregorianToWeek(gregObj, minDaysInFirstWeek = 4, startOfWeek = 1) {
-  const { year, month, day } = gregObj, ordinal = computeOrdinal(year, month, day), weekday = isoWeekdayToLocal(dayOfWeek(year, month, day), startOfWeek);
-  let weekNumber = Math.floor((ordinal - weekday + 14 - minDaysInFirstWeek) / 7), weekYear;
-  if (weekNumber < 1) {
-    weekYear = year - 1;
-    weekNumber = weeksInWeekYear(weekYear, minDaysInFirstWeek, startOfWeek);
-  } else if (weekNumber > weeksInWeekYear(year, minDaysInFirstWeek, startOfWeek)) {
-    weekYear = year + 1;
-    weekNumber = 1;
-  } else {
-    weekYear = year;
-  }
-  return __spreadValues({ weekYear, weekNumber, weekday }, timeObject(gregObj));
-}
-function weekToGregorian(weekData, minDaysInFirstWeek = 4, startOfWeek = 1) {
-  const { weekYear, weekNumber, weekday } = weekData, weekdayOfJan4 = isoWeekdayToLocal(dayOfWeek(weekYear, 1, minDaysInFirstWeek), startOfWeek), yearInDays = daysInYear(weekYear);
-  let ordinal = weekNumber * 7 + weekday - weekdayOfJan4 - 7 + minDaysInFirstWeek, year;
-  if (ordinal < 1) {
-    year = weekYear - 1;
-    ordinal += daysInYear(year);
-  } else if (ordinal > yearInDays) {
-    year = weekYear + 1;
-    ordinal -= daysInYear(weekYear);
-  } else {
-    year = weekYear;
-  }
-  const { month, day } = uncomputeOrdinal(year, ordinal);
-  return __spreadValues({ year, month, day }, timeObject(weekData));
-}
-function gregorianToOrdinal(gregData) {
-  const { year, month, day } = gregData;
-  const ordinal = computeOrdinal(year, month, day);
-  return __spreadValues({ year, ordinal }, timeObject(gregData));
-}
-function ordinalToGregorian(ordinalData) {
-  const { year, ordinal } = ordinalData;
-  const { month, day } = uncomputeOrdinal(year, ordinal);
-  return __spreadValues({ year, month, day }, timeObject(ordinalData));
-}
-function usesLocalWeekValues(obj, loc) {
-  const hasLocaleWeekData = !isUndefined(obj.localWeekday) || !isUndefined(obj.localWeekNumber) || !isUndefined(obj.localWeekYear);
-  if (hasLocaleWeekData) {
-    const hasIsoWeekData = !isUndefined(obj.weekday) || !isUndefined(obj.weekNumber) || !isUndefined(obj.weekYear);
-    if (hasIsoWeekData) {
-      throw new ConflictingSpecificationError(
-        "Cannot mix locale-based week fields with ISO-based week fields"
-      );
-    }
-    if (!isUndefined(obj.localWeekday))
-      obj.weekday = obj.localWeekday;
-    if (!isUndefined(obj.localWeekNumber))
-      obj.weekNumber = obj.localWeekNumber;
-    if (!isUndefined(obj.localWeekYear))
-      obj.weekYear = obj.localWeekYear;
-    delete obj.localWeekday;
-    delete obj.localWeekNumber;
-    delete obj.localWeekYear;
-    return {
-      minDaysInFirstWeek: loc.getMinDaysInFirstWeek(),
-      startOfWeek: loc.getStartOfWeek()
-    };
-  } else {
-    return { minDaysInFirstWeek: 4, startOfWeek: 1 };
-  }
-}
-function hasInvalidWeekData(obj, minDaysInFirstWeek = 4, startOfWeek = 1) {
-  const validYear = isInteger(obj.weekYear), validWeek = integerBetween(
-    obj.weekNumber,
-    1,
-    weeksInWeekYear(obj.weekYear, minDaysInFirstWeek, startOfWeek)
-  ), validWeekday = integerBetween(obj.weekday, 1, 7);
-  if (!validYear) {
-    return unitOutOfRange("weekYear", obj.weekYear);
-  } else if (!validWeek) {
-    return unitOutOfRange("week", obj.weekNumber);
-  } else if (!validWeekday) {
-    return unitOutOfRange("weekday", obj.weekday);
-  } else
-    return false;
-}
-function hasInvalidOrdinalData(obj) {
-  const validYear = isInteger(obj.year), validOrdinal = integerBetween(obj.ordinal, 1, daysInYear(obj.year));
-  if (!validYear) {
-    return unitOutOfRange("year", obj.year);
-  } else if (!validOrdinal) {
-    return unitOutOfRange("ordinal", obj.ordinal);
-  } else
-    return false;
-}
-function hasInvalidGregorianData(obj) {
-  const validYear = isInteger(obj.year), validMonth = integerBetween(obj.month, 1, 12), validDay = integerBetween(obj.day, 1, daysInMonth(obj.year, obj.month));
-  if (!validYear) {
-    return unitOutOfRange("year", obj.year);
-  } else if (!validMonth) {
-    return unitOutOfRange("month", obj.month);
-  } else if (!validDay) {
-    return unitOutOfRange("day", obj.day);
-  } else
-    return false;
-}
-function hasInvalidTimeData(obj) {
-  const { hour, minute, second, millisecond } = obj;
-  const validHour = integerBetween(hour, 0, 23) || hour === 24 && minute === 0 && second === 0 && millisecond === 0, validMinute = integerBetween(minute, 0, 59), validSecond = integerBetween(second, 0, 59), validMillisecond = integerBetween(millisecond, 0, 999);
-  if (!validHour) {
-    return unitOutOfRange("hour", hour);
-  } else if (!validMinute) {
-    return unitOutOfRange("minute", minute);
-  } else if (!validSecond) {
-    return unitOutOfRange("second", second);
-  } else if (!validMillisecond) {
-    return unitOutOfRange("millisecond", millisecond);
-  } else
-    return false;
-}
-
 // node_modules/luxon/src/impl/util.js
 function isUndefined(o) {
   return typeof o === "undefined";
@@ -16368,13 +16147,6 @@ function isDate(o) {
 function hasRelative() {
   try {
     return typeof Intl !== "undefined" && !!Intl.RelativeTimeFormat;
-  } catch (e) {
-    return false;
-  }
-}
-function hasLocaleWeekInfo() {
-  try {
-    return typeof Intl !== "undefined" && !!Intl.Locale && ("weekInfo" in Intl.Locale.prototype || "getWeekInfo" in Intl.Locale.prototype);
   } catch (e) {
     return false;
   }
@@ -16405,22 +16177,6 @@ function pick(obj, keys) {
 }
 function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-function validateWeekSettings(settings) {
-  if (settings == null) {
-    return null;
-  } else if (typeof settings !== "object") {
-    throw new InvalidArgumentError("Week settings must be an object");
-  } else {
-    if (!integerBetween(settings.firstDay, 1, 7) || !integerBetween(settings.minimalDays, 1, 7) || !Array.isArray(settings.weekend) || settings.weekend.some((v) => !integerBetween(v, 1, 7))) {
-      throw new InvalidArgumentError("Invalid week settings");
-    }
-    return {
-      firstDay: settings.firstDay,
-      minimalDays: settings.minimalDays,
-      weekend: Array.from(settings.weekend)
-    };
-  }
 }
 function integerBetween(thing, bottom, top) {
   return isInteger(thing) && thing >= bottom && thing <= top;
@@ -16494,14 +16250,9 @@ function objToLocalTS(obj) {
   }
   return +d;
 }
-function firstWeekOffset(year, minDaysInFirstWeek, startOfWeek) {
-  const fwdlw = isoWeekdayToLocal(dayOfWeek(year, 1, minDaysInFirstWeek), startOfWeek);
-  return -fwdlw + minDaysInFirstWeek - 1;
-}
-function weeksInWeekYear(weekYear, minDaysInFirstWeek = 4, startOfWeek = 1) {
-  const weekOffset = firstWeekOffset(weekYear, minDaysInFirstWeek, startOfWeek);
-  const weekOffsetNext = firstWeekOffset(weekYear + 1, minDaysInFirstWeek, startOfWeek);
-  return (daysInYear(weekYear) - weekOffset + weekOffsetNext) / 7;
+function weeksInWeekYear(weekYear) {
+  const p1 = (weekYear + Math.floor(weekYear / 4) - Math.floor(weekYear / 100) + Math.floor(weekYear / 400)) % 7, last = weekYear - 1, p2 = (last + Math.floor(last / 4) - Math.floor(last / 100) + Math.floor(last / 400)) % 7;
+  return p1 === 4 || p2 === 3 ? 53 : 52;
 }
 function untruncateYear(year) {
   if (year > 99) {
@@ -16777,21 +16528,21 @@ var Formatter = class {
     const df = this.systemLoc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
     return df.format();
   }
-  dtFormatter(dt, opts = {}) {
-    return this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
+  formatDateTime(dt, opts = {}) {
+    const df = this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
+    return df.format();
   }
-  formatDateTime(dt, opts) {
-    return this.dtFormatter(dt, opts).format();
+  formatDateTimeParts(dt, opts = {}) {
+    const df = this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
+    return df.formatToParts();
   }
-  formatDateTimeParts(dt, opts) {
-    return this.dtFormatter(dt, opts).formatToParts();
-  }
-  formatInterval(interval, opts) {
-    const df = this.dtFormatter(interval.start, opts);
+  formatInterval(interval, opts = {}) {
+    const df = this.loc.dtFormatter(interval.start, __spreadValues(__spreadValues({}, this.opts), opts));
     return df.dtf.formatRange(interval.start.toJSDate(), interval.end.toJSDate());
   }
-  resolvedOptions(dt, opts) {
-    return this.dtFormatter(dt, opts).resolvedOptions();
+  resolvedOptions(dt, opts = {}) {
+    const df = this.loc.dtFormatter(dt, __spreadValues(__spreadValues({}, this.opts), opts));
+    return df.resolvedOptions();
   }
   num(n3, p = 0) {
     if (this.opts.forceSimple) {
@@ -16922,14 +16673,6 @@ var Formatter = class {
           return this.num(dt.weekNumber);
         case "WW":
           return this.num(dt.weekNumber, 2);
-        case "n":
-          return this.num(dt.localWeekNumber);
-        case "nn":
-          return this.num(dt.localWeekNumber, 2);
-        case "ii":
-          return this.num(dt.localWeekYear.toString().slice(-2), 2);
-        case "iiii":
-          return this.num(dt.localWeekYear, 4);
         case "o":
           return this.num(dt.ordinal);
         case "ooo":
@@ -16982,6 +16725,21 @@ var Formatter = class {
       []
     ), collapsed = dur.shiftTo(...realTokens.map(tokenToField).filter((t) => t));
     return stringifyTokens(tokens, tokenToString(collapsed));
+  }
+};
+
+// node_modules/luxon/src/impl/invalid.js
+var Invalid = class {
+  constructor(reason, explanation) {
+    this.reason = reason;
+    this.explanation = explanation;
+  }
+  toMessage() {
+    if (this.explanation) {
+      return `${this.reason}: ${this.explanation}`;
+    } else {
+      return this.reason;
+    }
   }
 };
 
@@ -17322,38 +17080,19 @@ function clone2(dur, alts, clear = false) {
   };
   return new Duration(conf);
 }
-function durationToMillis(matrix, vals) {
-  var _a;
-  let sum = (_a = vals.milliseconds) != null ? _a : 0;
-  for (const unit of reverseUnits.slice(1)) {
-    if (vals[unit]) {
-      sum += vals[unit] * matrix[unit]["milliseconds"];
-    }
-  }
-  return sum;
+function antiTrunc(n3) {
+  return n3 < 0 ? Math.floor(n3) : Math.ceil(n3);
+}
+function convert(matrix, fromMap, fromUnit, toMap, toUnit) {
+  const conv = matrix[toUnit][fromUnit], raw = fromMap[fromUnit] / conv, sameSign = Math.sign(raw) === Math.sign(toMap[toUnit]), added = !sameSign && toMap[toUnit] !== 0 && Math.abs(raw) <= 1 ? antiTrunc(raw) : Math.trunc(raw);
+  toMap[toUnit] += added;
+  fromMap[fromUnit] -= added * conv;
 }
 function normalizeValues(matrix, vals) {
-  const factor = durationToMillis(matrix, vals) < 0 ? -1 : 1;
-  orderedUnits.reduceRight((previous, current) => {
+  reverseUnits.reduce((previous, current) => {
     if (!isUndefined(vals[current])) {
       if (previous) {
-        const previousVal = vals[previous] * factor;
-        const conv = matrix[current][previous];
-        const rollUp = Math.floor(previousVal / conv);
-        vals[current] += rollUp * factor;
-        vals[previous] -= rollUp * conv * factor;
-      }
-      return current;
-    } else {
-      return previous;
-    }
-  }, null);
-  orderedUnits.reduce((previous, current) => {
-    if (!isUndefined(vals[current])) {
-      if (previous) {
-        const fraction = vals[previous] % 1;
-        vals[previous] -= fraction;
-        vals[current] += fraction * matrix[previous][current];
+        convert(matrix, vals, previous, vals, current);
       }
       return current;
     } else {
@@ -17599,10 +17338,9 @@ var Duration = class {
   }
   /**
    * Returns a string representation of a Duration with all units included.
-   * To modify its behavior, use `listStyle` and any Intl.NumberFormat option, though `unitDisplay` is especially relevant.
-   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options
-   * @param {Object} opts - Formatting options. Accepts the same keys as the options parameter of the native `Intl.NumberFormat` constructor, as well as `listStyle`.
-   * @param {string} [opts.listStyle='narrow'] - How to format the merged list. Corresponds to the `style` property of the options parameter of the native `Intl.ListFormat` constructor.
+   * To modify its behavior use the `listStyle` and any Intl.NumberFormat option, though `unitDisplay` is especially relevant.
+   * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
+   * @param opts - On option object to override the formatting. Accepts the same keys as the options parameter of the native `Int.NumberFormat` constructor, as well as `listStyle`.
    * @example
    * ```js
    * var dur = Duration.fromObject({ days: 1, hours: 5, minutes: 6 })
@@ -17612,8 +17350,6 @@ var Duration = class {
    * ```
    */
   toHuman(opts = {}) {
-    if (!this.isValid)
-      return INVALID;
     const l2 = orderedUnits.map((unit) => {
       const val = this.values[unit];
       if (isUndefined(val)) {
@@ -17689,16 +17425,25 @@ var Duration = class {
     const millis = this.toMillis();
     if (millis < 0 || millis >= 864e5)
       return null;
-    opts = __spreadProps(__spreadValues({
+    opts = __spreadValues({
       suppressMilliseconds: false,
       suppressSeconds: false,
       includePrefix: false,
       format: "extended"
-    }, opts), {
-      includeOffset: false
-    });
-    const dateTime = DateTime.fromMillis(millis, { zone: "UTC" });
-    return dateTime.toISOTime(opts);
+    }, opts);
+    const value = this.shiftTo("hours", "minutes", "seconds", "milliseconds");
+    let fmt = opts.format === "basic" ? "hhmm" : "hh:mm";
+    if (!opts.suppressSeconds || value.seconds !== 0 || value.milliseconds !== 0) {
+      fmt += opts.format === "basic" ? "ss" : ":ss";
+      if (!opts.suppressMilliseconds || value.milliseconds !== 0) {
+        fmt += ".SSS";
+      }
+    }
+    let str = value.toFormat(fmt);
+    if (opts.includePrefix) {
+      str = "T" + str;
+    }
+    return str;
   }
   /**
    * Returns an ISO 8601 representation of this Duration appropriate for use in JSON.
@@ -17715,24 +17460,11 @@ var Duration = class {
     return this.toISO();
   }
   /**
-   * Returns a string representation of this Duration appropriate for the REPL.
-   * @return {string}
-   */
-  [Symbol.for("nodejs.util.inspect.custom")]() {
-    if (this.isValid) {
-      return `Duration { values: ${JSON.stringify(this.values)} }`;
-    } else {
-      return `Duration { Invalid, reason: ${this.invalidReason} }`;
-    }
-  }
-  /**
    * Returns an milliseconds value of this Duration.
    * @return {number}
    */
   toMillis() {
-    if (!this.isValid)
-      return NaN;
-    return durationToMillis(this.matrix, this.values);
+    return this.as("milliseconds");
   }
   /**
    * Returns an milliseconds value of this Duration. Alias of {@link toMillis}
@@ -17831,17 +17563,8 @@ var Duration = class {
   }
   /**
    * Reduce this Duration to its canonical representation in its current units.
-   * Assuming the overall value of the Duration is positive, this means:
-   * - excessive values for lower-order units are converted to higher-order units (if possible, see first and second example)
-   * - negative lower-order units are converted to higher order units (there must be such a higher order unit, otherwise
-   *   the overall value would be negative, see third example)
-   * - fractional values for higher-order units are converted to lower-order units (if possible, see fourth example)
-   *
-   * If the overall value is negative, the result of this method is equivalent to `this.negate().normalize().negate()`.
    * @example Duration.fromObject({ years: 2, days: 5000 }).normalize().toObject() //=> { years: 15, days: 255 }
-   * @example Duration.fromObject({ days: 5000 }).normalize().toObject() //=> { days: 5000 }
    * @example Duration.fromObject({ hours: 12, minutes: -45 }).normalize().toObject() //=> { hours: 11, minutes: 15 }
-   * @example Duration.fromObject({ years: 2.5, days: 0, hours: 0 }).normalize().toObject() //=> { years: 2, days: 182, hours: 12 }
    * @return {Duration}
    */
   normalize() {
@@ -17890,6 +17613,11 @@ var Duration = class {
         const i2 = Math.trunc(own);
         built[k] = i2;
         accumulated[k] = (own * 1e3 - i2 * 1e3) / 1e3;
+        for (const down in vals) {
+          if (orderedUnits.indexOf(down) > orderedUnits.indexOf(k)) {
+            convert(this.matrix, vals, down, built, k);
+          }
+        }
       } else if (isNumber2(vals[k])) {
         accumulated[k] = vals[k];
       }
@@ -17899,8 +17627,7 @@ var Duration = class {
         built[lastUnit] += key === lastUnit ? accumulated[key] : accumulated[key] / this.matrix[lastUnit][key];
       }
     }
-    normalizeValues(this.matrix, built);
-    return clone2(this, { values: built }, true);
+    return clone2(this, { values: built }, true).normalize();
   }
   /**
    * Shift this Duration to all available units.
@@ -18226,21 +17953,12 @@ var Interval = class {
    * Unlike {@link Interval#length} this counts sections of the calendar, not periods of time, e.g. specifying 'day'
    * asks 'what dates are included in this interval?', not 'how many days long is this interval?'
    * @param {string} [unit='milliseconds'] - the unit of time to count.
-   * @param {Object} opts - options
-   * @param {boolean} [opts.useLocaleWeeks=false] - If true, use weeks based on the locale, i.e. use the locale-dependent start of the week; this operation will always use the locale of the start DateTime
    * @return {number}
    */
-  count(unit = "milliseconds", opts) {
+  count(unit = "milliseconds") {
     if (!this.isValid)
       return NaN;
-    const start = this.start.startOf(unit, opts);
-    let end;
-    if (opts == null ? void 0 : opts.useLocaleWeeks) {
-      end = this.end.reconfigure({ locale: start.locale });
-    } else {
-      end = this.end;
-    }
-    end = end.startOf(unit, opts);
+    const start = this.start.startOf(unit), end = this.end.startOf(unit);
     return Math.floor(end.diff(start, unit).get(unit)) + (end.valueOf() !== this.end.valueOf());
   }
   /**
@@ -18308,7 +18026,7 @@ var Interval = class {
   splitAt(...dateTimes) {
     if (!this.isValid)
       return [];
-    const sorted = dateTimes.map(friendlyDateTime).filter((d) => this.contains(d)).sort((a, b) => a.toMillis() - b.toMillis()), results = [];
+    const sorted = dateTimes.map(friendlyDateTime).filter((d) => this.contains(d)).sort(), results = [];
     let { s: s2 } = this, i2 = 0;
     while (s2 < this.e) {
       const added = sorted[i2] || this.e, next = +added > +this.e ? this.e : added;
@@ -18494,17 +18212,6 @@ var Interval = class {
     return `[${this.s.toISO()} \u2013 ${this.e.toISO()})`;
   }
   /**
-   * Returns a string representation of this Interval appropriate for the REPL.
-   * @return {string}
-   */
-  [Symbol.for("nodejs.util.inspect.custom")]() {
-    if (this.isValid) {
-      return `Interval { start: ${this.s.toISO()}, end: ${this.e.toISO()} }`;
-    } else {
-      return `Interval { Invalid, reason: ${this.invalidReason} }`;
-    }
-  }
-  /**
    * Returns a localized string representing this Interval. Accepts the same options as the
    * Intl.DateTimeFormat constructor and any presets defined by Luxon, such as
    * {@link DateTime.DATE_FULL} or {@link DateTime.TIME_SIMPLE}. The exact behavior of this method
@@ -18642,37 +18349,6 @@ var Info = class {
     return normalizeZone(input2, Settings.defaultZone);
   }
   /**
-   * Get the weekday on which the week starts according to the given locale.
-   * @param {Object} opts - options
-   * @param {string} [opts.locale] - the locale code
-   * @param {string} [opts.locObj=null] - an existing locale object to use
-   * @returns {number} the start of the week, 1 for Monday through 7 for Sunday
-   */
-  static getStartOfWeek({ locale = null, locObj = null } = {}) {
-    return (locObj || Locale.create(locale)).getStartOfWeek();
-  }
-  /**
-   * Get the minimum number of days necessary in a week before it is considered part of the next year according
-   * to the given locale.
-   * @param {Object} opts - options
-   * @param {string} [opts.locale] - the locale code
-   * @param {string} [opts.locObj=null] - an existing locale object to use
-   * @returns {number}
-   */
-  static getMinimumDaysInFirstWeek({ locale = null, locObj = null } = {}) {
-    return (locObj || Locale.create(locale)).getMinDaysInFirstWeek();
-  }
-  /**
-   * Get the weekdays, which are considered the weekend according to the given locale
-   * @param {Object} opts - options
-   * @param {string} [opts.locale] - the locale code
-   * @param {string} [opts.locObj=null] - an existing locale object to use
-   * @returns {number[]} an array of weekdays, 1 for Monday through 7 for Sunday
-   */
-  static getWeekendWeekdays({ locale = null, locObj = null } = {}) {
-    return (locObj || Locale.create(locale)).getWeekendDays().slice();
-  }
-  /**
    * Return an array of standalone month names.
    * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat
    * @param {string} [length='long'] - the length of the month representation, such as "numeric", "2-digit", "narrow", "short", "long"
@@ -18769,12 +18445,11 @@ var Info = class {
    * Some features of Luxon are not available in all environments. For example, on older browsers, relative time formatting support is not available. Use this function to figure out if that's the case.
    * Keys:
    * * `relative`: whether this environment supports relative time formatting
-   * * `localeWeek`: whether this environment supports different weekdays for the start of the week based on the locale
-   * @example Info.features() //=> { relative: false, localeWeek: true }
+   * @example Info.features() //=> { relative: false }
    * @return {Object}
    */
   static features() {
-    return { relative: hasRelative(), localeWeek: hasLocaleWeekInfo() };
+    return { relative: hasRelative() };
   }
 };
 
@@ -18808,11 +18483,6 @@ function highOrderDiffs(cursor, later, units) {
       if (highWater > later) {
         results[unit]--;
         cursor = earlier.plus(results);
-        if (cursor > later) {
-          highWater = cursor;
-          results[unit]--;
-          cursor = earlier.plus(results);
-        }
       } else {
         cursor = highWater;
       }
@@ -18954,9 +18624,9 @@ function unitForToken(token, loc) {
     }
     switch (t.val) {
       case "G":
-        return oneOf(loc.eras("short"), 0);
+        return oneOf(loc.eras("short", false), 0);
       case "GG":
-        return oneOf(loc.eras("long"), 0);
+        return oneOf(loc.eras("long", false), 0);
       case "y":
         return intUnit(oneToSix);
       case "yy":
@@ -18972,17 +18642,17 @@ function unitForToken(token, loc) {
       case "MM":
         return intUnit(two);
       case "MMM":
-        return oneOf(loc.months("short", true), 1);
+        return oneOf(loc.months("short", true, false), 1);
       case "MMMM":
-        return oneOf(loc.months("long", true), 1);
+        return oneOf(loc.months("long", true, false), 1);
       case "L":
         return intUnit(oneOrTwo);
       case "LL":
         return intUnit(two);
       case "LLL":
-        return oneOf(loc.months("short", false), 1);
+        return oneOf(loc.months("short", false, false), 1);
       case "LLLL":
-        return oneOf(loc.months("long", false), 1);
+        return oneOf(loc.months("long", false, false), 1);
       case "d":
         return intUnit(oneOrTwo);
       case "dd":
@@ -19035,13 +18705,13 @@ function unitForToken(token, loc) {
       case "c":
         return intUnit(one);
       case "EEE":
-        return oneOf(loc.weekdays("short", false), 1);
+        return oneOf(loc.weekdays("short", false, false), 1);
       case "EEEE":
-        return oneOf(loc.weekdays("long", false), 1);
+        return oneOf(loc.weekdays("long", false, false), 1);
       case "ccc":
-        return oneOf(loc.weekdays("short", true), 1);
+        return oneOf(loc.weekdays("short", true, false), 1);
       case "cccc":
-        return oneOf(loc.weekdays("long", true), 1);
+        return oneOf(loc.weekdays("long", true, false), 1);
       case "Z":
       case "ZZ":
         return offset(new RegExp(`([+-]${oneOrTwo.source})(?::(${two.source}))?`), 2);
@@ -19082,13 +18752,9 @@ var partTypeStyleToTokenVal = {
   },
   dayperiod: "a",
   dayPeriod: "a",
-  hour12: {
+  hour: {
     numeric: "h",
     "2-digit": "hh"
-  },
-  hour24: {
-    numeric: "H",
-    "2-digit": "HH"
   },
   minute: {
     numeric: "m",
@@ -19103,7 +18769,7 @@ var partTypeStyleToTokenVal = {
     short: "ZZZ"
   }
 };
-function tokenForPart(part, formatOpts, resolvedOpts) {
+function tokenForPart(part, formatOpts) {
   const { type, value } = part;
   if (type === "literal") {
     const isSpace = /^\s+$/.test(value);
@@ -19113,21 +18779,7 @@ function tokenForPart(part, formatOpts, resolvedOpts) {
     };
   }
   const style = formatOpts[type];
-  let actualType = type;
-  if (type === "hour") {
-    if (formatOpts.hour12 != null) {
-      actualType = formatOpts.hour12 ? "hour12" : "hour24";
-    } else if (formatOpts.hourCycle != null) {
-      if (formatOpts.hourCycle === "h11" || formatOpts.hourCycle === "h12") {
-        actualType = "hour12";
-      } else {
-        actualType = "hour24";
-      }
-    } else {
-      actualType = resolvedOpts.hour12 ? "hour12" : "hour24";
-    }
-  }
-  let val = partTypeStyleToTokenVal[actualType];
+  let val = partTypeStyleToTokenVal[type];
   if (typeof val === "object") {
     val = val[style];
   }
@@ -19276,10 +18928,117 @@ function formatOptsToTokens(formatOpts, locale) {
     return null;
   }
   const formatter = Formatter.create(locale, formatOpts);
-  const df = formatter.dtFormatter(getDummyDateTime());
-  const parts = df.formatToParts();
-  const resolvedOpts = df.resolvedOptions();
-  return parts.map((p) => tokenForPart(p, formatOpts, resolvedOpts));
+  const parts = formatter.formatDateTimeParts(getDummyDateTime());
+  return parts.map((p) => tokenForPart(p, formatOpts));
+}
+
+// node_modules/luxon/src/impl/conversions.js
+var nonLeapLadder = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+var leapLadder = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+function unitOutOfRange(unit, value) {
+  return new Invalid(
+    "unit out of range",
+    `you specified ${value} (of type ${typeof value}) as a ${unit}, which is invalid`
+  );
+}
+function dayOfWeek(year, month, day) {
+  const d = new Date(Date.UTC(year, month - 1, day));
+  if (year < 100 && year >= 0) {
+    d.setUTCFullYear(d.getUTCFullYear() - 1900);
+  }
+  const js = d.getUTCDay();
+  return js === 0 ? 7 : js;
+}
+function computeOrdinal(year, month, day) {
+  return day + (isLeapYear(year) ? leapLadder : nonLeapLadder)[month - 1];
+}
+function uncomputeOrdinal(year, ordinal) {
+  const table = isLeapYear(year) ? leapLadder : nonLeapLadder, month0 = table.findIndex((i2) => i2 < ordinal), day = ordinal - table[month0];
+  return { month: month0 + 1, day };
+}
+function gregorianToWeek(gregObj) {
+  const { year, month, day } = gregObj, ordinal = computeOrdinal(year, month, day), weekday = dayOfWeek(year, month, day);
+  let weekNumber = Math.floor((ordinal - weekday + 10) / 7), weekYear;
+  if (weekNumber < 1) {
+    weekYear = year - 1;
+    weekNumber = weeksInWeekYear(weekYear);
+  } else if (weekNumber > weeksInWeekYear(year)) {
+    weekYear = year + 1;
+    weekNumber = 1;
+  } else {
+    weekYear = year;
+  }
+  return __spreadValues({ weekYear, weekNumber, weekday }, timeObject(gregObj));
+}
+function weekToGregorian(weekData) {
+  const { weekYear, weekNumber, weekday } = weekData, weekdayOfJan4 = dayOfWeek(weekYear, 1, 4), yearInDays = daysInYear(weekYear);
+  let ordinal = weekNumber * 7 + weekday - weekdayOfJan4 - 3, year;
+  if (ordinal < 1) {
+    year = weekYear - 1;
+    ordinal += daysInYear(year);
+  } else if (ordinal > yearInDays) {
+    year = weekYear + 1;
+    ordinal -= daysInYear(weekYear);
+  } else {
+    year = weekYear;
+  }
+  const { month, day } = uncomputeOrdinal(year, ordinal);
+  return __spreadValues({ year, month, day }, timeObject(weekData));
+}
+function gregorianToOrdinal(gregData) {
+  const { year, month, day } = gregData;
+  const ordinal = computeOrdinal(year, month, day);
+  return __spreadValues({ year, ordinal }, timeObject(gregData));
+}
+function ordinalToGregorian(ordinalData) {
+  const { year, ordinal } = ordinalData;
+  const { month, day } = uncomputeOrdinal(year, ordinal);
+  return __spreadValues({ year, month, day }, timeObject(ordinalData));
+}
+function hasInvalidWeekData(obj) {
+  const validYear = isInteger(obj.weekYear), validWeek = integerBetween(obj.weekNumber, 1, weeksInWeekYear(obj.weekYear)), validWeekday = integerBetween(obj.weekday, 1, 7);
+  if (!validYear) {
+    return unitOutOfRange("weekYear", obj.weekYear);
+  } else if (!validWeek) {
+    return unitOutOfRange("week", obj.week);
+  } else if (!validWeekday) {
+    return unitOutOfRange("weekday", obj.weekday);
+  } else
+    return false;
+}
+function hasInvalidOrdinalData(obj) {
+  const validYear = isInteger(obj.year), validOrdinal = integerBetween(obj.ordinal, 1, daysInYear(obj.year));
+  if (!validYear) {
+    return unitOutOfRange("year", obj.year);
+  } else if (!validOrdinal) {
+    return unitOutOfRange("ordinal", obj.ordinal);
+  } else
+    return false;
+}
+function hasInvalidGregorianData(obj) {
+  const validYear = isInteger(obj.year), validMonth = integerBetween(obj.month, 1, 12), validDay = integerBetween(obj.day, 1, daysInMonth(obj.year, obj.month));
+  if (!validYear) {
+    return unitOutOfRange("year", obj.year);
+  } else if (!validMonth) {
+    return unitOutOfRange("month", obj.month);
+  } else if (!validDay) {
+    return unitOutOfRange("day", obj.day);
+  } else
+    return false;
+}
+function hasInvalidTimeData(obj) {
+  const { hour, minute, second, millisecond } = obj;
+  const validHour = integerBetween(hour, 0, 23) || hour === 24 && minute === 0 && second === 0 && millisecond === 0, validMinute = integerBetween(minute, 0, 59), validSecond = integerBetween(second, 0, 59), validMillisecond = integerBetween(millisecond, 0, 999);
+  if (!validHour) {
+    return unitOutOfRange("hour", hour);
+  } else if (!validMinute) {
+    return unitOutOfRange("minute", minute);
+  } else if (!validSecond) {
+    return unitOutOfRange("second", second);
+  } else if (!validMillisecond) {
+    return unitOutOfRange("millisecond", millisecond);
+  } else
+    return false;
 }
 
 // node_modules/luxon/src/datetime.js
@@ -19293,16 +19052,6 @@ function possiblyCachedWeekData(dt) {
     dt.weekData = gregorianToWeek(dt.c);
   }
   return dt.weekData;
-}
-function possiblyCachedLocalWeekData(dt) {
-  if (dt.localWeekData === null) {
-    dt.localWeekData = gregorianToWeek(
-      dt.c,
-      dt.loc.getMinDaysInFirstWeek(),
-      dt.loc.getStartOfWeek()
-    );
-  }
-  return dt.localWeekData;
 }
 function clone3(inst, alts) {
   const current = {
@@ -19409,13 +19158,13 @@ function toISOTime(o, extended, suppressSeconds, suppressMilliseconds, includeOf
   if (extended) {
     c += ":";
     c += padStart(o.c.minute);
-    if (o.c.millisecond !== 0 || o.c.second !== 0 || !suppressSeconds) {
+    if (o.c.second !== 0 || !suppressSeconds) {
       c += ":";
     }
   } else {
     c += padStart(o.c.minute);
   }
-  if (o.c.millisecond !== 0 || o.c.second !== 0 || !suppressSeconds) {
+  if (o.c.second !== 0 || !suppressSeconds) {
     c += padStart(o.c.second);
     if (o.c.millisecond !== 0 || !suppressMilliseconds) {
       c += ".";
@@ -19507,21 +19256,6 @@ function normalizeUnit(unit) {
     throw new InvalidUnitError(unit);
   return normalized;
 }
-function normalizeUnitWithLocalWeeks(unit) {
-  switch (unit.toLowerCase()) {
-    case "localweekday":
-    case "localweekdays":
-      return "localWeekday";
-    case "localweeknumber":
-    case "localweeknumbers":
-      return "localWeekNumber";
-    case "localweekyear":
-    case "localweekyears":
-      return "localWeekYear";
-    default:
-      return normalizeUnit(unit);
-  }
-}
 function quickDT(obj, opts) {
   const zone = normalizeZone(opts.zone, Settings.defaultZone), loc = Locale.fromObject(opts), tsNow = Settings.now();
   let ts, o;
@@ -19603,7 +19337,6 @@ var DateTime = class {
     this.loc = config.loc || Locale.create();
     this.invalid = invalid;
     this.weekData = null;
-    this.localWeekData = null;
     this.c = c;
     this.o = o;
     this.isLuxonDateTime = true;
@@ -19751,16 +19484,13 @@ var DateTime = class {
    * @param {number} obj.weekYear - an ISO week year
    * @param {number} obj.weekNumber - an ISO week number, between 1 and 52 or 53, depending on the year
    * @param {number} obj.weekday - an ISO weekday, 1-7, where 1 is Monday and 7 is Sunday
-   * @param {number} obj.localWeekYear - a week year, according to the locale
-   * @param {number} obj.localWeekNumber - a week number, between 1 and 52 or 53, depending on the year, according to the locale
-   * @param {number} obj.localWeekday - a weekday, 1-7, where 1 is the first and 7 is the last day of the week, according to the locale
    * @param {number} obj.hour - hour of the day, 0-23
    * @param {number} obj.minute - minute of the hour, 0-59
    * @param {number} obj.second - second of the minute, 0-59
    * @param {number} obj.millisecond - millisecond of the second, 0-999
    * @param {Object} opts - options for creating this DateTime
    * @param {string|Zone} [opts.zone='local'] - interpret the numbers in the context of a particular zone. Can take any value taken as the first argument to setZone()
-   * @param {string} [opts.locale='system\'s locale'] - a locale to set on the resulting DateTime instance
+   * @param {string} [opts.locale='system's locale'] - a locale to set on the resulting DateTime instance
    * @param {string} opts.outputCalendar - the output calendar to set on the resulting DateTime instance
    * @param {string} opts.numberingSystem - the numbering system to set on the resulting DateTime instance
    * @example DateTime.fromObject({ year: 1982, month: 5, day: 25}).toISODate() //=> '1982-05-25'
@@ -19770,7 +19500,6 @@ var DateTime = class {
    * @example DateTime.fromObject({ hour: 10, minute: 26, second: 6 }, { zone: 'local' })
    * @example DateTime.fromObject({ hour: 10, minute: 26, second: 6 }, { zone: 'America/New_York' })
    * @example DateTime.fromObject({ weekYear: 2016, weekNumber: 2, weekday: 3 }).toISODate() //=> '2016-01-13'
-   * @example DateTime.fromObject({ localWeekYear: 2022, localWeekNumber: 1, localWeekday: 1 }, { locale: "en-US" }).toISODate() //=> '2021-12-26'
    * @return {DateTime}
    */
   static fromObject(obj, opts = {}) {
@@ -19779,10 +19508,7 @@ var DateTime = class {
     if (!zoneToUse.isValid) {
       return DateTime.invalid(unsupportedZone(zoneToUse));
     }
-    const loc = Locale.fromObject(opts);
-    const normalized = normalizeObject(obj, normalizeUnitWithLocalWeeks);
-    const { minDaysInFirstWeek, startOfWeek } = usesLocalWeekValues(normalized, loc);
-    const tsNow = Settings.now(), offsetProvis = !isUndefined(opts.specificOffset) ? opts.specificOffset : zoneToUse.offset(tsNow), containsOrdinal = !isUndefined(normalized.ordinal), containsGregorYear = !isUndefined(normalized.year), containsGregorMD = !isUndefined(normalized.month) || !isUndefined(normalized.day), containsGregor = containsGregorYear || containsGregorMD, definiteWeekDef = normalized.weekYear || normalized.weekNumber;
+    const tsNow = Settings.now(), offsetProvis = !isUndefined(opts.specificOffset) ? opts.specificOffset : zoneToUse.offset(tsNow), normalized = normalizeObject(obj, normalizeUnit), containsOrdinal = !isUndefined(normalized.ordinal), containsGregorYear = !isUndefined(normalized.year), containsGregorMD = !isUndefined(normalized.month) || !isUndefined(normalized.day), containsGregor = containsGregorYear || containsGregorMD, definiteWeekDef = normalized.weekYear || normalized.weekNumber, loc = Locale.fromObject(opts);
     if ((containsGregor || containsOrdinal) && definiteWeekDef) {
       throw new ConflictingSpecificationError(
         "Can't mix weekYear/weekNumber units with year/month/day or ordinals"
@@ -19796,7 +19522,7 @@ var DateTime = class {
     if (useWeekData) {
       units = orderedWeekUnits;
       defaultValues = defaultWeekUnitValues;
-      objNow = gregorianToWeek(objNow, minDaysInFirstWeek, startOfWeek);
+      objNow = gregorianToWeek(objNow);
     } else if (containsOrdinal) {
       units = orderedOrdinalUnits;
       defaultValues = defaultOrdinalUnitValues;
@@ -19816,11 +19542,11 @@ var DateTime = class {
         normalized[u] = objNow[u];
       }
     }
-    const higherOrderInvalid = useWeekData ? hasInvalidWeekData(normalized, minDaysInFirstWeek, startOfWeek) : containsOrdinal ? hasInvalidOrdinalData(normalized) : hasInvalidGregorianData(normalized), invalid = higherOrderInvalid || hasInvalidTimeData(normalized);
+    const higherOrderInvalid = useWeekData ? hasInvalidWeekData(normalized) : containsOrdinal ? hasInvalidOrdinalData(normalized) : hasInvalidGregorianData(normalized), invalid = higherOrderInvalid || hasInvalidTimeData(normalized);
     if (invalid) {
       return DateTime.invalid(invalid);
     }
-    const gregorian = useWeekData ? weekToGregorian(normalized, minDaysInFirstWeek, startOfWeek) : containsOrdinal ? ordinalToGregorian(normalized) : normalized, [tsFinal, offsetFinal] = objToTS(gregorian, offsetProvis, zoneToUse), inst = new DateTime({
+    const gregorian = useWeekData ? weekToGregorian(normalized) : containsOrdinal ? ordinalToGregorian(normalized) : normalized, [tsFinal, offsetFinal] = objToTS(gregorian, offsetProvis, zoneToUse), inst = new DateTime({
       ts: tsFinal,
       zone: zoneToUse,
       o: offsetFinal,
@@ -19951,7 +19677,7 @@ var DateTime = class {
   }
   /**
    * Create an invalid DateTime.
-   * @param {string} reason - simple string of why this DateTime is invalid. Should not contain parameters or anything else data-dependent.
+   * @param {DateTime} reason - simple string of why this DateTime is invalid. Should not contain parameters or anything else data-dependent
    * @param {string} [explanation=null] - longer explanation, may include parameters and other useful debugging information
    * @return {DateTime}
    */
@@ -20160,39 +19886,6 @@ var DateTime = class {
     return this.isValid ? possiblyCachedWeekData(this).weekday : NaN;
   }
   /**
-   * Returns true if this date is on a weekend according to the locale, false otherwise
-   * @returns {boolean}
-   */
-  get isWeekend() {
-    return this.isValid && this.loc.getWeekendDays().includes(this.weekday);
-  }
-  /**
-   * Get the day of the week according to the locale.
-   * 1 is the first day of the week and 7 is the last day of the week.
-   * If the locale assigns Sunday as the first day of the week, then a date which is a Sunday will return 1,
-   * @returns {number}
-   */
-  get localWeekday() {
-    return this.isValid ? possiblyCachedLocalWeekData(this).weekday : NaN;
-  }
-  /**
-   * Get the week number of the week year according to the locale. Different locales assign week numbers differently,
-   * because the week can start on different days of the week (see localWeekday) and because a different number of days
-   * is required for a week to count as the first week of a year.
-   * @returns {number}
-   */
-  get localWeekNumber() {
-    return this.isValid ? possiblyCachedLocalWeekData(this).weekNumber : NaN;
-  }
-  /**
-   * Get the week year according to the locale. Different locales assign week numbers (and therefor week years)
-   * differently, see localWeekNumber.
-   * @returns {number}
-   */
-  get localWeekYear() {
-    return this.isValid ? possiblyCachedLocalWeekData(this).weekYear : NaN;
-  }
-  /**
    * Get the ordinal (meaning the day of the year)
    * @example DateTime.local(2017, 5, 25).ordinal //=> 145
    * @type {number|DateTime}
@@ -20294,36 +19987,6 @@ var DateTime = class {
     }
   }
   /**
-   * Get those DateTimes which have the same local time as this DateTime, but a different offset from UTC
-   * in this DateTime's zone. During DST changes local time can be ambiguous, for example
-   * `2023-10-29T02:30:00` in `Europe/Berlin` can have offset `+01:00` or `+02:00`.
-   * This method will return both possible DateTimes if this DateTime's local time is ambiguous.
-   * @returns {DateTime[]}
-   */
-  getPossibleOffsets() {
-    if (!this.isValid || this.isOffsetFixed) {
-      return [this];
-    }
-    const dayMs = 864e5;
-    const minuteMs = 6e4;
-    const localTS = objToLocalTS(this.c);
-    const oEarlier = this.zone.offset(localTS - dayMs);
-    const oLater = this.zone.offset(localTS + dayMs);
-    const o1 = this.zone.offset(localTS - oEarlier * minuteMs);
-    const o2 = this.zone.offset(localTS - oLater * minuteMs);
-    if (o1 === o2) {
-      return [this];
-    }
-    const ts1 = localTS - o1 * minuteMs;
-    const ts2 = localTS - o2 * minuteMs;
-    const c1 = tsToObj(ts1, o1);
-    const c2 = tsToObj(ts2, o2);
-    if (c1.hour === c2.hour && c1.minute === c2.minute && c1.second === c2.second && c1.millisecond === c2.millisecond) {
-      return [clone3(this, { ts: ts1 }), clone3(this, { ts: ts2 })];
-    }
-    return [this];
-  }
-  /**
    * Returns true if this DateTime is in a leap year, false otherwise
    * @example DateTime.local(2016).isInLeapYear //=> true
    * @example DateTime.local(2013).isInLeapYear //=> false
@@ -20359,19 +20022,6 @@ var DateTime = class {
    */
   get weeksInWeekYear() {
     return this.isValid ? weeksInWeekYear(this.weekYear) : NaN;
-  }
-  /**
-   * Returns the number of weeks in this DateTime's local week year
-   * @example DateTime.local(2020, 6, {locale: 'en-US'}).weeksInLocalWeekYear //=> 52
-   * @example DateTime.local(2020, 6, {locale: 'de-DE'}).weeksInLocalWeekYear //=> 53
-   * @type {number}
-   */
-  get weeksInLocalWeekYear() {
-    return this.isValid ? weeksInWeekYear(
-      this.localWeekYear,
-      this.loc.getMinDaysInFirstWeek(),
-      this.loc.getStartOfWeek()
-    ) : NaN;
   }
   /**
    * Returns the resolved Intl options for this DateTime.
@@ -20454,9 +20104,6 @@ var DateTime = class {
   /**
    * "Set" the values of specified units. Returns a newly-constructed DateTime.
    * You can only set units with this method; for "setting" metadata, see {@link DateTime#reconfigure} and {@link DateTime#setZone}.
-   *
-   * This method also supports setting locale-based week units, i.e. `localWeekday`, `localWeekNumber` and `localWeekYear`.
-   * They cannot be mixed with ISO-week units like `weekday`.
    * @param {Object} values - a mapping of units to numbers
    * @example dt.set({ year: 2017 })
    * @example dt.set({ hour: 8, minute: 30 })
@@ -20467,9 +20114,7 @@ var DateTime = class {
   set(values2) {
     if (!this.isValid)
       return this;
-    const normalized = normalizeObject(values2, normalizeUnitWithLocalWeeks);
-    const { minDaysInFirstWeek, startOfWeek } = usesLocalWeekValues(normalized, this.loc);
-    const settingWeekStuff = !isUndefined(normalized.weekYear) || !isUndefined(normalized.weekNumber) || !isUndefined(normalized.weekday), containsOrdinal = !isUndefined(normalized.ordinal), containsGregorYear = !isUndefined(normalized.year), containsGregorMD = !isUndefined(normalized.month) || !isUndefined(normalized.day), containsGregor = containsGregorYear || containsGregorMD, definiteWeekDef = normalized.weekYear || normalized.weekNumber;
+    const normalized = normalizeObject(values2, normalizeUnit), settingWeekStuff = !isUndefined(normalized.weekYear) || !isUndefined(normalized.weekNumber) || !isUndefined(normalized.weekday), containsOrdinal = !isUndefined(normalized.ordinal), containsGregorYear = !isUndefined(normalized.year), containsGregorMD = !isUndefined(normalized.month) || !isUndefined(normalized.day), containsGregor = containsGregorYear || containsGregorMD, definiteWeekDef = normalized.weekYear || normalized.weekNumber;
     if ((containsGregor || containsOrdinal) && definiteWeekDef) {
       throw new ConflictingSpecificationError(
         "Can't mix weekYear/weekNumber units with year/month/day or ordinals"
@@ -20480,11 +20125,7 @@ var DateTime = class {
     }
     let mixed;
     if (settingWeekStuff) {
-      mixed = weekToGregorian(
-        __spreadValues(__spreadValues({}, gregorianToWeek(this.c, minDaysInFirstWeek, startOfWeek)), normalized),
-        minDaysInFirstWeek,
-        startOfWeek
-      );
+      mixed = weekToGregorian(__spreadValues(__spreadValues({}, gregorianToWeek(this.c)), normalized));
     } else if (!isUndefined(normalized.ordinal)) {
       mixed = ordinalToGregorian(__spreadValues(__spreadValues({}, gregorianToOrdinal(this.c)), normalized));
     } else {
@@ -20530,8 +20171,6 @@ var DateTime = class {
   /**
    * "Set" this DateTime to the beginning of a unit of time.
    * @param {string} unit - The unit to go to the beginning of. Can be 'year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second', or 'millisecond'.
-   * @param {Object} opts - options
-   * @param {boolean} [opts.useLocaleWeeks=false] - If true, use weeks based on the locale, i.e. use the locale-dependent start of the week
    * @example DateTime.local(2014, 3, 3).startOf('month').toISODate(); //=> '2014-03-01'
    * @example DateTime.local(2014, 3, 3).startOf('year').toISODate(); //=> '2014-01-01'
    * @example DateTime.local(2014, 3, 3).startOf('week').toISODate(); //=> '2014-03-03', weeks always start on Mondays
@@ -20539,7 +20178,7 @@ var DateTime = class {
    * @example DateTime.local(2014, 3, 3, 5, 30).startOf('hour').toISOTime(); //=> '05:00:00.000-05:00'
    * @return {DateTime}
    */
-  startOf(unit, { useLocaleWeeks = false } = {}) {
+  startOf(unit) {
     if (!this.isValid)
       return this;
     const o = {}, normalizedUnit = Duration.normalizeUnit(unit);
@@ -20563,16 +20202,7 @@ var DateTime = class {
         break;
     }
     if (normalizedUnit === "weeks") {
-      if (useLocaleWeeks) {
-        const startOfWeek = this.loc.getStartOfWeek();
-        const { weekday } = this;
-        if (weekday < startOfWeek) {
-          o.weekNumber = this.weekNumber - 1;
-        }
-        o.weekday = startOfWeek;
-      } else {
-        o.weekday = 1;
-      }
+      o.weekday = 1;
     }
     if (normalizedUnit === "quarters") {
       const q = Math.ceil(this.month / 3);
@@ -20583,8 +20213,6 @@ var DateTime = class {
   /**
    * "Set" this DateTime to the end (meaning the last millisecond) of a unit of time
    * @param {string} unit - The unit to go to the end of. Can be 'year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second', or 'millisecond'.
-   * @param {Object} opts - options
-   * @param {boolean} [opts.useLocaleWeeks=false] - If true, use weeks based on the locale, i.e. use the locale-dependent start of the week
    * @example DateTime.local(2014, 3, 3).endOf('month').toISO(); //=> '2014-03-31T23:59:59.999-05:00'
    * @example DateTime.local(2014, 3, 3).endOf('year').toISO(); //=> '2014-12-31T23:59:59.999-05:00'
    * @example DateTime.local(2014, 3, 3).endOf('week').toISO(); // => '2014-03-09T23:59:59.999-05:00', weeks start on Mondays
@@ -20592,8 +20220,8 @@ var DateTime = class {
    * @example DateTime.local(2014, 3, 3, 5, 30).endOf('hour').toISO(); //=> '2014-03-03T05:59:59.999-05:00'
    * @return {DateTime}
    */
-  endOf(unit, opts) {
-    return this.isValid ? this.plus({ [unit]: 1 }).startOf(unit, opts).minus(1) : this;
+  endOf(unit) {
+    return this.isValid ? this.plus({ [unit]: 1 }).startOf(unit).minus(1) : this;
   }
   // OUTPUT
   /**
@@ -20820,17 +20448,6 @@ var DateTime = class {
     return this.isValid ? this.toISO() : INVALID3;
   }
   /**
-   * Returns a string representation of this DateTime appropriate for the REPL.
-   * @return {string}
-   */
-  [Symbol.for("nodejs.util.inspect.custom")]() {
-    if (this.isValid) {
-      return `DateTime { ts: ${this.toISO()}, zone: ${this.zone.name}, locale: ${this.locale} }`;
-    } else {
-      return `DateTime { Invalid, reason: ${this.invalidReason} }`;
-    }
-  }
-  /**
    * Returns the epoch milliseconds of this DateTime. Alias of {@link DateTime#toMillis}
    * @return {number}
    */
@@ -20946,17 +20563,15 @@ var DateTime = class {
    * Note that time zones are **ignored** in this comparison, which compares the **local** calendar time. Use {@link DateTime#setZone} to convert one of the dates if needed.
    * @param {DateTime} otherDateTime - the other DateTime
    * @param {string} unit - the unit of time to check sameness on
-   * @param {Object} opts - options
-   * @param {boolean} [opts.useLocaleWeeks=false] - If true, use weeks based on the locale, i.e. use the locale-dependent start of the week; only the locale of this DateTime is used
    * @example DateTime.now().hasSame(otherDT, 'day'); //~> true if otherDT is in the same current calendar day
    * @return {boolean}
    */
-  hasSame(otherDateTime, unit, opts) {
+  hasSame(otherDateTime, unit) {
     if (!this.isValid)
       return false;
     const inputMs = otherDateTime.valueOf();
     const adjustedToZone = this.setZone(otherDateTime.zone, { keepLocalTime: true });
-    return adjustedToZone.startOf(unit, opts) <= inputMs && inputMs <= adjustedToZone.endOf(unit, opts);
+    return adjustedToZone.startOf(unit) <= inputMs && inputMs <= adjustedToZone.endOf(unit);
   }
   /**
    * Equality check
@@ -21329,15 +20944,6 @@ function directionEnabled(mode, dir, chart) {
   }
   return false;
 }
-function directionsEnabled(mode, chart) {
-  if (typeof mode === "function") {
-    mode = mode({ chart });
-  }
-  if (typeof mode === "string") {
-    return { x: mode.indexOf("x") !== -1, y: mode.indexOf("y") !== -1 };
-  }
-  return { x: false, y: false };
-}
 function debounce2(fn, delay) {
   let timeout;
   return function() {
@@ -21357,26 +20963,14 @@ function getScaleUnderPoint({ x, y }, chart) {
   }
   return null;
 }
-function getEnabledScalesByPoint(options, point, chart) {
-  const { mode = "xy", scaleMode, overScaleMode } = options || {};
+function getEnabledScalesByPoint(mode, point, chart) {
   const scale = getScaleUnderPoint(point, chart);
-  const enabled = directionsEnabled(mode, chart);
-  const scaleEnabled = directionsEnabled(scaleMode, chart);
-  if (overScaleMode) {
-    const overScaleEnabled = directionsEnabled(overScaleMode, chart);
-    for (const axis of ["x", "y"]) {
-      if (overScaleEnabled[axis]) {
-        scaleEnabled[axis] = enabled[axis];
-        enabled[axis] = false;
-      }
-    }
-  }
-  if (scale && scaleEnabled[scale.axis]) {
+  if (scale && directionEnabled(mode, scale.axis, chart)) {
     return [scale];
   }
   const enabledScales = [];
   each(chart.scales, function(scaleItem) {
-    if (enabled[scaleItem.axis]) {
+    if (!directionEnabled(mode, scaleItem.axis, chart)) {
       enabledScales.push(scaleItem);
     }
   });
@@ -21421,14 +21015,6 @@ function getLimit(state, scale, scaleLimits, prop, fallback) {
   }
   return valueOrDefault(limit, fallback);
 }
-function getRange(scale, pixel0, pixel1) {
-  const v0 = scale.getValueForPixel(pixel0);
-  const v1 = scale.getValueForPixel(pixel1);
-  return {
-    min: Math.min(v0, v1),
-    max: Math.max(v0, v1)
-  };
-}
 function updateRange(scale, { min, max }, limits, zoom2 = false) {
   const state = getState(scale.chart);
   const { id, axis, options: scaleOpts } = scale;
@@ -21436,16 +21022,24 @@ function updateRange(scale, { min, max }, limits, zoom2 = false) {
   const { minRange = 0 } = scaleLimits;
   const minLimit = getLimit(state, scale, scaleLimits, "min", -Infinity);
   const maxLimit = getLimit(state, scale, scaleLimits, "max", Infinity);
-  const range2 = zoom2 ? Math.max(max - min, minRange) : scale.max - scale.min;
-  const offset2 = (range2 - max + min) / 2;
-  min -= offset2;
-  max += offset2;
-  if (min < minLimit) {
-    min = minLimit;
-    max = Math.min(minLimit + range2, maxLimit);
-  } else if (max > maxLimit) {
-    max = maxLimit;
-    min = Math.max(maxLimit - range2, minLimit);
+  const cmin = Math.max(min, minLimit);
+  const cmax = Math.min(max, maxLimit);
+  const range2 = zoom2 ? Math.max(cmax - cmin, minRange) : scale.max - scale.min;
+  if (cmax - cmin !== range2) {
+    if (minLimit > cmax - range2) {
+      min = cmin;
+      max = cmin + range2;
+    } else if (maxLimit < cmin + range2) {
+      max = cmax;
+      min = cmax - range2;
+    } else {
+      const offset2 = (range2 - cmax + cmin) / 2;
+      min = cmin - offset2;
+      max = cmax + offset2;
+    }
+  } else {
+    min = cmin;
+    max = cmax;
   }
   scaleOpts.min = min;
   scaleOpts.max = max;
@@ -21456,9 +21050,6 @@ function zoomNumericalScale(scale, zoom2, center, limits) {
   const delta = zoomDelta(scale, zoom2, center);
   const newRange = { min: scale.min + delta.min, max: scale.max - delta.max };
   return updateRange(scale, newRange, limits, true);
-}
-function zoomRectNumericalScale(scale, from2, to2, limits) {
-  updateRange(scale, getRange(scale, from2, to2), limits, true);
 }
 var integerChange = (v) => v === 0 || isNaN(v) ? 0 : v < 0 ? Math.min(Math.round(v), -1) : Math.max(Math.round(v), 1);
 function existCategoryFromMaxZoom(scale) {
@@ -21538,9 +21129,6 @@ var zoomFunctions = {
   category: zoomCategoryScale,
   default: zoomNumericalScale
 };
-var zoomRectFunctions = {
-  default: zoomRectNumericalScale
-};
 var panFunctions = {
   category: panCategoryScale,
   default: panNumericalScale,
@@ -21581,10 +21169,6 @@ function doZoom(scale, amount, center, limits) {
   const fn = zoomFunctions[scale.type] || zoomFunctions.default;
   callback(fn, [scale, amount, center, limits]);
 }
-function doZoomRect(scale, amount, from2, to2, limits) {
-  const fn = zoomRectFunctions[scale.type] || zoomRectFunctions.default;
-  callback(fn, [scale, amount, from2, to2, limits]);
-}
 function getCenter(chart) {
   const ca = chart.chartArea;
   return {
@@ -21596,10 +21180,11 @@ function zoom(chart, amount, transition = "none") {
   const { x = 1, y = 1, focalPoint = getCenter(chart) } = typeof amount === "number" ? { x: amount, y: amount } : amount;
   const state = getState(chart);
   const { options: { limits, zoom: zoomOptions } } = state;
+  const { mode = "xy", overScaleMode } = zoomOptions || {};
   storeOriginalScaleLimits(chart, state);
-  const xEnabled = x !== 1;
-  const yEnabled = y !== 1;
-  const enabledScales = getEnabledScalesByPoint(zoomOptions, focalPoint, chart);
+  const xEnabled = x !== 1 && directionEnabled(mode, "x", chart);
+  const yEnabled = y !== 1 && directionEnabled(mode, "y", chart);
+  const enabledScales = overScaleMode && getEnabledScalesByPoint(overScaleMode, focalPoint, chart);
   each(enabledScales || chart.scales, function(scale) {
     if (scale.isHorizontal() && xEnabled) {
       doZoom(scale, x, focalPoint, limits);
@@ -21610,6 +21195,14 @@ function zoom(chart, amount, transition = "none") {
   chart.update(transition);
   callback(zoomOptions.onZoom, [{ chart }]);
 }
+function getRange(scale, pixel0, pixel1) {
+  const v0 = scale.getValueForPixel(pixel0);
+  const v1 = scale.getValueForPixel(pixel1);
+  return {
+    min: Math.min(v0, v1),
+    max: Math.max(v0, v1)
+  };
+}
 function zoomRect(chart, p0, p1, transition = "none") {
   const state = getState(chart);
   const { options: { limits, zoom: zoomOptions } } = state;
@@ -21619,9 +21212,9 @@ function zoomRect(chart, p0, p1, transition = "none") {
   const yEnabled = directionEnabled(mode, "y", chart);
   each(chart.scales, function(scale) {
     if (scale.isHorizontal() && xEnabled) {
-      doZoomRect(scale, p0.x, p1.x, limits);
+      updateRange(scale, getRange(scale, p0.x, p1.x), limits, true);
     } else if (!scale.isHorizontal() && yEnabled) {
-      doZoomRect(scale, p0.y, p1.y, limits);
+      updateRange(scale, getRange(scale, p0.y, p1.y), limits, true);
     }
   });
   chart.update(transition);
@@ -21688,10 +21281,10 @@ function pan(chart, delta, enabledScales, transition = "none") {
   const { x = 0, y = 0 } = typeof delta === "number" ? { x: delta, y: delta } : delta;
   const state = getState(chart);
   const { options: { pan: panOptions, limits } } = state;
-  const { onPan } = panOptions || {};
+  const { mode = "xy", onPan } = panOptions || {};
   storeOriginalScaleLimits(chart, state);
-  const xEnabled = x !== 0;
-  const yEnabled = y !== 0;
+  const xEnabled = x !== 0 && directionEnabled(mode, "x", chart);
+  const yEnabled = y !== 0 && directionEnabled(mode, "y", chart);
   each(enabledScales || chart.scales, function(scale) {
     if (scale.isHorizontal() && xEnabled) {
       panScale(scale, x, limits, state);
@@ -21704,7 +21297,6 @@ function pan(chart, delta, enabledScales, transition = "none") {
 }
 function getInitialScaleBounds(chart) {
   const state = getState(chart);
-  storeOriginalScaleLimits(chart, state);
   const scaleBounds = {};
   for (const scaleId of Object.keys(chart.scales)) {
     const { min, max } = state.originalScaleLimits[scaleId] || { min: {}, max: {} };
@@ -21752,20 +21344,14 @@ function mouseMove(chart, event) {
     chart.update("none");
   }
 }
-function keyDown(chart, event) {
-  const state = getState(chart);
-  if (!state.dragStart || event.key !== "Escape") {
-    return;
-  }
-  removeHandler(chart, "keydown");
-  state.dragging = false;
-  state.dragStart = state.dragEnd = null;
-  chart.update("none");
-}
 function zoomStart(chart, event, zoomOptions) {
   const { onZoomStart, onZoomRejected } = zoomOptions;
   if (onZoomStart) {
-    const point = getRelativePosition(event, chart);
+    const { left: offsetX, top: offsetY } = event.target.getBoundingClientRect();
+    const point = {
+      x: event.clientX - offsetX,
+      y: event.clientY - offsetY
+    };
     if (callback(onZoomStart, [{ chart, event, point }]) === false) {
       callback(onZoomRejected, [{ chart, event }]);
       return false;
@@ -21775,7 +21361,7 @@ function zoomStart(chart, event, zoomOptions) {
 function mouseDown(chart, event) {
   const state = getState(chart);
   const { pan: panOptions, zoom: zoomOptions = {} } = state.options;
-  if (event.button !== 0 || keyPressed(getModifierKey(panOptions), event) || keyNotPressed(getModifierKey(zoomOptions.drag), event)) {
+  if (keyPressed(getModifierKey(panOptions), event) || keyNotPressed(getModifierKey(zoomOptions.drag), event)) {
     return callback(zoomOptions.onZoomRejected, [{ chart, event }]);
   }
   if (zoomStart(chart, event, zoomOptions) === false) {
@@ -21783,21 +21369,19 @@ function mouseDown(chart, event) {
   }
   state.dragStart = event;
   addHandler(chart, chart.canvas, "mousemove", mouseMove);
-  addHandler(chart, window.document, "keydown", keyDown);
 }
-function computeDragRect(chart, mode, beginPointEvent, endPointEvent) {
+function computeDragRect(chart, mode, beginPoint, endPoint) {
+  const { left: offsetX, top: offsetY } = beginPoint.target.getBoundingClientRect();
   const xEnabled = directionEnabled(mode, "x", chart);
   const yEnabled = directionEnabled(mode, "y", chart);
   let { top, left, right, bottom, width: chartWidth, height: chartHeight } = chart.chartArea;
-  const beginPoint = getRelativePosition(beginPointEvent, chart);
-  const endPoint = getRelativePosition(endPointEvent, chart);
   if (xEnabled) {
-    left = Math.min(beginPoint.x, endPoint.x);
-    right = Math.max(beginPoint.x, endPoint.x);
+    left = Math.min(beginPoint.clientX, endPoint.clientX) - offsetX;
+    right = Math.max(beginPoint.clientX, endPoint.clientX) - offsetX;
   }
   if (yEnabled) {
-    top = Math.min(beginPoint.y, endPoint.y);
-    bottom = Math.max(beginPoint.y, endPoint.y);
+    top = Math.min(beginPoint.clientY, endPoint.clientY) - offsetY;
+    bottom = Math.max(beginPoint.clientY, endPoint.clientY) - offsetY;
   }
   const width = right - left;
   const height = bottom - top;
@@ -21890,7 +21474,6 @@ function addListeners(chart, options) {
     removeHandler(chart, "mousedown");
     removeHandler(chart, "mousemove");
     removeHandler(chart, "mouseup");
-    removeHandler(chart, "keydown");
   }
 }
 function removeListeners(chart) {
@@ -21899,7 +21482,6 @@ function removeListeners(chart) {
   removeHandler(chart, "mouseup");
   removeHandler(chart, "wheel");
   removeHandler(chart, "click");
-  removeHandler(chart, "keydown");
 }
 function createEnabler(chart, state) {
   return function(recognizer, event) {
@@ -21972,7 +21554,7 @@ function handlePan(chart, state, e) {
   }
 }
 function startPan(chart, state, event) {
-  const { enabled, onPanStart, onPanRejected } = state.options.pan;
+  const { enabled, overScaleMode, onPanStart, onPanRejected } = state.options.pan;
   if (!enabled) {
     return;
   }
@@ -21984,7 +21566,7 @@ function startPan(chart, state, event) {
   if (callback(onPanStart, [{ chart, event, point }]) === false) {
     return callback(onPanRejected, [{ chart, event }]);
   }
-  state.panScales = getEnabledScalesByPoint(state.options.pan, point, chart);
+  state.panScales = overScaleMode && getEnabledScalesByPoint(overScaleMode, point, chart);
   state.delta = { x: 0, y: 0 };
   clearTimeout(state.panEndTimeout);
   handlePan(chart, state, event);
@@ -22032,26 +21614,7 @@ function stopHammer(chart) {
     hammers.delete(chart);
   }
 }
-var version2 = "2.0.1";
-function draw2(chart, caller, options) {
-  const dragOptions = options.zoom.drag;
-  const { dragStart, dragEnd } = getState(chart);
-  if (dragOptions.drawTime !== caller || !dragEnd) {
-    return;
-  }
-  const { left, top, width, height } = computeDragRect(chart, options.zoom.mode, dragStart, dragEnd);
-  const ctx = chart.ctx;
-  ctx.save();
-  ctx.beginPath();
-  ctx.fillStyle = dragOptions.backgroundColor || "rgba(225,225,225,0.3)";
-  ctx.fillRect(left, top, width, height);
-  if (dragOptions.borderWidth > 0) {
-    ctx.lineWidth = dragOptions.borderWidth;
-    ctx.strokeStyle = dragOptions.borderColor || "rgba(225,225,225)";
-    ctx.strokeRect(left, top, width, height);
-  }
-  ctx.restore();
-}
+var version2 = "1.2.1";
 var plugin = {
   id: "zoom",
   version: version2,
@@ -22070,7 +21633,6 @@ var plugin = {
       },
       drag: {
         enabled: false,
-        drawTime: "beforeDatasetsDraw",
         modifierKey: null
       },
       pinch: {
@@ -22085,15 +21647,11 @@ var plugin = {
     if (Object.prototype.hasOwnProperty.call(options.zoom, "enabled")) {
       console.warn("The option `zoom.enabled` is no longer supported. Please use `zoom.wheel.enabled`, `zoom.drag.enabled`, or `zoom.pinch.enabled`.");
     }
-    if (Object.prototype.hasOwnProperty.call(options.zoom, "overScaleMode") || Object.prototype.hasOwnProperty.call(options.pan, "overScaleMode")) {
-      console.warn("The option `overScaleMode` is deprecated. Please use `scaleMode` instead (and update `mode` as desired).");
-    }
     if (import_hammerjs.default) {
       startHammer(chart, options);
     }
     chart.pan = (delta, panScales, transition) => pan(chart, delta, panScales, transition);
     chart.zoom = (args, transition) => zoom(chart, args, transition);
-    chart.zoomRect = (p0, p1, transition) => zoomRect(chart, p0, p1, transition);
     chart.zoomScale = (id, range2, transition) => zoomScale(chart, id, range2, transition);
     chart.resetZoom = (transition) => resetZoom(chart, transition);
     chart.getZoomLevel = () => getZoomLevel(chart);
@@ -22111,17 +21669,23 @@ var plugin = {
     state.options = options;
     addListeners(chart, options);
   },
-  beforeDatasetsDraw(chart, _args, options) {
-    draw2(chart, "beforeDatasetsDraw", options);
-  },
-  afterDatasetsDraw(chart, _args, options) {
-    draw2(chart, "afterDatasetsDraw", options);
-  },
-  beforeDraw(chart, _args, options) {
-    draw2(chart, "beforeDraw", options);
-  },
-  afterDraw(chart, _args, options) {
-    draw2(chart, "afterDraw", options);
+  beforeDatasetsDraw: function(chart, args, options) {
+    const { dragStart, dragEnd } = getState(chart);
+    if (dragEnd) {
+      const { left, top, width, height } = computeDragRect(chart, options.zoom.mode, dragStart, dragEnd);
+      const dragOptions = options.zoom.drag;
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.fillStyle = dragOptions.backgroundColor || "rgba(225,225,225,0.3)";
+      ctx.fillRect(left, top, width, height);
+      if (dragOptions.borderWidth > 0) {
+        ctx.lineWidth = dragOptions.borderWidth;
+        ctx.strokeStyle = dragOptions.borderColor || "rgba(225,225,225)";
+        ctx.strokeRect(left, top, width, height);
+      }
+      ctx.restore();
+    }
   },
   stop: function(chart) {
     removeListeners(chart);
@@ -22131,8 +21695,7 @@ var plugin = {
     removeState(chart);
   },
   panFunctions,
-  zoomFunctions,
-  zoomRectFunctions
+  zoomFunctions
 };
 
 // js/components/utils.js
@@ -22549,17 +22112,6 @@ var Helpers = class {
       top: box.top + window.pageYOffset - document.documentElement.clientTop,
       left: box.left + window.pageXOffset - document.documentElement.clientLeft
     };
-  }
-  static retrieveNestedData(separator, field, data) {
-    var structure = separator ? field.split(separator) : [field], length = structure.length, output;
-    for (let i2 = 0; i2 < length; i2++) {
-      data = data[structure[i2]];
-      output = data;
-      if (!data) {
-        break;
-      }
-    }
-    return output;
   }
   static deepClone(obj, clone4, list2 = []) {
     var objectProto = {}.__proto__, arrayProto = [].__proto__;
@@ -23171,7 +22723,7 @@ var Ajax = class extends Module {
       if (typeof ajaxParams === "function") {
         ajaxParams = ajaxParams.call(this.table);
       }
-      params = Object.assign(Object.assign({}, ajaxParams), params);
+      params = Object.assign(params, ajaxParams);
     }
     return params;
   }
@@ -23572,11 +23124,8 @@ var CellComponent = class {
   getRow() {
     return this._cell.row.getComponent();
   }
-  getData(transform) {
-    return this._cell.row.getData(transform);
-  }
-  getType() {
-    return "cell";
+  getData() {
+    return this._cell.row.getData();
   }
   getField() {
     return this._cell.column.getField();
@@ -23899,8 +23448,8 @@ var ColumnComponent = class {
   _getSelf() {
     return this._column;
   }
-  scrollTo(position, ifVisible) {
-    return this._column.table.columnManager.scrollToColumn(this._column, position, ifVisible);
+  scrollTo() {
+    return this._column.table.columnManager.scrollToColumn(this._column);
   }
   getTable() {
     return this._column.table;
@@ -24701,8 +24250,8 @@ var RowComponent = class {
   delete() {
     return this._row.delete();
   }
-  scrollTo(position, ifVisible) {
-    return this._row.table.rowManager.scrollToRow(this._row, position, ifVisible);
+  scrollTo() {
+    return this._row.table.rowManager.scrollToRow(this._row);
   }
   move(to2, after) {
     this._row.moveToRow(to2, after);
@@ -24781,7 +24330,7 @@ var Row = class extends CoreFeature {
     this.cells = this.table.columnManager.generateCells(this);
   }
   //functions to setup on first render
-  initialize(force, inFragment) {
+  initialize(force) {
     this.create();
     if (!this.initialized || force) {
       this.deleteCells();
@@ -24790,7 +24339,7 @@ var Row = class extends CoreFeature {
       this.dispatch("row-layout-before", this);
       this.generateCells();
       this.initialized = true;
-      this.table.columnManager.renderer.renderRowCells(this, inFragment);
+      this.table.columnManager.renderer.renderRowCells(this);
       if (force) {
         this.normalizeHeight();
       }
@@ -24800,13 +24349,8 @@ var Row = class extends CoreFeature {
       }
       this.dispatch("row-layout-after", this);
     } else {
-      this.table.columnManager.renderer.rerenderRowCells(this, inFragment);
+      this.table.columnManager.renderer.rerenderRowCells(this);
     }
-  }
-  rendered() {
-    this.cells.forEach((cell) => {
-      cell.cellRendered();
-    });
   }
   reinitializeHeight() {
     this.heightInitialized = false;
@@ -24963,7 +24507,7 @@ var Row = class extends CoreFeature {
   getCell(column) {
     var match2 = false;
     column = this.table.columnManager.findColumn(column);
-    if (!this.initialized && this.cells.length === 0) {
+    if (!this.initialized) {
       this.generateCells();
     }
     match2 = this.cells.find(function(cell) {
@@ -24982,7 +24526,7 @@ var Row = class extends CoreFeature {
     });
   }
   getCells() {
-    if (!this.initialized && this.cells.length === 0) {
+    if (!this.initialized) {
       this.generateCells();
     }
     return this.cells;
@@ -25131,12 +24675,6 @@ var defaultCalculations = {
       });
     }
     return output;
-  },
-  "unique": function(values2, data, calcParams) {
-    var unique = values2.filter((value, index2) => {
-      return (values2 || value === 0) && values2.indexOf(value) === index2;
-    });
-    return unique.length;
   }
 };
 var ColumnCalcs = class extends Module {
@@ -25183,16 +24721,8 @@ var ColumnCalcs = class extends Module {
     this.subscribe("scrollbar-vertical", this.adjustForScrollbar.bind(this));
     this.subscribe("redraw-blocked", this.blockRedraw.bind(this));
     this.subscribe("redraw-restored", this.restoreRedraw.bind(this));
-    this.subscribe("table-redrawing", this.resizeHolderWidth.bind(this));
-    this.subscribe("column-resized", this.resizeHolderWidth.bind(this));
-    this.subscribe("column-show", this.resizeHolderWidth.bind(this));
-    this.subscribe("column-hide", this.resizeHolderWidth.bind(this));
     this.registerTableFunction("getCalcResults", this.getResults.bind(this));
     this.registerTableFunction("recalc", this.userRecalc.bind(this));
-    this.resizeHolderWidth();
-  }
-  resizeHolderWidth() {
-    this.topElement.style.minWidth = this.table.columnManager.headersElement.offsetWidth + "px";
   }
   tableRedraw(force) {
     this.recalc(this.table.rowManager.activeRows);
@@ -25630,9 +25160,6 @@ var DataTree = class extends Module {
             this.branchEl = options.dataTreeBranchElement;
           }
         }
-      } else {
-        this.branchEl = document.createElement("div");
-        this.branchEl.classList.add("tabulator-data-tree-branch-empty");
       }
       if (options.dataTreeCollapseElement) {
         if (typeof options.dataTreeCollapseElement === "string") {
@@ -25820,7 +25347,7 @@ var DataTree = class extends Module {
       output.push(row2);
       if (row2 instanceof Row) {
         row2.create();
-        config = row2.modules.dataTree;
+        config = row2.modules.dataTree.children;
         if (!config.index && config.children !== false) {
           children = this.getChildren(row2);
           children.forEach((child) => {
@@ -26009,7 +25536,7 @@ var DataTree = class extends Module {
   }
   getTreeChildren(row2, component, recurse) {
     var config = row2.modules.dataTree, output = [];
-    if (config && config.children) {
+    if (config.children) {
       if (!Array.isArray(config.children)) {
         config.children = this.generateChildren(row2);
       }
@@ -26185,8 +25712,7 @@ function pdf(list2, options = {}, setFileContents) {
   setFileContents(doc.output("arraybuffer"), "application/pdf");
 }
 function xlsx(list2, options, setFileContents) {
-  var self2 = this, sheetName = options.sheetName || "Sheet1", workbook = XLSX.utils.book_new(), tableFeatures = new CoreFeature(this), compression = "compress" in options ? options.compress : true, writeOptions = options.writeOptions || { bookType: "xlsx", bookSST: true, compression }, output;
-  writeOptions.type = "binary";
+  var self2 = this, sheetName = options.sheetName || "Sheet1", workbook = XLSX.utils.book_new(), tableFeatures = new CoreFeature(this), compression = "compress" in options ? options.compress : true, output;
   workbook.SheetNames = [];
   workbook.Sheets = {};
   function generateSheet() {
@@ -26249,7 +25775,7 @@ function xlsx(list2, options, setFileContents) {
       view[i2] = s2.charCodeAt(i2) & 255;
     return buf;
   }
-  output = XLSX.write(workbook, writeOptions);
+  output = XLSX.write(workbook, { bookType: "xlsx", bookSST: true, type: "binary", compression });
   setFileContents(s2ab(output), "application/octet-stream");
 }
 function html(list2, options, setFileContents) {
@@ -26472,12 +25998,10 @@ function input(cell, onRendered, success, cancel, editorParams) {
   }
   input2.value = typeof cellValue !== "undefined" ? cellValue : "";
   onRendered(function() {
-    if (cell.getType() === "cell") {
-      input2.focus({ preventScroll: true });
-      input2.style.height = "100%";
-      if (editorParams.selectContents) {
-        input2.select();
-      }
+    input2.focus({ preventScroll: true });
+    input2.style.height = "100%";
+    if (editorParams.selectContents) {
+      input2.select();
     }
   });
   function onChange(e) {
@@ -26531,15 +26055,13 @@ function textarea(cell, onRendered, success, cancel, editorParams) {
   }
   input2.value = value;
   onRendered(function() {
-    if (cell.getType() === "cell") {
-      input2.focus({ preventScroll: true });
-      input2.style.height = "100%";
-      input2.scrollHeight;
-      input2.style.height = input2.scrollHeight + "px";
-      cell.getRow().normalizeHeight();
-      if (editorParams.selectContents) {
-        input2.select();
-      }
+    input2.focus({ preventScroll: true });
+    input2.style.height = "100%";
+    input2.scrollHeight;
+    input2.style.height = input2.scrollHeight + "px";
+    cell.getRow().normalizeHeight();
+    if (editorParams.selectContents) {
+      input2.select();
     }
   });
   function onChange(e) {
@@ -26628,14 +26150,12 @@ function number(cell, onRendered, success, cancel, editorParams) {
     onChange();
   };
   onRendered(function() {
-    if (cell.getType() === "cell") {
-      input2.removeEventListener("blur", blurFunc);
-      input2.focus({ preventScroll: true });
-      input2.style.height = "100%";
-      input2.addEventListener("blur", blurFunc);
-      if (editorParams.selectContents) {
-        input2.select();
-      }
+    input2.removeEventListener("blur", blurFunc);
+    input2.focus({ preventScroll: true });
+    input2.style.height = "100%";
+    input2.addEventListener("blur", blurFunc);
+    if (editorParams.selectContents) {
+      input2.select();
     }
   });
   function onChange() {
@@ -26704,10 +26224,8 @@ function range(cell, onRendered, success, cancel, editorParams) {
   }
   input2.value = cellValue;
   onRendered(function() {
-    if (cell.getType() === "cell") {
-      input2.focus({ preventScroll: true });
-      input2.style.height = "100%";
-    }
+    input2.focus({ preventScroll: true });
+    input2.style.height = "100%";
   });
   function onChange() {
     var value = input2.value;
@@ -26738,7 +26256,7 @@ function range(cell, onRendered, success, cancel, editorParams) {
   return input2;
 }
 function date(cell, onRendered, success, cancel, editorParams) {
-  var inputFormat = editorParams.format, vertNav = editorParams.verticalNavigation || "editor", DT = inputFormat ? window.DateTime || luxon.DateTime : null;
+  var inputFormat = editorParams.format, DT = inputFormat ? window.DateTime || luxon.DateTime : null;
   var cellValue = cell.getValue(), input2 = document.createElement("input");
   function convertDate(value) {
     var newDatetime;
@@ -26776,34 +26294,22 @@ function date(cell, onRendered, success, cancel, editorParams) {
     if (DT) {
       cellValue = convertDate(cellValue);
     } else {
-      console.error("Editor Error - 'date' editor 'format' param is dependant on luxon.js");
+      console.error("Editor Error - 'date' editor 'inputFormat' param is dependant on luxon.js");
     }
   }
   input2.value = cellValue;
   onRendered(function() {
-    if (cell.getType() === "cell") {
-      input2.focus({ preventScroll: true });
-      input2.style.height = "100%";
-      if (editorParams.selectContents) {
-        input2.select();
-      }
+    input2.focus({ preventScroll: true });
+    input2.style.height = "100%";
+    if (editorParams.selectContents) {
+      input2.select();
     }
   });
-  function onChange() {
-    var value = input2.value, luxDate;
+  function onChange(e) {
+    var value = input2.value;
     if ((cellValue === null || typeof cellValue === "undefined") && value !== "" || value !== cellValue) {
       if (value && inputFormat) {
-        luxDate = DT.fromFormat(String(value), "yyyy-MM-dd");
-        switch (inputFormat) {
-          case true:
-            value = luxDate;
-            break;
-          case "iso":
-            value = luxDate.toISO();
-            break;
-          default:
-            value = luxDate.toFormat(inputFormat);
-        }
+        value = DT.fromFormat(String(value), "yyyy-MM-dd").toFormat(inputFormat);
       }
       if (success(value)) {
         cellValue = input2.value;
@@ -26812,11 +26318,8 @@ function date(cell, onRendered, success, cancel, editorParams) {
       cancel();
     }
   }
-  input2.addEventListener("blur", function(e) {
-    if (e.relatedTarget || e.rangeParent || e.explicitOriginalTarget !== input2) {
-      onChange();
-    }
-  });
+  input2.addEventListener("change", onChange);
+  input2.addEventListener("blur", onChange);
   input2.addEventListener("keydown", function(e) {
     switch (e.keyCode) {
       case 13:
@@ -26829,19 +26332,12 @@ function date(cell, onRendered, success, cancel, editorParams) {
       case 36:
         e.stopPropagation();
         break;
-      case 38:
-      case 40:
-        if (vertNav == "editor") {
-          e.stopImmediatePropagation();
-          e.stopPropagation();
-        }
-        break;
     }
   });
   return input2;
 }
 function time(cell, onRendered, success, cancel, editorParams) {
-  var inputFormat = editorParams.format, vertNav = editorParams.verticalNavigation || "editor", DT = inputFormat ? window.DateTime || luxon.DateTime : null, newDatetime;
+  var inputFormat = editorParams.format, DT = inputFormat ? window.DateTime || luxon.DateTime : null, newDatetime;
   var cellValue = cell.getValue(), input2 = document.createElement("input");
   input2.type = "time";
   input2.style.padding = "4px";
@@ -26869,34 +26365,22 @@ function time(cell, onRendered, success, cancel, editorParams) {
       }
       cellValue = newDatetime.toFormat("hh:mm");
     } else {
-      console.error("Editor Error - 'date' editor 'format' param is dependant on luxon.js");
+      console.error("Editor Error - 'date' editor 'inputFormat' param is dependant on luxon.js");
     }
   }
   input2.value = cellValue;
   onRendered(function() {
-    if (cell.getType() == "cell") {
-      input2.focus({ preventScroll: true });
-      input2.style.height = "100%";
-      if (editorParams.selectContents) {
-        input2.select();
-      }
+    input2.focus({ preventScroll: true });
+    input2.style.height = "100%";
+    if (editorParams.selectContents) {
+      input2.select();
     }
   });
-  function onChange() {
-    var value = input2.value, luxTime;
+  function onChange(e) {
+    var value = input2.value;
     if ((cellValue === null || typeof cellValue === "undefined") && value !== "" || value !== cellValue) {
       if (value && inputFormat) {
-        luxTime = DT.fromFormat(String(value), "hh:mm");
-        switch (inputFormat) {
-          case true:
-            value = luxTime;
-            break;
-          case "iso":
-            value = luxTime.toISO();
-            break;
-          default:
-            value = luxTime.toFormat(inputFormat);
-        }
+        value = DT.fromFormat(String(value), "hh:mm").toFormat(inputFormat);
       }
       if (success(value)) {
         cellValue = input2.value;
@@ -26905,11 +26389,8 @@ function time(cell, onRendered, success, cancel, editorParams) {
       cancel();
     }
   }
-  input2.addEventListener("blur", function(e) {
-    if (e.relatedTarget || e.rangeParent || e.explicitOriginalTarget !== input2) {
-      onChange();
-    }
-  });
+  input2.addEventListener("change", onChange);
+  input2.addEventListener("blur", onChange);
   input2.addEventListener("keydown", function(e) {
     switch (e.keyCode) {
       case 13:
@@ -26922,19 +26403,12 @@ function time(cell, onRendered, success, cancel, editorParams) {
       case 36:
         e.stopPropagation();
         break;
-      case 38:
-      case 40:
-        if (vertNav == "editor") {
-          e.stopImmediatePropagation();
-          e.stopPropagation();
-        }
-        break;
     }
   });
   return input2;
 }
 function datetime(cell, onRendered, success, cancel, editorParams) {
-  var inputFormat = editorParams.format, vertNav = editorParams.verticalNavigation || "editor", DT = inputFormat ? window.DateTime || luxon.DateTime : null, newDatetime;
+  var inputFormat = editorParams.format, DT = inputFormat ? window.DateTime || luxon.DateTime : null, newDatetime;
   var cellValue = cell.getValue(), input2 = document.createElement("input");
   input2.type = "datetime-local";
   input2.style.padding = "4px";
@@ -26962,34 +26436,22 @@ function datetime(cell, onRendered, success, cancel, editorParams) {
       }
       cellValue = newDatetime.toFormat("yyyy-MM-dd") + "T" + newDatetime.toFormat("hh:mm");
     } else {
-      console.error("Editor Error - 'date' editor 'format' param is dependant on luxon.js");
+      console.error("Editor Error - 'date' editor 'inputFormat' param is dependant on luxon.js");
     }
   }
   input2.value = cellValue;
   onRendered(function() {
-    if (cell.getType() === "cell") {
-      input2.focus({ preventScroll: true });
-      input2.style.height = "100%";
-      if (editorParams.selectContents) {
-        input2.select();
-      }
+    input2.focus({ preventScroll: true });
+    input2.style.height = "100%";
+    if (editorParams.selectContents) {
+      input2.select();
     }
   });
-  function onChange() {
-    var value = input2.value, luxDateTime;
+  function onChange(e) {
+    var value = input2.value;
     if ((cellValue === null || typeof cellValue === "undefined") && value !== "" || value !== cellValue) {
       if (value && inputFormat) {
-        luxDateTime = DT.fromISO(String(value));
-        switch (inputFormat) {
-          case true:
-            value = luxDateTime;
-            break;
-          case "iso":
-            value = luxDateTime.toISO();
-            break;
-          default:
-            value = luxDateTime.toFormat(inputFormat);
-        }
+        value = DT.fromISO(String(value)).toFormat(inputFormat);
       }
       if (success(value)) {
         cellValue = input2.value;
@@ -26998,11 +26460,8 @@ function datetime(cell, onRendered, success, cancel, editorParams) {
       cancel();
     }
   }
-  input2.addEventListener("blur", function(e) {
-    if (e.relatedTarget || e.rangeParent || e.explicitOriginalTarget !== input2) {
-      onChange();
-    }
-  });
+  input2.addEventListener("change", onChange);
+  input2.addEventListener("blur", onChange);
   input2.addEventListener("keydown", function(e) {
     switch (e.keyCode) {
       case 13:
@@ -27014,13 +26473,6 @@ function datetime(cell, onRendered, success, cancel, editorParams) {
       case 35:
       case 36:
         e.stopPropagation();
-        break;
-      case 38:
-      case 40:
-        if (vertNav == "editor") {
-          e.stopImmediatePropagation();
-          e.stopPropagation();
-        }
         break;
     }
   });
@@ -27039,7 +26491,7 @@ var Edit = class {
     this.input = this._createInputElement();
     this.listEl = this._createListElement();
     this.initialValues = null;
-    this.isFilter = cell.getType() === "header";
+    this.isFilter = !cell._getSelf;
     this.filterTimeout = null;
     this.filtered = false;
     this.typing = false;
@@ -27087,10 +26539,8 @@ var Edit = class {
     function clickStop(e) {
       e.stopPropagation();
     }
-    if (!this.isFilter) {
-      this.input.style.height = "100%";
-      this.input.focus({ preventScroll: true });
-    }
+    this.input.style.height = "100%";
+    this.input.focus({ preventScroll: true });
     cellEl.addEventListener("click", clickStop);
     setTimeout(() => {
       cellEl.removeEventListener("click", clickStop);
@@ -27259,7 +26709,6 @@ var Edit = class {
         this._keyHomeEnd(e);
         break;
       case 9:
-        this._keyTab(e);
         break;
       default:
         this._keySelectLetter(e);
@@ -27297,15 +26746,6 @@ var Edit = class {
   //////////////////////////////////////
   //////// Keyboard Navigation /////////
   //////////////////////////////////////
-  _keyTab(e) {
-    if (this.params.autocomplete && this.lastAction === "typing") {
-      this._resolveValue(true);
-    } else {
-      if (this.focusedItem) {
-        this._chooseItem(this.focusedItem, true);
-      }
-    }
-  }
   _keyUp(e) {
     var index2 = this.displayItems.indexOf(this.focusedItem);
     if (this.params.verticalNavigation == "editor" || this.params.verticalNavigation == "hybrid" && index2) {
@@ -27333,11 +26773,9 @@ var Edit = class {
     }
   }
   _keySide(e) {
-    if (!this.params.autocomplete) {
-      e.stopImmediatePropagation();
-      e.stopPropagation();
-      e.preventDefault();
-    }
+    e.stopImmediatePropagation();
+    e.stopPropagation();
+    e.preventDefault();
   }
   _keyEnter(e) {
     if (this.params.autocomplete && this.lastAction === "typing") {
@@ -28057,14 +27495,15 @@ function tickCross(cell, onRendered, success, cancel, editorParams) {
     indetermState = true;
     input2.indeterminate = true;
   }
-  if (this.table.browser != "firefox" && this.table.browser != "safari") {
+  if (this.table.browser != "firefox") {
     onRendered(function() {
-      if (cell.getType() === "cell") {
-        input2.focus({ preventScroll: true });
-      }
+      input2.focus({ preventScroll: true });
     });
   }
   input2.checked = trueValueSet ? value === editorParams.trueValue : value === true || value === "true" || value === "True" || value === 1;
+  onRendered(function() {
+    input2.focus();
+  });
   function setValue(blur) {
     var checkedValue = input2.checked;
     if (trueValueSet && checkedValue) {
@@ -28184,22 +27623,20 @@ var Edit$1 = class extends Module {
       if (!this.navigateNext(cell, e)) {
         if (newRow) {
           cell.getElement().firstChild.blur();
-          if (!this.invalidEdit) {
-            if (newRow === true) {
-              newRow = this.table.addRow({});
+          if (newRow === true) {
+            newRow = this.table.addRow({});
+          } else {
+            if (typeof newRow == "function") {
+              newRow = this.table.addRow(newRow(cell.row.getComponent()));
             } else {
-              if (typeof newRow == "function") {
-                newRow = this.table.addRow(newRow(cell.row.getComponent()));
-              } else {
-                newRow = this.table.addRow(Object.assign({}, newRow));
-              }
+              newRow = this.table.addRow(Object.assign({}, newRow));
             }
-            newRow.then(() => {
-              setTimeout(() => {
-                cell.getComponent().navigateNext();
-              });
-            });
           }
+          newRow.then(() => {
+            setTimeout(() => {
+              cell.getComponent().navigateNext();
+            });
+          });
         }
       }
     }
@@ -28518,8 +27955,8 @@ var Edit$1 = class extends Module {
       }
       var leftEdge = this.table.rowManager.element.scrollLeft, rightEdge = this.table.rowManager.element.clientWidth + this.table.rowManager.element.scrollLeft, cellEl = cell.getElement();
       if (this.table.modExists("frozenColumns")) {
-        leftEdge += parseInt(this.table.modules.frozenColumns.leftMargin || 0);
-        rightEdge -= parseInt(this.table.modules.frozenColumns.rightMargin || 0);
+        leftEdge += parseInt(this.table.modules.frozenColumns.leftMargin);
+        rightEdge -= parseInt(this.table.modules.frozenColumns.rightMargin);
       }
       if (this.table.options.renderHorizontal === "virtual") {
         leftEdge -= parseInt(this.table.columnManager.renderer.vDomPadLeft);
@@ -28557,7 +27994,7 @@ var Edit$1 = class extends Module {
     var self2 = this, allowEdit = true, rendered = function() {
     }, element = cell.getElement(), cellEditor, component, params;
     if (this.currentCell) {
-      if (!this.invalidEdit && this.currentCell !== cell) {
+      if (!this.invalidEdit) {
         this.cancelEdit();
       }
       return;
@@ -28615,7 +28052,7 @@ var Edit$1 = class extends Module {
         this.dispatchExternal("cellEditing", component);
         params = typeof cell.column.modules.edit.params === "function" ? cell.column.modules.edit.params(component) : cell.column.modules.edit.params;
         cellEditor = cell.column.modules.edit.editor.call(self2, component, onRendered, success, cancel, params);
-        if (this.currentCell && cellEditor !== false) {
+        if (cellEditor !== false) {
           if (cellEditor instanceof Node) {
             element.classList.add("tabulator-editing");
             cell.row.getElement().classList.add("tabulator-editing");
@@ -29037,9 +28474,6 @@ var Export = class extends Module {
           getElement: function() {
             return cellEl;
           },
-          getType: function() {
-            return "cell";
-          },
           getColumn: function() {
             return column.getComponent();
           },
@@ -29248,7 +28682,6 @@ var Filter = class extends Module {
     this.registerTableOption("initialFilter", false);
     this.registerTableOption("initialHeaderFilter", false);
     this.registerTableOption("headerFilterLiveFilterDelay", 300);
-    this.registerTableOption("placeholderHeaderFilter", false);
     this.registerColumnOption("headerFilter");
     this.registerColumnOption("headerFilterPlaceholder");
     this.registerColumnOption("headerFilterParams");
@@ -29279,7 +28712,6 @@ var Filter = class extends Module {
     this.subscribe("column-width-fit-before", this.hideHeaderFilterElements.bind(this));
     this.subscribe("column-width-fit-after", this.showHeaderFilterElements.bind(this));
     this.subscribe("table-built", this.tableBuilt.bind(this));
-    this.subscribe("placeholder", this.generatePlaceholder.bind(this));
     if (this.table.options.filterMode === "remote") {
       this.subscribe("data-params", this.remoteFilterParams.bind(this));
     }
@@ -29305,11 +28737,6 @@ var Filter = class extends Module {
   remoteFilterParams(data, config, silent, params) {
     params.filter = this.getFilters(true, true);
     return params;
-  }
-  generatePlaceholder(text) {
-    if (this.table.options.placeholderHeaderFilter && Object.keys(this.headerFilters).length) {
-      return this.table.options.placeholderHeaderFilter;
-    }
   }
   ///////////////////////////////////
   ///////// Table Functions /////////
@@ -29527,9 +28954,6 @@ var Filter = class extends Module {
           },
           getTable: () => {
             return this.table;
-          },
-          getType: () => {
-            return "header";
           },
           getRow: function() {
             return {
@@ -29922,7 +29346,7 @@ function textarea$1(cell, formatterParams, onRendered) {
   return this.emptyToSpace(this.sanitizeHTML(cell.getValue()));
 }
 function money(cell, formatterParams, onRendered) {
-  var floatVal = parseFloat(cell.getValue()), sign2 = "", number2, integer, decimal, rgx, value;
+  var floatVal = parseFloat(cell.getValue()), sign2 = "", number2, integer, decimal, rgx;
   var decimalSym = formatterParams.decimal || ".";
   var thousandSym = formatterParams.thousand || ",";
   var negativeSign = formatterParams.negativeSign || "-";
@@ -29946,13 +29370,7 @@ function money(cell, formatterParams, onRendered) {
       integer = integer.replace(rgx, "$1" + thousandSym + "$2");
     }
   }
-  value = integer + decimal;
-  if (sign2 === true) {
-    value = "(" + value + ")";
-    return after ? value + symbol : symbol + value;
-  } else {
-    return after ? sign2 + value + symbol : sign2 + symbol + value;
-  }
+  return after ? sign2 + integer + decimal + symbol : sign2 + symbol + integer + decimal;
 }
 function link(cell, formatterParams, onRendered) {
   var value = cell.getValue(), urlPrefix = formatterParams.urlPrefix || "", download = formatterParams.download, label = value, el = document.createElement("a"), data;
@@ -29980,7 +29398,7 @@ function link(cell, formatterParams, onRendered) {
   if (label) {
     if (formatterParams.urlField) {
       data = cell.getData();
-      value = Helpers.retrieveNestedData(this.table.options.nestedFieldSeparator, formatterParams.urlField, data);
+      value = data[formatterParams.urlField];
     }
     if (formatterParams.url) {
       switch (typeof formatterParams.url) {
@@ -30482,9 +29900,6 @@ var Format = class extends Module {
         getElement: function() {
           return el;
         },
-        getType: function() {
-          return "header";
-        },
         getColumn: function() {
           return column.getComponent();
         },
@@ -30771,7 +30186,7 @@ var FrozenColumns = class extends Module {
   }
   layoutElement(element, column) {
     var position;
-    if (column.modules.frozen && element) {
+    if (column.modules.frozen) {
       element.style.position = "sticky";
       if (this.table.rtl) {
         position = column.modules.frozen.position === "left" ? "right" : "left";
@@ -30822,15 +30237,7 @@ var FrozenRows = class extends Module {
     if (this.table.options.frozenRows) {
       this.subscribe("data-processed", this.initializeRows.bind(this));
       this.subscribe("row-added", this.initializeRow.bind(this));
-      this.subscribe("table-redrawing", this.resizeHolderWidth.bind(this));
-      this.subscribe("column-resized", this.resizeHolderWidth.bind(this));
-      this.subscribe("column-show", this.resizeHolderWidth.bind(this));
-      this.subscribe("column-hide", this.resizeHolderWidth.bind(this));
     }
-    this.resizeHolderWidth();
-  }
-  resizeHolderWidth() {
-    this.topElement.style.minWidth = this.table.columnManager.headersElement.offsetWidth + "px";
   }
   initializeRows() {
     this.table.rowManager.getRows().forEach((row2) => {
@@ -30930,7 +30337,7 @@ var GroupComponent = class {
         if (typeof target[name] !== "undefined") {
           return target[name];
         } else {
-          return target._group.groupManager.table.componentFunctionBinder.handle("group", target._group, name);
+          return target._group.groupManager.table.componentFunctionBinder.handle("row", target._group, name);
         }
       }
     });
@@ -30964,9 +30371,6 @@ var GroupComponent = class {
   }
   toggle() {
     this._group.toggleVisibility();
-  }
-  scrollTo(position, ifVisible) {
-    return this._group.groupManager.table.rowManager.scrollToRow(this._group, position, ifVisible);
   }
   _getSelf() {
     return this._group;
@@ -31051,13 +30455,9 @@ var Group = class {
     if (this.groupManager.table.options.groupToggleElement) {
       toggleElement = this.groupManager.table.options.groupToggleElement == "arrow" ? this.arrowElement : this.element;
       toggleElement.addEventListener("click", (e) => {
-        if (this.groupManager.table.options.groupToggleElement === "arrow") {
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-        }
-        setTimeout(() => {
-          this.toggleVisibility();
-        });
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        this.toggleVisibility();
       });
     }
   }
@@ -31105,6 +30505,7 @@ var Group = class {
       }
     }
     row2.modules.group = this;
+    this.generateGroupHeaderContents();
     if (this.groupManager.table.modExists("columnCalcs") && this.groupManager.table.options.columnCalcs != "table") {
       this.groupManager.table.modules.columnCalcs.recalcGroup(this);
     }
@@ -31336,23 +30737,16 @@ var Group = class {
     });
     return output;
   }
-  getRows(component, includeChildren) {
+  getRows(component) {
     var output = [];
-    if (includeChildren && this.groupList.length) {
-      this.groupList.forEach((group) => {
-        output = output.concat(group.getRows(component, includeChildren));
-      });
-    } else {
-      this.rows.forEach(function(row2) {
-        output.push(component ? row2.getComponent() : row2);
-      });
-    }
+    this.rows.forEach(function(row2) {
+      output.push(component ? row2.getComponent() : row2);
+    });
     return output;
   }
   generateGroupHeaderContents() {
     var data = [];
-    var rows3 = this.getRows(false, true);
-    rows3.forEach(function(row2) {
+    this.rows.forEach(function(row2) {
       data.push(row2.getData());
     });
     this.elementContents = this.generator(this.key, this.getRowCount(), data, this.getComponent());
@@ -31434,8 +30828,6 @@ var Group = class {
   clearCellHeight() {
   }
   deinitializeHeight() {
-  }
-  rendered() {
   }
   //////////////// Object Generation /////////////////
   getComponent() {
@@ -31938,10 +31330,8 @@ var defaultUndoers = {
     this._rebindRow(action.component, newRow);
   },
   rowMove: function(action) {
-    var after = action.data.posFrom - action.data.posTo > 0;
-    this.table.rowManager.moveRowActual(action.component, this.table.rowManager.getRowFromPosition(action.data.posFrom), after);
-    this.table.rowManager.regenerateRowPositions();
-    this.table.rowManager.reRenderInPosition();
+    this.table.rowManager.moveRowActual(action.component, this.table.rowManager.rows[action.data.posFrom], !action.data.after);
+    this.table.rowManager.redraw();
   }
 };
 var defaultRedoers = {
@@ -31960,9 +31350,8 @@ var defaultRedoers = {
     action.component.deleteActual();
   },
   rowMove: function(action) {
-    this.table.rowManager.moveRowActual(action.component, this.table.rowManager.getRowFromPosition(action.data.posTo), action.data.after);
-    this.table.rowManager.regenerateRowPositions();
-    this.table.rowManager.reRenderInPosition();
+    this.table.rowManager.moveRowActual(action.component, this.table.rowManager.rows[action.data.posTo], action.data.after);
+    this.table.rowManager.redraw();
   }
 };
 var History = class extends Module {
@@ -32179,7 +31568,7 @@ var HtmlTableImport = class extends Module {
         col = { title: header.textContent.trim() };
       }
       if (!col.field) {
-        col.field = header.textContent.trim().toLowerCase().replaceAll(" ", "_");
+        col.field = header.textContent.trim().toLowerCase().replace(" ", "_");
       }
       width = header.getAttribute("width");
       if (width && !col.width) {
@@ -32515,16 +31904,6 @@ var Interaction2 = class extends Module {
     this.initializeExternalEvents();
     this.subscribe("column-init", this.initializeColumn.bind(this));
     this.subscribe("cell-dblclick", this.cellContentsSelectionFixer.bind(this));
-    this.subscribe("scroll-horizontal", this.clearTouchWatchers.bind(this));
-    this.subscribe("scroll-vertical", this.clearTouchWatchers.bind(this));
-  }
-  clearTouchWatchers() {
-    var types = Object.values(this.touchWatchers);
-    types.forEach((type) => {
-      for (let key in type) {
-        type[key] = null;
-      }
-    });
   }
   cellContentsSelectionFixer(e, cell) {
     var range2;
@@ -32683,7 +32062,7 @@ var defaultBindings = {
   scrollToEnd: 35,
   undo: ["ctrl + 90", "meta + 90"],
   redo: ["ctrl + 89", "meta + 89"],
-  copyToClipboard: ["ctrl + 67", "meta + 67"]
+  copyToClipboard: ["ctrl + 67", "meta + 89"]
 };
 var defaultActions = {
   keyBlock: function(e) {
@@ -33908,7 +33287,7 @@ var Mutator = class extends Module {
           mutator = column.modules.mutate[key] || column.modules.mutate.mutator || false;
           if (mutator) {
             value = column.getFieldValue(typeof updatedData !== "undefined" ? updatedData : data);
-            if (type == "data" && !updatedData || typeof value !== "undefined") {
+            if (type == "data" || typeof value !== "undefined") {
               component = column.getComponent();
               params = typeof mutator.params === "function" ? mutator.params(value, data, type, component) : mutator.params;
               column.setFieldValue(data, mutator.mutator(value, data, type, params, component));
@@ -34136,7 +33515,7 @@ var Page = class extends Module {
   ///////////////////////////////////
   userSetPageToRow(row2) {
     if (this.table.options.pagination) {
-      row2 = this.table.rowManager.findRow(row2);
+      row2 = this.rowManager.findRow(row2);
       if (row2) {
         return this.setPageToRow(row2);
       }
@@ -34760,7 +34139,6 @@ var Persistence = class extends Module {
       this.config = {
         sort: this.table.options.persistence === true || this.table.options.persistence.sort,
         filter: this.table.options.persistence === true || this.table.options.persistence.filter,
-        headerFilter: this.table.options.persistence === true || this.table.options.persistence.headerFilter,
         group: this.table.options.persistence === true || this.table.options.persistence.group,
         page: this.table.options.persistence === true || this.table.options.persistence.page,
         columns: this.table.options.persistence === true ? ["title", "width", "visible"] : this.table.options.persistence.columns
@@ -34800,7 +34178,6 @@ var Persistence = class extends Module {
       this.subscribe("table-built", this.tableBuilt.bind(this), 0);
       this.subscribe("table-redraw", this.tableRedraw.bind(this));
       this.subscribe("filter-changed", this.eventSave.bind(this, "filter"));
-      this.subscribe("filter-changed", this.eventSave.bind(this, "headerFilter"));
       this.subscribe("sort-changed", this.eventSave.bind(this, "sort"));
       this.subscribe("group-changed", this.eventSave.bind(this, "group"));
       this.subscribe("page-changed", this.eventSave.bind(this, "page"));
@@ -34817,7 +34194,7 @@ var Persistence = class extends Module {
     }
   }
   tableBuilt() {
-    var sorters, filters, headerFilters;
+    var sorters, filters;
     if (this.config.sort) {
       sorters = this.load("sort");
       if (!sorters === false) {
@@ -34828,12 +34205,6 @@ var Persistence = class extends Module {
       filters = this.load("filter");
       if (!filters === false) {
         this.table.options.initialFilter = filters;
-      }
-    }
-    if (this.config.headerFilter) {
-      headerFilters = this.load("headerFilter");
-      if (!headerFilters === false) {
-        this.table.options.initialHeaderFilter = headerFilters;
       }
     }
   }
@@ -34849,7 +34220,7 @@ var Persistence = class extends Module {
     return this.parseColumns(this.table.columnManager.getColumns());
   }
   setColumnLayout(layout) {
-    this.table.columnManager.setColumns(this.mergeDefinition(this.table.options.columns, layout, true));
+    this.table.columnManager.setColumns(this.mergeDefinition(this.table.options.columns, layout));
     return true;
   }
   ///////////////////////////////////
@@ -34900,15 +34271,13 @@ var Persistence = class extends Module {
     return this.readFunc ? this.readFunc(this.id, type) : false;
   }
   //merge old and new column definitions
-  mergeDefinition(oldCols, newCols, mergeAllNew) {
+  mergeDefinition(oldCols, newCols) {
     var output = [];
     newCols = newCols || [];
     newCols.forEach((column, to2) => {
       var from2 = this._findColumn(oldCols, column), keys;
       if (from2) {
-        if (mergeAllNew) {
-          keys = Object.keys(column);
-        } else if (this.config.columns === true || this.config.columns == void 0) {
+        if (this.config.columns === true || this.config.columns == void 0) {
           keys = Object.keys(from2);
           keys.push("width");
         } else {
@@ -34960,9 +34329,6 @@ var Persistence = class extends Module {
         break;
       case "filter":
         data = this.table.modules.filter.getFilters();
-        break;
-      case "headerFilter":
-        data = this.table.modules.filter.getHeaderFilters();
         break;
       case "sort":
         data = this.validateSorters(this.table.modules.sort.getSort());
@@ -35686,7 +35052,6 @@ var ResizeColumns = class extends Module {
       if (cell.modules.resize && cell.modules.resize.handleEl) {
         if (frozenOffset) {
           cell.modules.resize.handleEl.style[column.modules.frozen.position] = frozenOffset;
-          cell.modules.resize.handleEl.style["z-index"] = 11;
         }
         cell.element.after(cell.modules.resize.handleEl);
       }
@@ -36220,9 +35585,6 @@ var ResponsiveLayout = class extends Module {
             getData: function() {
               return data;
             },
-            getType: function() {
-              return "cell";
-            },
             getElement: function() {
               return document.createElement("div");
             },
@@ -36322,12 +35684,11 @@ var SelectRow = class extends Module {
     this._deselectRow(row2, true);
   }
   clearSelectionData(silent) {
-    var prevSelected = this.selectedRows.length;
     this.selecting = false;
     this.lastClickedRow = false;
     this.selectPrev = [];
     this.selectedRows = [];
-    if (prevSelected && silent !== true) {
+    if (silent !== true) {
       this._rowSelectionChanged();
     }
   }
@@ -36431,7 +35792,7 @@ var SelectRow = class extends Module {
     }
   }
   checkRowSelectability(row2) {
-    if (row2 && row2.type === "row") {
+    if (row2.type === "row") {
       return this.table.options.selectableCheck.call(this.table, row2.getComponent());
     }
     return false;
@@ -36448,35 +35809,39 @@ var SelectRow = class extends Module {
   }
   //select a number of rows
   selectRows(rows3) {
-    var changes = [], rowMatch, change;
+    var rowMatch;
     switch (typeof rows3) {
       case "undefined":
-        rowMatch = this.table.rowManager.rows;
+        this.table.rowManager.rows.forEach((row2) => {
+          this._selectRow(row2, true, true);
+        });
+        this._rowSelectionChanged();
         break;
       case "string":
         rowMatch = this.table.rowManager.findRow(rows3);
-        if (!rowMatch) {
+        if (rowMatch) {
+          this._selectRow(rowMatch, true, true);
+          this._rowSelectionChanged();
+        } else {
           rowMatch = this.table.rowManager.getRows(rows3);
+          rowMatch.forEach((row2) => {
+            this._selectRow(row2, true, true);
+          });
+          if (rowMatch.length) {
+            this._rowSelectionChanged();
+          }
         }
         break;
       default:
-        rowMatch = rows3;
+        if (Array.isArray(rows3)) {
+          rows3.forEach((row2) => {
+            this._selectRow(row2, true, true);
+          });
+          this._rowSelectionChanged();
+        } else {
+          this._selectRow(rows3, false, true);
+        }
         break;
-    }
-    if (Array.isArray(rowMatch)) {
-      if (rowMatch.length) {
-        rowMatch.forEach((row2) => {
-          change = this._selectRow(row2, true, true);
-          if (change) {
-            changes.push(change);
-          }
-        });
-        this._rowSelectionChanged(false, changes);
-      }
-    } else {
-      if (rowMatch) {
-        this._selectRow(rowMatch, false, true);
-      }
     }
   }
   //select an individual row
@@ -36506,8 +35871,7 @@ var SelectRow = class extends Module {
           this.childRowSelection(row2, true);
         }
         this.dispatchExternal("rowSelected", row2.getComponent());
-        this._rowSelectionChanged(silent, row2);
-        return row2;
+        this._rowSelectionChanged(silent);
       }
     } else {
       if (!silent) {
@@ -36520,49 +35884,35 @@ var SelectRow = class extends Module {
   }
   //deselect a number of rows
   deselectRows(rows3, silent) {
-    var changes = [], rowMatch, change;
-    switch (typeof rows3) {
-      case "undefined":
-        rowMatch = Object.assign([], this.selectedRows);
-        break;
-      case "string":
-        rowMatch = this.table.rowManager.findRow(rows3);
-        if (!rowMatch) {
-          rowMatch = this.table.rowManager.getRows(rows3);
-        }
-        break;
-      default:
-        rowMatch = rows3;
-        break;
-    }
-    if (Array.isArray(rowMatch)) {
-      if (rowMatch.length) {
-        rowMatch.forEach((row2) => {
-          change = this._deselectRow(row2, true, true);
-          if (change) {
-            changes.push(change);
-          }
-        });
-        this._rowSelectionChanged(silent, [], changes);
+    var self2 = this, rowCount;
+    if (typeof rows3 == "undefined") {
+      rowCount = self2.selectedRows.length;
+      for (let i2 = 0; i2 < rowCount; i2++) {
+        self2._deselectRow(self2.selectedRows[0], true);
+      }
+      if (rowCount) {
+        self2._rowSelectionChanged(silent);
       }
     } else {
-      if (rowMatch) {
-        this._deselectRow(rowMatch, silent, true);
+      if (Array.isArray(rows3)) {
+        rows3.forEach(function(row2) {
+          self2._deselectRow(row2, true);
+        });
+        self2._rowSelectionChanged(silent);
+      } else {
+        self2._deselectRow(rows3, silent);
       }
     }
   }
   //deselect an individual row
   _deselectRow(rowInfo, silent) {
-    var self2 = this, row2 = self2.table.rowManager.findRow(rowInfo), index2, element;
+    var self2 = this, row2 = self2.table.rowManager.findRow(rowInfo), index2;
     if (row2) {
       index2 = self2.selectedRows.findIndex(function(selectedRow) {
         return selectedRow == row2;
       });
       if (index2 > -1) {
-        element = row2.getElement();
-        if (element) {
-          element.classList.remove("tabulator-selected");
-        }
+        row2.getElement().classList.remove("tabulator-selected");
         if (!row2.modules.select) {
           row2.modules.select = {};
         }
@@ -36575,8 +35925,7 @@ var SelectRow = class extends Module {
           this.childRowSelection(row2, false);
         }
         this.dispatchExternal("rowDeselected", row2.getComponent());
-        self2._rowSelectionChanged(silent, void 0, row2);
-        return row2;
+        self2._rowSelectionChanged(silent);
       }
     } else {
       if (!silent) {
@@ -36598,7 +35947,7 @@ var SelectRow = class extends Module {
     });
     return rows3;
   }
-  _rowSelectionChanged(silent, selected = [], deselected = []) {
+  _rowSelectionChanged(silent) {
     if (this.headerCheckboxElement) {
       if (this.selectedRows.length === 0) {
         this.headerCheckboxElement.checked = false;
@@ -36612,15 +35961,7 @@ var SelectRow = class extends Module {
       }
     }
     if (!silent) {
-      if (!Array.isArray(selected)) {
-        selected = [selected];
-      }
-      selected = selected.map((row2) => row2.getComponent());
-      if (!Array.isArray(deselected)) {
-        deselected = [deselected];
-      }
-      deselected = deselected.map((row2) => row2.getComponent());
-      this.dispatchExternal("rowSelectionChanged", this.getSelectedData(), this.getSelectedRows(), selected, deselected);
+      this.dispatchExternal("rowSelectionChanged", this.getSelectedData(), this.getSelectedRows());
     }
   }
   registerRowSelectCheckbox(row2, element) {
@@ -37715,14 +37056,13 @@ var OptionsList = class {
     this.registeredDefaults[option] = value;
   }
   generate(defaultOptions2, userOptions = {}) {
-    var output = Object.assign({}, this.registeredDefaults), warn = this.table.options.debugInvalidOptions || userOptions.debugInvalidOptions === true;
+    var output = Object.assign({}, this.registeredDefaults);
     Object.assign(output, defaultOptions2);
-    for (let key in userOptions) {
-      if (!output.hasOwnProperty(key)) {
-        if (warn) {
+    if (userOptions.debugInvalidOptions !== false || this.table.options.debugInvalidOptions) {
+      for (let key in userOptions) {
+        if (!output.hasOwnProperty(key)) {
           console.warn("Invalid " + this.msgType + " option:", key);
         }
-        output[key] = userOptions.key;
       }
     }
     for (let key in output) {
@@ -37875,17 +37215,11 @@ var BasicHorizontal = class extends Renderer {
   constructor(table) {
     super(table);
   }
-  renderRowCells(row2, inFragment) {
-    const rowFrag = document.createDocumentFragment();
+  renderRowCells(row2) {
     row2.cells.forEach((cell) => {
-      rowFrag.appendChild(cell.getElement());
+      row2.element.appendChild(cell.getElement());
+      cell.cellRendered();
     });
-    row2.element.appendChild(rowFrag);
-    if (!inFragment) {
-      row2.cells.forEach((cell) => {
-        cell.cellRendered();
-      });
-    }
   }
   reinitializeColumnWidths(columns) {
     columns.forEach(function(column) {
@@ -38016,12 +37350,8 @@ var VirtualDomHorizontal = class extends Renderer {
     if (this.initialized) {
       this.initializeRow(row2);
     } else {
-      const rowFrag = document.createDocumentFragment();
       row2.cells.forEach((cell) => {
-        rowFrag.appendChild(cell.getElement());
-      });
-      row2.element.appendChild(rowFrag);
-      row2.cells.forEach((cell) => {
+        row2.element.appendChild(cell.getElement());
         cell.cellRendered();
       });
     }
@@ -38357,7 +37687,6 @@ var ColumnManager = class extends CoreFeature {
     this.element = this.createHeaderElement();
     this.contentsElement.insertBefore(this.headersElement, this.contentsElement.firstChild);
     this.element.insertBefore(this.contentsElement, this.element.firstChild);
-    this.initializeScrollWheelWatcher();
     this.subscribe("scroll-horizontal", this.scrollHorizontal.bind(this));
     this.subscribe("scrollbar-vertical", this.padVerticalScrollbar.bind(this));
   }
@@ -38424,16 +37753,6 @@ var ColumnManager = class extends CoreFeature {
     this.contentsElement.scrollLeft = left;
     this.scrollLeft = left;
     this.renderer.scrollColumns(left);
-  }
-  initializeScrollWheelWatcher() {
-    this.contentsElement.addEventListener("wheel", (e) => {
-      var left;
-      if (e.deltaX) {
-        left = this.contentsElement.scrollLeft + e.deltaX;
-        this.table.rowManager.scrollHorizontal(left);
-        this.table.columnManager.scrollHorizontal(left);
-      }
-    });
   }
   ///////////// Column Setup Functions /////////////
   generateColumnsFromRowData(data) {
@@ -38611,7 +37930,7 @@ var ColumnManager = class extends CoreFeature {
   getColumnsByFieldRoot(root) {
     var matches = [];
     Object.keys(this.columnsByField).forEach((field) => {
-      var fieldRoot = this.table.options.nestedFieldSeparator ? field.split(this.table.options.nestedFieldSeparator)[0] : field;
+      var fieldRoot = field.split(".")[0];
       if (fieldRoot === root) {
         matches.push(this.columnsByField[field]);
       }
@@ -38880,25 +38199,13 @@ var BasicVertical = class extends Renderer {
     element.style.visibility = "";
   }
   renderRows() {
-    var element = this.tableElement, onlyGroupHeaders = true, tableFrag = document.createDocumentFragment(), rows3 = this.rows();
-    rows3.forEach((row2, index2) => {
+    var element = this.tableElement, onlyGroupHeaders = true;
+    this.rows().forEach((row2, index2) => {
       this.styleRow(row2, index2);
-      row2.initialize(false, true);
+      element.appendChild(row2.getElement());
+      row2.initialize(true);
       if (row2.type !== "group") {
         onlyGroupHeaders = false;
-      }
-      tableFrag.appendChild(row2.getElement());
-    });
-    element.appendChild(tableFrag);
-    rows3.forEach((row2) => {
-      row2.rendered();
-      if (!row2.heightInitialized) {
-        row2.calcHeight(true);
-      }
-    });
-    rows3.forEach((row2) => {
-      if (!row2.heightInitialized) {
-        row2.setCellHeight();
       }
     });
     if (onlyGroupHeaders) {
@@ -38909,10 +38216,10 @@ var BasicVertical = class extends Renderer {
   }
   rerenderRows(callback2) {
     this.clearRows();
+    this.renderRows();
     if (callback2) {
       callback2();
     }
-    this.renderRows();
   }
   scrollToRowNearestTop(row2) {
     var rowTop = Helpers.elOffset(row2.getElement()).top;
@@ -38999,7 +38306,7 @@ var VirtualDomVertical = class extends Renderer {
       this._virtualRenderFill(topRow === false ? this.rows.length - 1 : topRow, true, topOffset || 0);
     } else {
       this.clear();
-      this.table.rowManager.tableEmpty();
+      this.table.rowManager._showPlaceholder();
     }
     this.scrollColumns(left);
   }
@@ -39091,7 +38398,7 @@ var VirtualDomVertical = class extends Renderer {
   //////////////////////////////////////
   //full virtual render
   _virtualRenderFill(position, forceMove, offset2) {
-    var element = this.tableElement, holder = this.elementVertical, topPad = 0, rowsHeight = 0, rowHeight = 0, heightOccupied = 0, topPadHeight = 0, i2 = 0, rows3 = this.rows(), rowsCount = rows3.length, index2 = 0, row2, rowFragment, renderedRows = [], totalRowsRendered = 0, rowsToRender = 0, fixedHeight = this.table.rowManager.fixedHeight, containerHeight = this.elementVertical.clientHeight, avgRowHeight = this.table.options.rowHeight, resized = true;
+    var element = this.tableElement, holder = this.elementVertical, topPad = 0, rowsHeight = 0, heightOccupied = 0, topPadHeight = 0, i2 = 0, rows3 = this.rows(), rowsCount = rows3.length, containerHeight = this.elementVertical.clientHeight;
     position = position || 0;
     offset2 = offset2 || 0;
     if (!position) {
@@ -39112,67 +38419,29 @@ var VirtualDomVertical = class extends Renderer {
     if (rowsCount && Helpers.elVisible(this.elementVertical)) {
       this.vDomTop = position;
       this.vDomBottom = position - 1;
-      if (fixedHeight || this.table.options.maxHeight) {
-        if (avgRowHeight) {
-          rowsToRender = containerHeight / avgRowHeight + this.vDomWindowBuffer / avgRowHeight;
+      while ((rowsHeight <= containerHeight + this.vDomWindowBuffer || i2 < this.vDomWindowMinTotalRows) && this.vDomBottom < rowsCount - 1) {
+        var index2 = this.vDomBottom + 1, row2 = rows3[index2], rowHeight = 0;
+        this.styleRow(row2, index2);
+        element.appendChild(row2.getElement());
+        row2.initialize();
+        if (!row2.heightInitialized) {
+          row2.normalizeHeight(true);
         }
-        rowsToRender = Math.max(this.vDomWindowMinTotalRows, Math.ceil(rowsToRender));
-      } else {
-        rowsToRender = rowsCount;
-      }
-      while ((rowsToRender == rowsCount || rowsHeight <= containerHeight + this.vDomWindowBuffer || totalRowsRendered < this.vDomWindowMinTotalRows) && this.vDomBottom < rowsCount - 1) {
-        renderedRows = [];
-        rowFragment = document.createDocumentFragment();
-        i2 = 0;
-        while (i2 < rowsToRender && this.vDomBottom < rowsCount - 1) {
-          index2 = this.vDomBottom + 1, row2 = rows3[index2];
-          this.styleRow(row2, index2);
-          row2.initialize(false, true);
-          if (!row2.heightInitialized && !this.table.options.rowHeight) {
-            row2.clearCellHeight();
-          }
-          rowFragment.appendChild(row2.getElement());
-          renderedRows.push(row2);
-          this.vDomBottom++;
-          i2++;
+        rowHeight = row2.getHeight();
+        if (i2 < topPad) {
+          topPadHeight += rowHeight;
+        } else {
+          rowsHeight += rowHeight;
         }
-        if (!renderedRows.length) {
-          break;
+        if (rowHeight > this.vDomWindowBuffer) {
+          this.vDomWindowBuffer = rowHeight * 2;
         }
-        element.appendChild(rowFragment);
-        renderedRows.forEach((row3) => {
-          row3.rendered();
-          if (!row3.heightInitialized) {
-            row3.calcHeight(true);
-          }
-        });
-        renderedRows.forEach((row3) => {
-          if (!row3.heightInitialized) {
-            row3.setCellHeight();
-          }
-        });
-        renderedRows.forEach((row3) => {
-          rowHeight = row3.getHeight();
-          if (totalRowsRendered < topPad) {
-            topPadHeight += rowHeight;
-          } else {
-            rowsHeight += rowHeight;
-          }
-          if (rowHeight > this.vDomWindowBuffer) {
-            this.vDomWindowBuffer = rowHeight * 2;
-          }
-          totalRowsRendered++;
-        });
-        resized = this.table.rowManager.adjustTableSize();
-        containerHeight = this.elementVertical.clientHeight;
-        if (resized && (fixedHeight || this.table.options.maxHeight)) {
-          avgRowHeight = rowsHeight / totalRowsRendered;
-          rowsToRender = Math.max(this.vDomWindowMinTotalRows, Math.ceil(containerHeight / avgRowHeight + this.vDomWindowBuffer / avgRowHeight));
-        }
+        this.vDomBottom++;
+        i2++;
       }
       if (!position) {
         this.vDomTopPad = 0;
-        this.vDomRowHeight = Math.floor((rowsHeight + topPadHeight) / totalRowsRendered);
+        this.vDomRowHeight = Math.floor((rowsHeight + topPadHeight) / i2);
         this.vDomBottomPad = this.vDomRowHeight * (rowsCount - this.vDomBottom - 1);
         this.vDomScrollHeight = topPadHeight + rowsHeight + this.vDomBottomPad - containerHeight;
       } else {
@@ -39185,7 +38454,7 @@ var VirtualDomVertical = class extends Renderer {
         this.scrollTop = this.vDomTopPad + topPadHeight + offset2 - (this.elementVertical.scrollWidth > this.elementVertical.clientWidth ? this.elementVertical.offsetHeight - containerHeight : 0);
       }
       this.scrollTop = Math.min(this.scrollTop, this.elementVertical.scrollHeight - containerHeight);
-      if (this.elementVertical.scrollWidth > this.elementVertical.clientWidth && forceMove) {
+      if (this.elementVertical.scrollWidth > this.elementVertical.offsetWidth && forceMove) {
         this.scrollTop += this.elementVertical.offsetHeight - containerHeight;
       }
       this.vDomScrollPosTop = this.scrollTop;
@@ -39407,10 +38676,6 @@ var RowManager = class extends CoreFeature {
   }
   initializePlaceholder() {
     var placeholder = this.table.options.placeholder;
-    if (typeof placeholder === "function") {
-      placeholder = placeholder.call(this.table);
-    }
-    placeholder = this.chain("placeholder", [placeholder], placeholder, placeholder) || placeholder;
     if (placeholder) {
       let el = document.createElement("div");
       el.classList.add("tabulator-placeholder");
@@ -39577,7 +38842,7 @@ var RowManager = class extends CoreFeature {
     this.regenerateRowPositions();
     this.dispatchExternal("rowDeleted", row2.getComponent());
     if (!this.displayRowsCount) {
-      this.tableEmpty();
+      this._showPlaceholder();
     }
     if (this.subscribedExternal("dataChanged")) {
       this.dispatchExternal("dataChanged", this.getData());
@@ -39601,7 +38866,7 @@ var RowManager = class extends CoreFeature {
       data.forEach((item, i2) => {
         var row2 = this.addRow(item, pos, index2, true);
         rows3.push(row2);
-        this.dispatch("row-added", row2, item, pos, index2);
+        this.dispatch("row-added", row2, data, pos, index2);
       });
       this.refreshActiveData(refreshDisplayOnly ? "displayPipeline" : false, false, true);
       this.regenerateRowPositions();
@@ -39876,7 +39141,7 @@ var RowManager = class extends CoreFeature {
   }
   refreshPipelines(handler, stage, index2, renderInPosition) {
     this.dispatch("data-refreshing");
-    if (!handler || !this.activeRowsPipeline[0]) {
+    if (!handler) {
       this.activeRowsPipeline[0] = this.rows.slice(0);
     }
     switch (stage) {
@@ -39914,7 +39179,7 @@ var RowManager = class extends CoreFeature {
     });
   }
   setActiveRows(activeRows) {
-    this.activeRows = this.activeRows = Object.assign([], activeRows);
+    this.activeRows = activeRows;
     this.activeRowsCount = this.activeRows.length;
   }
   //reset display rows array
@@ -40012,7 +39277,7 @@ var RowManager = class extends CoreFeature {
       this.renderMode = this.table.options.renderVertical;
       this.renderer = new renderClass(this.table, this.element, this.tableElement);
       this.renderer.initialize();
-      if ((this.table.element.clientHeight || this.table.options.height) && !(this.table.options.minHeight && this.table.options.maxHeight)) {
+      if (this.table.element.clientHeight || this.table.options.height) {
         this.fixedHeight = true;
       } else {
         this.fixedHeight = false;
@@ -40032,9 +39297,6 @@ var RowManager = class extends CoreFeature {
       this.renderer.renderRows();
       if (this.firstRender) {
         this.firstRender = false;
-        if (!this.fixedHeight) {
-          this.adjustTableSize();
-        }
         this.layoutRefresh(true);
       }
     } else {
@@ -40064,20 +39326,11 @@ var RowManager = class extends CoreFeature {
     this.scrollLeft = 0;
     this.renderer.clearRows();
   }
-  tableEmpty() {
-    this.renderEmptyScroll();
-    this._showPlaceholder();
-  }
   _showPlaceholder() {
     if (this.placeholder) {
-      if (this.placeholder && this.placeholder.parentNode) {
-        this.placeholder.parentNode.removeChild(this.placeholder);
-      }
-      this.initializePlaceholder();
       this.placeholder.setAttribute("tabulator-render-mode", this.renderMode);
       this.getElement().appendChild(this.placeholder);
       this._positionPlaceholder();
-      this.adjustTableSize();
     }
   }
   _clearPlaceholder() {
@@ -40085,7 +39338,6 @@ var RowManager = class extends CoreFeature {
       this.placeholder.parentNode.removeChild(this.placeholder);
     }
     this.tableElement.style.minWidth = "";
-    this.tableElement.style.display = "";
   }
   _positionPlaceholder() {
     if (this.placeholder && this.placeholder.parentNode) {
@@ -40112,16 +39364,14 @@ var RowManager = class extends CoreFeature {
   }
   //adjust the height of the table holder to fit in the Tabulator element
   adjustTableSize() {
-    let initialHeight = this.element.clientHeight, minHeight;
-    let resized = false;
+    var initialHeight = this.element.clientHeight, minHeight;
     if (this.renderer.verticalFillMode === "fill") {
       let otherHeight = Math.floor(this.table.columnManager.getElement().getBoundingClientRect().height + (this.table.footerManager && this.table.footerManager.active && !this.table.footerManager.external ? this.table.footerManager.getElement().getBoundingClientRect().height : 0));
       if (this.fixedHeight) {
         minHeight = isNaN(this.table.options.minHeight) ? this.table.options.minHeight : this.table.options.minHeight + "px";
-        const height = "calc(100% - " + otherHeight + "px)";
         this.element.style.minHeight = minHeight || "calc(100% - " + otherHeight + "px)";
-        this.element.style.height = height;
-        this.element.style.maxHeight = height;
+        this.element.style.height = "calc(100% - " + otherHeight + "px)";
+        this.element.style.maxHeight = "calc(100% - " + otherHeight + "px)";
       } else {
         this.element.style.height = "";
         this.element.style.height = this.table.element.clientHeight - otherHeight + "px";
@@ -40129,7 +39379,6 @@ var RowManager = class extends CoreFeature {
       }
       this.renderer.resize();
       if (!this.fixedHeight && initialHeight != this.element.clientHeight) {
-        resized = true;
         if (this.subscribed("table-resize")) {
           this.dispatch("table-resize");
         } else {
@@ -40139,7 +39388,6 @@ var RowManager = class extends CoreFeature {
       this.scrollBarCheck();
     }
     this._positionPlaceholder();
-    return resized;
   }
   //reinitialize all rows
   reinitialize() {
@@ -40167,13 +39415,12 @@ var RowManager = class extends CoreFeature {
   }
   //redraw table
   redraw(force) {
-    const resized = this.adjustTableSize();
+    var left = this.scrollLeft;
+    this.adjustTableSize();
     this.table.tableWidth = this.table.element.clientWidth;
     if (!force) {
-      if (resized) {
-        this.reRenderInPosition();
-      }
-      this.scrollHorizontal(this.scrollLeft);
+      this.reRenderInPosition();
+      this.scrollHorizontal(left);
     } else {
       this.renderTable();
     }
@@ -40548,9 +39795,6 @@ var DataLoader = class extends CoreFeature {
   }
   load(data, params, config, replace, silent, columnsChanged) {
     var requestNo = ++this.requestOrder;
-    if (this.table.destroyed) {
-      return Promise.resolve();
-    }
     this.dispatchExternal("dataLoading", data);
     if (data && (data.indexOf("{") == 0 || data.indexOf("[") == 0)) {
       data = JSON.parse(data);
@@ -40564,22 +39808,18 @@ var DataLoader = class extends CoreFeature {
       params = this.mapParams(params, this.table.options.dataSendParams);
       var result = this.chain("data-load", [data, params, config, silent], false, Promise.resolve([]));
       return result.then((response) => {
-        if (!this.table.destroyed) {
-          if (!Array.isArray(response) && typeof response == "object") {
-            response = this.mapParams(response, this.objectInvert(this.table.options.dataReceiveParams));
-          }
-          var rowData = this.chain("data-loaded", response, null, response);
-          if (requestNo == this.requestOrder) {
-            this.clearAlert();
-            if (rowData !== false) {
-              this.dispatchExternal("dataLoaded", rowData);
-              this.table.rowManager.setData(rowData, replace, typeof columnsChanged === "undefined" ? !replace : columnsChanged);
-            }
-          } else {
-            console.warn("Data Load Response Blocked - An active data load request was blocked by an attempt to change table data while the request was being made");
+        if (!Array.isArray(response) && typeof response == "object") {
+          response = this.mapParams(response, this.objectInvert(this.table.options.dataReceiveParams));
+        }
+        var rowData = this.chain("data-loaded", response, null, response);
+        if (requestNo == this.requestOrder) {
+          this.clearAlert();
+          if (rowData !== false) {
+            this.dispatchExternal("dataLoaded", rowData);
+            this.table.rowManager.setData(rowData, replace, typeof columnsChanged === "undefined" ? !replace : columnsChanged);
           }
         } else {
-          console.warn("Data Load Response Blocked - Table has been destroyed");
+          console.warn("Data Load Response Blocked - An active data load request was blocked by an attempt to change table data while the request was being made");
         }
       }).catch((error) => {
         console.error("Data Load Error: ", error);
@@ -41103,15 +40343,6 @@ var Layout = class extends Module {
       this.mode = "fitData";
     }
     this.table.element.setAttribute("tabulator-layout", this.mode);
-    this.subscribe("column-init", this.initializeColumn.bind(this));
-  }
-  initializeColumn(column) {
-    if (column.definition.widthGrow) {
-      column.definition.widthGrow = Number(column.definition.widthGrow);
-    }
-    if (column.definition.widthShrink) {
-      column.definition.widthShrink = Number(column.definition.widthShrink);
-    }
   }
   getMode() {
     return this.mode;
@@ -41657,9 +40888,6 @@ var Tabulator = class {
       this.browserSlow = true;
     } else if (ua.indexOf("Firefox") > -1) {
       this.browser = "firefox";
-      this.browserSlow = false;
-    } else if (ua.indexOf("Mac OS") > -1) {
-      this.browser = "safari";
       this.browserSlow = false;
     } else {
       this.browser = "other";
@@ -44602,9 +43830,9 @@ chart.js/dist/chart.mjs:
 
 chartjs-adapter-luxon/dist/chartjs-adapter-luxon.esm.js:
   (*!
-   * chartjs-adapter-luxon v1.3.1
+   * chartjs-adapter-luxon v1.2.0
    * https://www.chartjs.org
-   * (c) 2023 chartjs-adapter-luxon Contributors
+   * (c) 2022 chartjs-adapter-luxon Contributors
    * Released under the MIT license
    *)
 
@@ -44618,9 +43846,9 @@ chart.js/dist/helpers.mjs:
 
 chartjs-plugin-zoom/dist/chartjs-plugin-zoom.esm.js:
   (*!
-  * chartjs-plugin-zoom v2.0.1
+  * chartjs-plugin-zoom v1.2.1
   * undefined
-   * (c) 2016-2023 chartjs-plugin-zoom Contributors
+   * (c) 2016-2022 chartjs-plugin-zoom Contributors
    * Released under the MIT License
    *)
 */
