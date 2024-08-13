@@ -79,7 +79,7 @@
 	}
 
 	.lmn-multi-variable-dropdown-search-input {
-		@apply h-8 mx-2 outline-0
+		@apply h-8 px-2 outline-0 grow
 	}
 
 	.lmn-multi-variable-dropdown-search-icon {

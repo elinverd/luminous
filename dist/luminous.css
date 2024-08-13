@@ -1710,9 +1710,10 @@ video {
 }
 
 .lmn-multi-variable-dropdown-search-input {
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
   height: 2rem;
+  flex-grow: 1;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
   outline-width: 0px;
 }
 
