@@ -5,135 +5,136 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-@import  "../node_modules/tabulator-tables/dist/css/tabulator_modern.min.css";
+@import "../node_modules/tabulator-tables/dist/css/tabulator_modern.min.css";
 
 @layer components {
-	/* Time range classes */
-	.lmn-time-range-compound {
-		@apply flex items-center cursor-default space-x-4
-	}
 
-	.lmn-time-zone {
-		@apply px-2 rounded-full cursor-default text-sm font-bold text-white bg-slate-800
-	}
+  /* Time range classes */
+  .lmn-time-range-compound {
+    @apply flex items-center cursor-default space-x-4
+  }
 
-	.lmn-time-range-selector {
-		@apply flex items-center rounded-lg border border-slate-800 h-8 cursor-pointer
-	}
+  .lmn-time-zone {
+    @apply px-2 rounded-full cursor-default text-sm font-bold text-white bg-slate-800
+  }
 
-	.lmn-custom-time-range-input {
-		@apply h-8 w-52 rounded-l-lg rounded-r-none cursor-pointer bg-transparent text-sm text-center uppercase font-bold hover:text-white hover:bg-slate-800 focus:outline-none active:bg-slate-900
-	}
+  .lmn-time-range-selector {
+    @apply flex items-center rounded-lg border border-slate-800 h-8 cursor-pointer
+  }
 
-	.lmn-time-range-presets-button {
-		@apply h-8 rounded-l-none rounded-r-lg cursor-pointer bg-transparent hover:bg-slate-800 hover:text-white focus:outline-none active:bg-slate-900
-	}
+  .lmn-custom-time-range-input {
+    @apply h-8 w-52 rounded-l-lg rounded-r-none cursor-pointer bg-transparent text-sm text-center uppercase font-bold hover:text-white hover:bg-slate-800 focus:outline-none active:bg-slate-900
+  }
 
-	.lmn-time-range-presets-button-icon {
-		@apply mx-1 h-5 w-5
-	}
+  .lmn-time-range-presets-button {
+    @apply h-8 rounded-l-none rounded-r-lg cursor-pointer bg-transparent hover:bg-slate-800 hover:text-white focus:outline-none active:bg-slate-900
+  }
 
-	.lmn-time-range-presets-dropdown {
-		@apply flex flex-col p-2 min-w-max z-50 bg-white rounded-lg shadow-lg
-	}
+  .lmn-time-range-presets-button-icon {
+    @apply mx-1 h-5 w-5
+  }
 
-	.lmn-time-range-presets-dropdown-item-container {
-		@apply text-left rounded-lg cursor-pointer hover:bg-slate-200
-	}
+  .lmn-time-range-presets-dropdown {
+    @apply flex flex-col p-2 min-w-max z-50 bg-white rounded-lg shadow-lg
+  }
 
-	.lmn-time-range-presets-dropdown-item-content {
-		@apply px-4 py-3
-	}
+  .lmn-time-range-presets-dropdown-item-container {
+    @apply text-left rounded-lg cursor-pointer hover:bg-slate-200
+  }
 
-	/* Variable classes */
-	.lmn-variable-button {
-		@apply h-8 px-3 py-2.5 flex items-center gap-2 rounded-lg border border-slate-800 hover:text-white hover:bg-slate-800 focus:outline-none transition duration-200 active:bg-slate-900 active:scale-95
-	}
+  .lmn-time-range-presets-dropdown-item-content {
+    @apply px-4 py-3
+  }
 
-	.lmn-variable-button-label {
-		@apply text-sm font-bold uppercase text-left text-ellipsis whitespace-nowrap overflow-hidden max-w-xs
-	}
+  /* Variable classes */
+  .lmn-variable-button {
+    @apply h-8 px-3 py-2.5 flex items-center gap-2 rounded-lg border border-slate-800 hover:text-white hover:bg-slate-800 focus:outline-none transition duration-200 active:bg-slate-900 active:scale-95
+  }
 
-	.lmn-variable-button-label-prefix {
-		@apply text-xs
-	}
+  .lmn-variable-button-label {
+    @apply text-sm font-bold uppercase text-left text-ellipsis whitespace-nowrap overflow-hidden max-w-xs
+  }
 
-	.lmn-variable-button-icon {
-		@apply h-5 w-5
-	}
+  .lmn-variable-button-label-prefix {
+    @apply text-xs
+  }
 
-	.lmn-variable-dropdown {
-		@apply flex flex-col p-2 z-50 max-h-96 min-w-max overflow-auto bg-white rounded-lg shadow-lg
-	}
+  .lmn-variable-button-icon {
+    @apply h-5 w-5
+  }
 
-	.lmn-variable-dropdown-item-container {
-		@apply text-left rounded-lg cursor-pointer hover:bg-slate-200
-	}
+  .lmn-variable-dropdown {
+    @apply flex flex-col p-2 z-50 max-h-96 min-w-max overflow-auto bg-white rounded-lg shadow-lg
+  }
 
-	.lmn-multi-variable-dropdown-searchbox {
-		@apply flex items-center h-10 rounded-lg border border-gray-300 focus-within:ring-1 focus-within:ring-blue-600 focus-within:border-transparent
-	}
+  .lmn-variable-dropdown-item-container {
+    @apply text-left rounded-lg cursor-pointer hover:bg-slate-200
+  }
 
-	.lmn-multi-variable-dropdown-search-clear {
-		@apply text-xs underline mt-2 ml-2 cursor-pointer text-left
-	}
+  .lmn-multi-variable-dropdown-searchbox {
+    @apply flex items-center h-10 rounded-lg border border-gray-300 focus-within:ring-1 focus-within:ring-blue-600 focus-within:border-transparent
+  }
 
-	.lmn-multi-variable-dropdown-search-input {
-		@apply h-8 px-2 outline-0 grow
-	}
+  .lmn-multi-variable-dropdown-search-clear {
+    @apply text-xs underline mt-2 ml-2 cursor-pointer text-left
+  }
 
-	.lmn-multi-variable-dropdown-search-icon {
-		@apply h-5 w-5 mr-1
-	}
+  .lmn-multi-variable-dropdown-search-input {
+    @apply h-8 px-2 outline-0 grow
+  }
+
+  .lmn-multi-variable-dropdown-search-icon {
+    @apply h-5 w-5 mr-1
+  }
 
 
-	.lmn-multi-variable-dropdown-container {
-		@apply absolute hidden p-2 z-50 bg-white rounded-lg shadow-lg
-	}
+  .lmn-multi-variable-dropdown-container {
+    @apply absolute hidden p-2 z-50 bg-white rounded-lg shadow-lg
+  }
 
-	.lmn-multi-variable-dropdown-item-container {
-		@apply text-left rounded-lg cursor-pointer hover:bg-slate-200 px-4 py-3 flex items-center gap-2
-	}
+  .lmn-multi-variable-dropdown-item-container {
+    @apply text-left rounded-lg cursor-pointer hover:bg-slate-200 px-4 py-3 flex items-center gap-2
+  }
 
   .lmn-multi-variable-dropdown-checkbox {
     @apply cursor-pointer text-slate-800 rounded focus:ring-0 focus:ring-offset-0
   }
 
-	.lmn-variable-dropdown-item-content {
-		@apply px-4 py-3
-	}
+  .lmn-variable-dropdown-item-content {
+    @apply px-4 py-3
+  }
 
-	/* Panel actions (download image/csv) */
-	.lmn-panel-actions-dropdown {
-		@apply flex flex-col p-2 min-w-max z-50 bg-white rounded-lg shadow-lg text-sm
-	}
+  /* Panel actions (download image/csv) */
+  .lmn-panel-actions-dropdown {
+    @apply flex flex-col p-2 min-w-max z-50 bg-white rounded-lg shadow-lg text-sm
+  }
 
-	.lmn-panel-actions-dropdown-item-container {
-		@apply text-left rounded-lg cursor-pointer hover:bg-slate-200
-	}
+  .lmn-panel-actions-dropdown-item-container {
+    @apply text-left rounded-lg cursor-pointer hover:bg-slate-200
+  }
 
-	.lmn-panel-actions-dropdown-item-content {
-		@apply px-4 py-3
-	}
+  .lmn-panel-actions-dropdown-item-content {
+    @apply px-4 py-3
+  }
 
-	/* dropdown transition classes */
-	.lmn-dropdown-transition-enter {
-		@apply transition ease-out duration-100
-	}
+  /* dropdown transition classes */
+  .lmn-dropdown-transition-enter {
+    @apply transition ease-out duration-100
+  }
 
-	.lmn-dropdown-transition-start {
-		@apply opacity-0 scale-90
-	}
+  .lmn-dropdown-transition-start {
+    @apply opacity-0 scale-90
+  }
 
-	.lmn-dropdown-transition-end {
-		@apply opacity-100 scale-100
-	}
+  .lmn-dropdown-transition-end {
+    @apply opacity-100 scale-100
+  }
 
-	.lmn-tooltip {
-		@apply absolute invisible md:w-64 rounded-md p-2 text-sm bg-gray-800 text-gray-100 opacity-0 transition-opacity;
-	}
+  .lmn-tooltip {
+    @apply absolute invisible md:w-64 rounded-md p-2 text-sm bg-gray-800 text-gray-100 opacity-0 transition-opacity;
+  }
 
-	.lmn-has-tooltip:hover .lmn-tooltip {
-		@apply visible z-50 opacity-100
-	}
+  .lmn-has-tooltip:hover .lmn-tooltip {
+    @apply visible z-50 opacity-100
+  }
 }
