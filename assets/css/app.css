@@ -23,7 +23,7 @@
   }
 
   .lmn-custom-time-range-input {
-    @apply h-8 w-52 rounded-l-lg rounded-r-none cursor-pointer bg-transparent text-sm text-center uppercase font-bold hover:text-white hover:bg-slate-800 focus:outline-none active:bg-slate-900
+    @apply h-8 w-52 rounded-l-lg rounded-r-none cursor-pointer bg-transparent text-sm text-center capitalize font-bold hover:text-white hover:bg-slate-800 focus:outline-none active:bg-slate-900
   }
 
   .lmn-time-range-presets-button {
@@ -52,7 +52,7 @@
   }
 
   .lmn-variable-button-label {
-    @apply text-sm font-bold uppercase text-left text-ellipsis whitespace-nowrap overflow-hidden max-w-xs
+    @apply text-sm font-bold capitalize text-left text-ellipsis whitespace-nowrap overflow-hidden max-w-xs
   }
 
   .lmn-variable-button-label-prefix {
