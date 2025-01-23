@@ -43,11 +43,11 @@ defmodule Luminous.Components do
   def dashboard(assigns) do
     ~H"""
     <.setup />
-    <div class="relative mx-8 lg:mx-auto max-w-screen-lg">
+    <div class="relative mx-4 md:mx-8 lg:mx-auto max-w-screen-lg">
       <div class="py-4 z-10 flex flex-col space-y-4 sticky top-0 backdrop-blur-sm backdrop-grayscale opacity-100 ">
-        <div class="pb-4 text-4xl font-bold text-center "><%= @dashboard.title %></div>
-        <div class="flex flex-col md:flex-row justify-between">
-          <div class="flex space-x-2 items-center">
+        <div class="pb-4 text-4xl text-center"><%= @dashboard.title %></div>
+        <div class="flex flex-col md:flex-row justify-between space-y-1">
+          <div class="flex space-x-1 md:space-x-2 items-center">
             <%= for var <- @dashboard.variables, !var.hidden do %>
               <.variable variable={var} />
             <% end %>
@@ -77,11 +77,11 @@ defmodule Luminous.Components do
 
   def panel(assigns) do
     ~H"""
-    <div class="flex flex-col items-center w-full space-y-4 shadow-lg px-4 py-6 bg-white">
+    <div class="flex flex-col items-center w-full space-y-4 md:shadow-lg md:px-4 py-6 bg-white">
       <div class="flex relative w-full justify-center">
         <div
           id={"#{@panel.id}-loading"}
-          class="absolute inline-block top-0 left-0 hidden"
+          class="absolute top-0 left-0 hidden"
           role="status"
           phx-update="ignore"
         >
