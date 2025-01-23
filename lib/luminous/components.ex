@@ -213,7 +213,7 @@ defmodule Luminous.Components do
           class="lmn-custom-time-range-input"
         />
         <!-- Presets button & dropdown -->
-        <div class="relative" phx-click-away={hide_dropdown("preset-dropdown")}>
+        <div class="relative flex items-center" phx-click-away={hide_dropdown("preset-dropdown")}>
           <button class="lmn-time-range-presets-button" phx-click={show_dropdown("preset-dropdown")}>
             <svg
               class="lmn-time-range-presets-button-icon"
