@@ -1699,16 +1699,6 @@ video {
   --tw-ring-color: rgb(37 99 235 / var(--tw-ring-opacity));
 }
 
-.lmn-multi-variable-dropdown-search-clear {
-  margin-top: 0.5rem;
-  margin-left: 0.5rem;
-  cursor: pointer;
-  text-align: left;
-  font-size: 0.75rem;
-  line-height: 1rem;
-  text-decoration-line: underline;
-}
-
 .lmn-multi-variable-dropdown-search-input {
   height: 2rem;
   flex-grow: 1;
@@ -1913,6 +1903,11 @@ video {
 
 .col-span-5 {
   grid-column: span 5 / span 5;
+}
+
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .mx-4 {
@@ -2183,6 +2178,10 @@ video {
 
 .text-gray-200 {
   color: #e5e7eb;
+}
+
+.underline {
+  text-decoration-line: underline;
 }
 
 .opacity-100 {

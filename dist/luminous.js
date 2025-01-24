@@ -44564,6 +44564,14 @@ function MultiSelectVariableHook() {
         }
       }
     });
+    document.getElementById(this.el.id).addEventListener("selectAll", (e) => {
+      const list2 = document.getElementById(e.detail.list_id);
+      for (const input2 of list2.getElementsByTagName("input")) {
+        if (input2.getAttribute("type") === "checkbox" && input2.checked === false) {
+          input2.click();
+        }
+      }
+    });
   };
 }
 var multi_select_variable_hook_default = MultiSelectVariableHook;

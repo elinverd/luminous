@@ -48,6 +48,16 @@ function MultiSelectVariableHook() {
         }
       }
     })
+
+    document.getElementById(this.el.id).addEventListener('selectAll', (e) => {
+      const list = document.getElementById(e.detail.list_id)
+
+      for (const input of list.getElementsByTagName("input")) {
+        if (input.getAttribute("type") === "checkbox" && input.checked === false) {
+          input.click()
+        }
+      }
+    })
   }
 }
 

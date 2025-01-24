@@ -388,14 +388,24 @@ defmodule Luminous.Components do
               />
             </svg>
           </div>
-          <button
-            phx-click={
-              JS.dispatch("clearSelection", detail: %{"list_id" => "#{@variable.id}-items-list"})
-            }
-            class="lmn-multi-variable-dropdown-search-clear"
-          >
-            Clear selection
-          </button>
+          <div class="flex justify-between mt-2 mx-2">
+            <button
+              phx-click={
+                JS.dispatch("clearSelection", detail: %{"list_id" => "#{@variable.id}-items-list"})
+              }
+              class="text-xs underline cursor-pointer"
+            >
+              Clear selection
+            </button>
+            <button
+              phx-click={
+                JS.dispatch("selectAll", detail: %{"list_id" => "#{@variable.id}-items-list"})
+              }
+              class="text-xs underline cursor-pointer"
+            >
+              Select all
+            </button>
+          </div>
         </div>
         <ul id={"#{@variable.id}-items-list"} class="flex flex-col max-h-96 overflow-auto mt-2">
           <li
