@@ -30,14 +30,14 @@ defmodule Luminous.Dev.DashboardLive do
 
     def variable(:region_var, _),
       do: [
-        "north",
-        "south",
-        "east",
-        "west",
-        "north west",
-        "south west",
-        "north east",
-        "south east"
+        %{label: "north (l)", value: "north"},
+        %{label: "south (l)", value: "south"},
+        %{label: "east (l)", value: "east"},
+        %{label: "west (l)", value: "west"},
+        %{label: "north west (l)", value: "north west"},
+        %{label: "south west (l)", value: "south west"},
+        %{label: "north east (l)", value: "north east"},
+        %{label: "south east (l)", value: "south east"}
       ]
 
     def variable(:region_var2, _), do: ["north2", "south2", "east2", "west2"]

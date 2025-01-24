@@ -168,19 +168,13 @@ defmodule Luminous.Variable do
   end
 
   def update_current(%{hidden: hidden} = var, new_values, _) when is_list(new_values) do
-    new_values = Enum.map(new_values, fn v -> %{value: v, label: v} end)
+    legitimate_values = Enum.filter(var.values, fn %{value: value} -> value in new_values end)
 
     new_values =
-      if hidden do
-        new_values
+      if !hidden and length(new_values) != length(legitimate_values) do
+        var.current
       else
-        legitimate_values = Enum.map(var.values, & &1.value)
-
-        if Enum.all?(new_values, &(&1.value in legitimate_values)) do
-          new_values
-        else
-          var.current
-        end
+        legitimate_values
       end
 
     %{var | current: new_values}
