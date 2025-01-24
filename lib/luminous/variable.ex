@@ -171,10 +171,14 @@ defmodule Luminous.Variable do
     legitimate_values = Enum.filter(var.values, fn %{value: value} -> value in new_values end)
 
     new_values =
-      if !hidden and length(new_values) != length(legitimate_values) do
-        var.current
+      if hidden do
+        Enum.map(new_values, fn v -> %{label: v, value: v} end)
       else
-        legitimate_values
+        if length(new_values) == length(legitimate_values) do
+          legitimate_values
+        else
+          var.current
+        end
       end
 
     %{var | current: new_values}
