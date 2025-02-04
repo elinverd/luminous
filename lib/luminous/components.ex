@@ -424,7 +424,9 @@ defmodule Luminous.Components do
                 class="lmn-multi-variable-dropdown-checkbox"
                 checked={value in Variable.extract_value(@variable.current)}
               />
-              <span class="select-none"><%= label %></span>
+              <span class="select-none break-all md:break-normal w-60 md:w-full">
+                <%= label %>
+              </span>
             </label>
           </li>
         </ul>

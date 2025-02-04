@@ -1940,10 +1940,6 @@ video {
   display: grid;
 }
 
-.\!hidden {
-  display: none !important;
-}
-
 .hidden {
   display: none;
 }
@@ -1970,6 +1966,10 @@ video {
 
 .w-6 {
   width: 1.5rem;
+}
+
+.w-60 {
+  width: 15rem;
 }
 
 .w-8 {
@@ -2111,6 +2111,10 @@ video {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.break-all {
+  word-break: break-all;
 }
 
 .bg-white {
@@ -3578,6 +3582,10 @@ body.tabulator-print-fullscreen-hide>:not(.tabulator-print-fullscreen){
     margin-right: 2rem;
   }
 
+  .md\:w-full {
+    width: 100%;
+  }
+
   .md\:flex-row {
     flex-direction: row;
   }
@@ -3586,6 +3594,11 @@ body.tabulator-print-fullscreen-hide>:not(.tabulator-print-fullscreen){
     --tw-space-x-reverse: 0;
     margin-right: calc(0.5rem * var(--tw-space-x-reverse));
     margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+
+  .md\:break-normal {
+    overflow-wrap: normal;
+    word-break: normal;
   }
 
   .md\:px-4 {
