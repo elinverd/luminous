@@ -10,9 +10,14 @@ defmodule Luminous.Components do
   @doc """
   This component is responsible for setting up various dashboard prerequisites
   """
+  attr :nonce, :string,
+    required: false,
+    default: nil,
+    doc: "CSP nonce to be included as a script tag attribute if present"
+
   def setup(assigns) do
     ~H"""
-    <script>
+    <script nonce={@nonce}>
       window.addEventListener(`phx:panel:load:start`, (e) => {
         let el = document.getElementById(e.detail.id+"-loading")
         if(el) {
@@ -40,9 +45,14 @@ defmodule Luminous.Components do
   """
   attr :dashboard, :map, required: true
 
+  attr :nonce, :string,
+    required: false,
+    default: nil,
+    doc: "CSP nonce to be included as a script tag attribute if present"
+
   def dashboard(assigns) do
     ~H"""
-    <.setup />
+    <.setup nonce={@nonce} />
     <div class="relative mx-4 md:mx-8 lg:mx-auto max-w-screen-lg">
       <div class="py-4 z-10 flex flex-col space-y-4 sticky top-0 backdrop-blur-sm backdrop-grayscale opacity-100 ">
         <div class="pb-4 text-4xl text-center"><%= @dashboard.title %></div>
